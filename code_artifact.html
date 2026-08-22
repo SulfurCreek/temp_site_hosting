@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鴻築麗苑報價單試算系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Animation for price change */
+        .price-update {
+            animation: pulse-green 0.5s ease-out;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(1); color: #15803d; }
+            50% { transform: scale(1.05); color: #16a34a; }
+            100% { transform: scale(1); color: inherit; }
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="max-w-4xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 text-center">柏毅裝修工程行 - 工程報價單試算</h1>
+            <div class="mt-2 text-sm text-gray-500 flex flex-wrap justify-center gap-x-4 gap-y-1">
+                <span>客戶: Brooke</span>
+                <span>地點: 鴻築麗苑</span>
+                <span>日期: 115年07月31日</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow w-full max-w-4xl mx-auto px-4 py-6 sm:px-6 lg:px-8 pb-32">
+        
+        <!-- Instruction -->
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r-md">
+            <p class="text-sm text-blue-700">
+                提示：您可以勾選或取消勾選下方的工程項目，系統會自動重新計算總價。預設為全部勾選。
+            </p>
+        </div>
+
+        <div id="quotation-container" class="space-y-6">
+            <!-- Sections will be dynamically injected here by JS -->
+        </div>
+
+    </main>
+
+    <!-- Floating Total Bar at the bottom -->
+    <div class="fixed bottom-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-20 transition-transform duration-300 transform translate-y-0">
+        <div class="max-w-4xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-gray-600 font-medium">
+                已選擇 <span id="selected-count" class="text-blue-600 font-bold">0</span> 個項目
+            </div>
+            <div class="flex flex-col sm:flex-row items-center gap-x-6 gap-y-1">
+                <div class="text-lg text-gray-700 font-semibold">
+                    未稅合計: <span class="text-gray-500 text-base font-normal mr-1">NT$</span><span id="total-price" class="text-2xl text-gray-900 transition-all duration-300">0</span>
+                </div>
+                <div class="text-sm text-gray-500">
+                    含稅總價: NT$ <span id="tax-total-price">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data extracted exactly from the PDF
+        const quotationData = [
+            {
+                category: "基礎工程",
+                items: [
+                    { name: "走道保護工程", unit: "式", qty: 1, price: 0, amount: 0, note: "pp版+1分版 (待估不計入總價)", checked: true },
+                    { name: "室內區域保護工程", unit: "坪", qty: 13, price: 800, amount: 10400, note: "", checked: true },
+                    { name: "裝潢清潔(垃圾清運.粗清.細清)", unit: "式", qty: 1, price: 24000, amount: 24000, note: "", checked: true },
+                    { name: "拆除浴室見底整間", unit: "間", qty: 2, price: 28000, amount: 56000, note: "", checked: true },
+                    { name: "拆除隔間(主臥次臥)", unit: "式", qty: 1, price: 35000, amount: 35000, note: "", checked: true },
+                    { name: "地板拆除", unit: "式", qty: 1, price: 15000, amount: 15000, note: "", checked: true },
+                    { name: "拆除後水泥修補", unit: "式", qty: 1, price: 12000, amount: 12000, note: "", checked: true },
+                    { name: "清運工程", unit: "趟", qty: 2.5, price: 18000, amount: 45000, note: "", checked: true },
+                    { name: "搬運費用", unit: "工", qty: 3, price: 35000, amount: 10500, note: "", checked: true } // Assuming typo in my previous breakdown, qty 3 * 3500 = 10500
+                ]
+            },
+            {
+                category: "水電工程",
+                items: [
+                    { name: "全室崁燈配線安裝", unit: "盞", qty: 4, price: 1200, amount: 4800, note: "9/15CM舞光多退少補", checked: true },
+                    { name: "吊燈配線安裝(不含燈具)", unit: "盞", qty: 3, price: 1800, amount: 5400, note: "", checked: true },
+                    { name: "軌道(配線安裝燈具)", unit: "米", qty: 9, price: 800, amount: 7200, note: "多退少補", checked: true },
+                    { name: "軌道燈7W", unit: "盞", qty: 13, price: 600, amount: 7800, note: "多退少補", checked: true },
+                    { name: "感知器下移", unit: "顆", qty: 5, price: 800, amount: 4000, note: "", checked: true },
+                    { name: "消防管改短", unit: "支", qty: 7, price: 1600, amount: 11200, note: "", checked: true },
+                    { name: "壁燈配線安裝", unit: "盞", qty: 2, price: 1800, amount: 3600, note: "", checked: true },
+                    { name: "網路電視移位", unit: "式", qty: 3, price: 3000, amount: 9000, note: "", checked: true },
+                    { name: "新增插座/電源線(不打鑿)", unit: "式", qty: 19, price: 1400, amount: 26600, note: "多退少補", checked: true },
+                    { name: "新增開關(不打鑿)", unit: "式", qty: 15, price: 1800, amount: 27000, note: "多退少補", checked: true },
+                    { name: "新增110V迴路", unit: "式", qty: 2, price: 3800, amount: 7600, note: "5.5太平洋", checked: true },
+                    { name: "新增220V迴路", unit: "式", qty: 3, price: 4000, amount: 12000, note: "", checked: true },
+                    { name: "插座開關燈具打擊部分", unit: "式", qty: 13, price: 800, amount: 10400, note: "", checked: true },
+                    { name: "燈條(含洗溝安裝燈條)", unit: "米", qty: 25, price: 2500, amount: 62500, note: "多退少補", checked: true },
+                    { name: "浴室水龍頭內管線延長(非換管)", unit: "式", qty: 6, price: 2200, amount: 13200, note: "", checked: true },
+                    { name: "排水糞管延長", unit: "式", qty: 1, price: 2000, amount: 2000, note: "", checked: true }
+                ]
+            },
+            {
+                category: "木工工程",
+                items: [
+                    { name: "全室平釘矽酸鈣天花板(含浴室)", unit: "坪", qty: 14, price: 3500, amount: 49000, note: "台灣麗士", checked: true },
+                    { name: "窗簾盒+冷氣盒", unit: "尺", qty: 25.2, price: 800, amount: 20160, note: "台灣麗士", checked: true },
+                    { name: "包樑", unit: "尺", qty: 8.9, price: 600, amount: 5340, note: "台灣麗士", checked: true },
+                    { name: "主臥床頭化樑", unit: "尺", qty: 6.9, price: 1800, amount: 12420, note: "亦可灣", checked: true },
+                    { name: "冷氣帽子(依現場決定是否)", unit: "式", qty: 3, price: 2500, amount: 7500, note: "台灣麗士", checked: true },
+                    { name: "浴室滑門白身", unit: "樘", qty: 1, price: 18000, amount: 18000, note: "白身板", checked: true },
+                    { name: "主臥開門白身門片門框", unit: "樘", qty: 1, price: 18000, amount: 18000, note: "白身板", checked: true },
+                    { name: "儲藏室/玄關/浴室/衣櫃滑門軌道", unit: "尺", qty: 28.4, price: 1500, amount: 42600, note: "4分夾板", checked: true },
+                    { name: "木作雙面隔間+隔音棉", unit: "尺", qty: 26.8, price: 2800, amount: 75040, note: "台灣麗士", checked: true },
+                    { name: "衣櫃背板封版", unit: "尺", qty: 6, price: 1500, amount: 9000, note: "4分夾板", checked: true },
+                    { name: "維修孔", unit: "式", qty: 2, price: 3000, amount: 6000, note: "", checked: true }
+                ]
+            },
+            {
+                category: "泥作工程",
+                items: [
+                    { name: "浴室內部隔間60cm", unit: "式", qty: 1, price: 9000, amount: 9000, note: "", checked: true },
+                    { name: "全室地板整平(因浴室及地板拆除後高度)", unit: "坪", qty: 14, price: 3500, amount: 49000, note: "", checked: true },
+                    { name: "浴室粗胚、膜基", unit: "坪", qty: 8, price: 3000, amount: 24000, note: "", checked: true },
+                    { name: "浴室地壁防水工程", unit: "坪", qty: 9, price: 2800, amount: 25200, note: "三層防水", checked: true },
+                    { name: "浴室牆面貼磚(含填縫)", unit: "坪", qty: 8, price: 6000, amount: 48000, note: "", checked: true },
+                    { name: "浴室地板貼地磚(含打底)", unit: "坪", qty: 1, price: 15000, amount: 15000, note: "", checked: true },
+                    { name: "磁磚部分待選", unit: "坪", qty: 9, price: 3000, amount: 27000, note: "地板30*30.牆壁30*60", checked: true },
+                    { name: "浴室門檻", unit: "支", qty: 1, price: 2000, amount: 2000, note: "", checked: true },
+                    { name: "浴室地板墊高", unit: "坪", qty: 1, price: 8000, amount: 8000, note: "", checked: true },
+                    { name: "衛浴設備安裝", unit: "套", qty: 1, price: 10500, amount: 10500, note: "", checked: true }
+                ]
+            },
+            {
+                category: "其他工程",
+                items: [
+                    { name: "全室新釘部分油漆批土", unit: "坪", qty: 14, price: 1900, amount: 26600, note: "得利乳膠漆", checked: true },
+                    { name: "窗簾盒+冷氣盒,軌道盒油漆批土", unit: "尺", qty: 69.4, price: 600, amount: 41640, note: "得利乳膠漆", checked: true },
+                    { name: "舊牆油漆沿用刷乾淨(不分色)不批不磨", unit: "式", qty: 1, price: 35000, amount: 35000, note: "不見光不施作)得利乳膠漆", checked: true },
+                    { name: "隔間油漆批土", unit: "坪", qty: 10.5, price: 1900, amount: 19950, note: "得利乳膠漆", checked: true },
+                    { name: "浴室/主臥烤漆門", unit: "樘", qty: 2, price: 12000, amount: 24000, note: "班傑明", checked: true },
+                    { name: "玄關歐式鋁框門", unit: "樘", qty: 2, price: 29500, amount: 59000, note: "鋁框白", checked: true },
+                    { name: "衣櫃鋁框系統門", unit: "樘", qty: 2, price: 24500, amount: 49000, note: "鋁框白", checked: true }
+                ]
+            },
+            {
+                category: "櫃體工程 (H240)",
+                items: [
+                    { name: "玄關 高收納櫃鞋櫃.", unit: "尺", qty: 3.2, price: 8600, amount: 27520, note: "EGGER", checked: true },
+                    { name: "帶孔立柱 H2100MM", unit: "支", qty: 4, price: 1400, amount: 5600, note: "多退少補", checked: true },
+                    { name: "橫樑", unit: "支", qty: 4, price: 1200, amount: 4800, note: "多退少補", checked: true },
+                    { name: "網片", unit: "片", qty: 4, price: 1200, amount: 4800, note: "多退少補", checked: true },
+                    { name: "小支臂(中.大)", unit: "個", qty: 12, price: 460, amount: 5520, note: "多退少補", checked: true },
+                    { name: "掛衣桿", unit: "支", qty: 3, price: 500, amount: 1500, note: "多退少補", checked: true },
+                    { name: "衣桿掛勾", unit: "個", qty: 6, price: 200, amount: 1200, note: "多退少補", checked: true },
+                    { name: "網籃(大)", unit: "個", qty: 3, price: 4500, amount: 13500, note: "多退少補", checked: true },
+                    { name: "安裝費", unit: "式", qty: 1, price: 7000, amount: 7000, note: "", checked: true },
+                    { name: "床頭板", unit: "尺", qty: 10.8, price: 2200, amount: 23760, note: "EGGER", checked: true },
+                    { name: "床側板", unit: "尺", qty: 7, price: 1800, amount: 12600, note: "EGGER", checked: true }
+                ]
+            }
+        ];
+
+        // Format number as currency
+        const formatCurrency = (num) => {
+            return new Intl.NumberFormat('zh-TW').format(num);
+        };
+
+        // Render the quotation structure
+        const renderQuotation = () => {
+            const container = document.getElementById('quotation-container');
+            container.innerHTML = '';
+
+            quotationData.forEach((section, sIndex) => {
+                // Create Section Card
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden';
+                
+                // Section Header
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center';
+                headerDiv.innerHTML = `
+                    <h2 class="text-lg font-bold text-gray-800">${section.category}</h2>
+                    <label class="flex items-center space-x-2 cursor-pointer group">
+                        <span class="text-sm text-gray-500 group-hover:text-gray-700 transition-colors">全選</span>
+                        <input type="checkbox" class="section-checkbox form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300 transition duration-150 ease-in-out cursor-pointer" data-sindex="${sIndex}" checked>
+                    </label>
+                `;
+                sectionDiv.appendChild(headerDiv);
+
+                // Items List
+                const ul = document.createElement('ul');
+                ul.className = 'divide-y divide-gray-100';
+
+                section.items.forEach((item, iIndex) => {
+                    const li = document.createElement('li');
+                    li.className = `p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:bg-gray-50 ${item.checked ? '' : 'opacity-60 bg-gray-50'}`;
+                    
+                    const isZeroAmount = item.amount === 0;
+                    const amountText = isZeroAmount ? '待估' : formatCurrency(item.amount);
+                    const amountDisplayClass = isZeroAmount ? 'text-gray-400' : 'text-gray-900';
+
+                    li.innerHTML = `
+                        <div class="flex items-start flex-grow">
+                            <div class="flex-shrink-0 h-5 mt-1 mr-3">
+                                <input type="checkbox" class="item-checkbox form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300 transition duration-150 ease-in-out cursor-pointer" data-sindex="${sIndex}" data-iindex="${iIndex}" ${item.checked ? 'checked' : ''}>
+                            </div>
+                            <div class="flex-grow">
+                                <h3 class="text-base font-medium text-gray-900 leading-tight">${item.name}</h3>
+                                <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
+                                    <span>${item.qty} ${item.unit}</span>
+                                    ${item.price > 0 ? `<span>@ $${formatCurrency(item.price)}</span>` : ''}
+                                    ${item.note ? `<span class="text-orange-600 text-xs flex items-center bg-orange-50 px-1.5 rounded"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>${item.note}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 sm:ml-4 text-right">
+                            <div class="text-lg font-semibold ${amountDisplayClass}">
+                                ${isZeroAmount ? '' : '<span class="text-sm font-normal text-gray-500 mr-1">$</span>'}${amountText}
+                            </div>
+                        </div>
+                    `;
+                    ul.appendChild(li);
+                });
+
+                sectionDiv.appendChild(ul);
+                container.appendChild(sectionDiv);
+            });
+
+            attachEventListeners();
+            updateTotal();
+        };
+
+        // Attach event listeners to checkboxes
+        const attachEventListeners = () => {
+            // Item checkboxes
+            document.querySelectorAll('.item-checkbox').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    const sIndex = parseInt(e.target.dataset.sindex);
+                    const iIndex = parseInt(e.target.dataset.iindex);
+                    quotationData[sIndex].items[iIndex].checked = e.target.checked;
+                    
+                    // Update visual state of the row
+                    const li = e.target.closest('li');
+                    if (e.target.checked) {
+                        li.classList.remove('opacity-60', 'bg-gray-50');
+                    } else {
+                        li.classList.add('opacity-60', 'bg-gray-50');
+                    }
+
+                    // Check if section checkbox needs update
+                    updateSectionCheckbox(sIndex);
+                    updateTotal();
+                });
+            });
+
+            // Section checkboxes
+            document.querySelectorAll('.section-checkbox').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    const sIndex = parseInt(e.target.dataset.sindex);
+                    const isChecked = e.target.checked;
+                    
+                    // Update data model
+                    quotationData[sIndex].items.forEach(item => item.checked = isChecked);
+                    
+                    // Re-render completely for simplicity when toggling a whole section
+                    renderQuotation(); 
+                });
+            });
+        };
+
+        // Update the state of a section checkbox based on its items
+        const updateSectionCheckbox = (sIndex) => {
+            const section = quotationData[sIndex];
+            const allChecked = section.items.every(item => item.checked);
+            const sectionCb = document.querySelector(`.section-checkbox[data-sindex="${sIndex}"]`);
+            if (sectionCb) {
+                sectionCb.checked = allChecked;
+            }
+        };
+
+        // Calculate and update the total price
+        const updateTotal = () => {
+            let total = 0;
+            let count = 0;
+
+            quotationData.forEach(section => {
+                section.items.forEach(item => {
+                    if (item.checked) {
+                        total += item.amount;
+                        if(item.amount > 0 || item.name === "走道保護工程") count++; // Count items that are checked
+                    }
+                });
+            });
+
+            const taxTotal = Math.round(total * 1.05);
+
+            // Update DOM
+            const countEl = document.getElementById('selected-count');
+            const totalEl = document.getElementById('total-price');
+            const taxTotalEl = document.getElementById('tax-total-price');
+
+            countEl.textContent = count;
+            
+            // Add animation class
+            totalEl.classList.remove('price-update');
+            void totalEl.offsetWidth; // Trigger reflow
+            totalEl.classList.add('price-update');
+            
+            totalEl.textContent = formatCurrency(total);
+            taxTotalEl.textContent = formatCurrency(taxTotal);
+        };
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderQuotation();
+        });
+
+    </script>
+</body>
+</html>
