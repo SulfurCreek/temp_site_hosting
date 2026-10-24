@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="sans-serif">
+  <!-- 範例「靈感 / 實景參考圖」：暖米色牆、橡木地板、灰藍沙發、赭色單椅 -->
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9dfd0"/><stop offset="1" stop-color="#dccfbb"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8a478"/><stop offset="1" stop-color="#b58e62"/></linearGradient>
+    <linearGradient id="win" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6fbff"/><stop offset="1" stop-color="#cfe6f5"/></linearGradient>
+  </defs>
+  <rect width="1280" height="520" fill="url(#wall)"/>
+  <rect y="520" width="1280" height="280" fill="url(#floor)"/>
+  <g stroke="#a9825a" stroke-width="2" opacity=".55"><path d="M0 580H1280M0 650H1280M0 730H1280"/></g>
+  <rect y="505" width="1280" height="16" fill="#f3ede2"/>
+  <!-- 窗 -->
+  <rect x="820" y="110" width="330" height="290" fill="#8a7a66"/>
+  <rect x="832" y="122" width="306" height="266" fill="url(#win)"/>
+  <path d="M985 122V388M832 255H1138" stroke="#8a7a66" stroke-width="8"/>
+  <!-- 掛畫 -->
+  <rect x="240" y="150" width="190" height="240" fill="#f7f3ea" stroke="#3b2f2a" stroke-width="10"/>
+  <circle cx="335" cy="250" r="52" fill="#d08a62"/><rect x="270" y="310" width="130" height="40" fill="#8e9bab"/>
+  <!-- 地毯 -->
+  <ellipse cx="560" cy="650" rx="430" ry="95" fill="#dcd3c3"/>
+  <!-- 沙發 -->
+  <rect x="210" y="400" width="640" height="190" rx="24" fill="#8e9bab"/>
+  <rect x="190" y="450" width="70" height="160" rx="22" fill="#7c8998"/>
+  <rect x="800" y="450" width="70" height="160" rx="22" fill="#7c8998"/>
+  <rect x="270" y="480" width="520" height="90" rx="14" fill="#9aa7b6"/>
+  <rect x="300" y="430" width="120" height="90" rx="14" fill="#d8b98a" transform="rotate(-8 360 475)"/>
+  <rect x="660" y="430" width="120" height="90" rx="14" fill="#6f8f7f" transform="rotate(8 720 475)"/>
+  <path d="M230 600v28M830 600v28" stroke="#3b2f2a" stroke-width="12" stroke-linecap="round"/>
+  <!-- 單椅 -->
+  <rect x="930" y="470" width="190" height="140" rx="26" fill="#c98f6b"/>
+  <rect x="945" y="400" width="160" height="110" rx="24" fill="#b87d5a"/>
+  <path d="M950 610v30M1100 610v30" stroke="#3b2f2a" stroke-width="10" stroke-linecap="round"/>
+  <!-- 茶几 -->
+  <rect x="420" y="640" width="260" height="22" rx="4" fill="#6b4a33"/>
+  <path d="M440 662v40M660 662v40" stroke="#2b2b2b" stroke-width="8"/>
+  <!-- 綠植 -->
+  <rect x="1170" y="540" width="46" height="70" rx="8" fill="#f1ece2"/>
+  <g fill="#5d8a5a"><ellipse cx="1193" cy="500" rx="22" ry="52"/><ellipse cx="1165" cy="520" rx="16" ry="42" transform="rotate(-25 1165 520)"/><ellipse cx="1222" cy="520" rx="16" ry="42" transform="rotate(25 1222 520)"/></g>
+</svg>

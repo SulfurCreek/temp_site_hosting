@@ -1,0 +1,178 @@
+/**
+ * 全專案共用型別。座標系：1 單位 = 1 公尺，Y 向上，地面為 XZ 平面，
+ * +X = 東、-Z = 北（俯視圖上方）。詳見 CLAUDE.md。
+ */
+
+export type Vec2 = [number, number]
+export type Vec3 = [number, number, number]
+
+/** PBR 材質描述。顏色/粗糙度/金屬度必填，貼圖欄位選填。 */
+export interface MaterialSpec {
+  /** Hex 色碼，例如 "#e8e2d6"。有貼圖時作為色彩乘數（tint）。 */
+  color: string
+  /** 0 = 鏡面 … 1 = 完全粗糙。油漆：平光 0.95 / 蛋殼 0.6 / 亮光 0.25 */
+  roughness: number
+  /** 0 = 非金屬 … 1 = 金屬 */
+  metalness: number
+  /** 貼圖 URL（/inputs/... 或 data URL）。 */
+  map?: string
+  /** 每公尺重複幾次貼圖（Repeat Scale）。UV 以實際公尺計算，所以不同尺寸的物件紋理比例一致。 */
+  repeat?: number
+  /** 0–1，預設 1 */
+  opacity?: number
+}
+
+export interface Opening {
+  id: string
+  type: 'door' | 'window'
+  /** 開口中心距離牆「起點」的公尺數 */
+  at: number
+  width: number
+  height: number
+  /** 開口下緣離地高度（門 = 0） */
+  sill: number
+}
+
+export interface Wall {
+  id: string
+  name: string
+  /** 牆中心線起點 [x, z] */
+  start: Vec2
+  /** 牆中心線終點 [x, z] */
+  end: Vec2
+  height: number
+  thickness: number
+  /** 外牆才會參與「智慧破牆」 */
+  exterior: boolean
+  material: MaterialSpec
+  openings: Opening[]
+}
+
+export interface Floor {
+  /** 地板中心 [x, z] */
+  center: Vec2
+  /** [寬(X), 深(Z)] */
+  size: Vec2
+  material: MaterialSpec
+}
+
+/** 平面施工圖描圖層 */
+export interface Blueprint {
+  url: string
+  name?: string
+  /** 圖片「實際寬度」（公尺）。高度由圖片長寬比推算。 */
+  widthMeters: number
+  /** 0–1 */
+  opacity: number
+  /** 圖片中心 [x, z] */
+  offset: Vec2
+  /** 度，繞 Y 軸 */
+  rotation: number
+  visible: boolean
+  /** under = 位於地板下方（地板會自動半透明）；overlay = 疊在地板上方 */
+  placement: 'under' | 'overlay'
+}
+
+export interface ReferenceImage {
+  id: string
+  name: string
+  url: string
+}
+
+export type FurnitureMode = 'glb' | 'parametric' | 'billboard'
+export type FaceName = 'front' | 'back' | 'left' | 'right' | 'top'
+export type ParametricKind = 'box' | 'table' | 'sofa' | 'cabinet' | 'chair' | 'bed' | 'rug'
+
+/** 把商品照貼在家具指定表面（模式 B） */
+export interface Decal {
+  face: FaceName
+  url: string
+  /** cover = 填滿裁切；contain = 完整顯示；stretch = 拉伸 */
+  fit?: 'cover' | 'contain' | 'stretch'
+}
+
+export interface CatalogItem {
+  id: string
+  name: string
+  category: 'living' | 'dining' | 'bedroom' | 'storage' | 'decor' | 'custom'
+  mode: FurnitureMode
+  /** 預設尺寸 [寬X, 高Y, 深Z]，公尺 */
+  size: Vec3
+  /** 目錄縮圖（選填） */
+  thumbnail?: string
+  /** 模式 A */
+  glb?: { url: string; fit?: 'stretch' | 'contain' }
+  /** 模式 B */
+  parametric?: {
+    kind: ParametricKind
+    /** 櫃體門片數（cabinet）或座位數（sofa）等 */
+    count?: number
+    /** main = 主體；secondary = 次要（椅墊/桌腳…）；accent = 點綴（把手/抱枕…） */
+    materials: { main: MaterialSpec; secondary?: MaterialSpec; accent?: MaterialSpec }
+    decals?: Decal[]
+  }
+  /** 模式 C */
+  billboard?: {
+    image: string
+    /** 立牌薄片的厚度，公尺 */
+    thickness?: number
+  }
+}
+
+export interface FurnitureInstance {
+  id: string
+  catalogId: string
+  name: string
+  /** 底部中心 [x, y, z]，y 為離地高度 */
+  position: Vec3
+  /** 度，繞 Y 軸 */
+  rotationY: number
+  /** [寬, 高, 深]，公尺 */
+  size: Vec3
+  /** 覆寫目錄材質（parametric 用） */
+  materials?: { main?: MaterialSpec; secondary?: MaterialSpec; accent?: MaterialSpec }
+  decals?: Decal[]
+  /** billboard 專用：持續朝向鏡頭 */
+  faceCamera?: boolean
+  locked?: boolean
+}
+
+export interface Layout {
+  version: 1
+  /**
+   * 預設格局修訂號。修改 defaultLayout.json 時請遞增，
+   * 瀏覽器內舊版自動儲存（rev 較低）會被新版預設取代（可 Ctrl+Z 找回）。
+   */
+  rev?: number
+  name: string
+  floor: Floor
+  walls: Wall[]
+  furniture: FurnitureInstance[]
+  blueprint: Blueprint | null
+  references: ReferenceImage[]
+  /** 使用者在 UI 內新增的自訂商品（與 catalog.json 合併） */
+  customCatalog: CatalogItem[]
+}
+
+export type Selection =
+  | { type: 'wall'; id: string }
+  | { type: 'floor' }
+  | { type: 'furniture'; id: string }
+  | null
+
+export type Projection = 'ortho' | 'persp'
+export type CutawayMode = 'lower' | 'ghost' | 'off'
+export type ToolMode = 'drag' | 'move' | 'rotate'
+export type Kelvin = 3000 | 4000 | 6000
+export type ViewPreset = 'SE' | 'SW' | 'NE' | 'NW' | 'TOP'
+
+export interface Settings {
+  projection: Projection
+  cutaway: CutawayMode
+  kelvin: Kelvin
+  /** 吸附格距（公尺），0 = 關閉 */
+  snap: number
+  tool: ToolMode
+  showGrid: boolean
+  showHud: boolean
+}
