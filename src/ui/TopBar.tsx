@@ -11,6 +11,7 @@ import {
   Trash,
   Upload,
   X,
+  Zap,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { VIEW_PRESETS } from '../scene/CameraRig'
@@ -136,6 +137,24 @@ export function SnapSelect() {
   )
 }
 
+export function MepToggle({ label = true }: { label?: boolean }) {
+  const on = useLayout((s) => s.settings.showMep)
+  const set = useLayout((s) => s.setSettings)
+  return (
+    <button
+      title="顯示水電 / 燈具（MEP View）"
+      onClick={() => set({ showMep: !on })}
+      className={cx(
+        'flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-xs font-medium transition-colors',
+        on ? 'bg-amber-400 text-slate-900' : 'border border-white/10 bg-slate-800/60 text-slate-200 hover:bg-white/10',
+      )}
+    >
+      <Zap size={15} />
+      {label && 'MEP'}
+    </button>
+  )
+}
+
 export function HistoryButtons() {
   const undo = useLayout((s) => s.undo)
   const redo = useLayout((s) => s.redo)
@@ -216,6 +235,8 @@ export function DesktopTopBar() {
         <Divider />
         <ToolToggle />
         <SnapSelect />
+        <Divider />
+        <MepToggle />
       </div>
       <div className="flex items-center gap-0.5">
         <HistoryButtons />
@@ -260,6 +281,7 @@ export function MobileTopBar() {
             <span className="h-3 w-3 rounded-full border border-black/20" style={{ background: dot }} />
             {kelvin / 1000}K
           </button>
+          <MepToggle label={false} />
           <HistoryButtons />
           <IconBtn title="更多設定" onClick={() => setMore(true)} className="rounded-full">
             <SlidersHorizontal size={17} />
@@ -306,6 +328,7 @@ function MoreSheet({ onClose }: { onClose: () => void }) {
         <Row label="吸附格距">
           <SnapSelect />
         </Row>
+        <Toggle label="顯示水電 / 燈具（MEP）" checked={s.showMep} onChange={(v) => set({ showMep: v })} />
         <Toggle label="顯示格線" checked={s.showGrid} onChange={(v) => set({ showGrid: v })} />
         <Toggle label="顯示操作提示" checked={s.showHud} onChange={(v) => set({ showHud: v })} />
         <Row label="專案檔">

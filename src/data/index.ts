@@ -1,8 +1,12 @@
 import catalogJson from './catalog.json'
 import layoutJson from './defaultLayout.json'
-import type { CatalogItem, Layout } from '../types'
+import materialsJson from './materials.json'
+import mepJson from './mep.json'
+import type { CatalogItem, Layout, MaterialLibItem, MepItem } from '../types'
 
 export const BASE_CATALOG = catalogJson as unknown as CatalogItem[]
+export const MATERIAL_LIB = materialsJson as unknown as MaterialLibItem[]
+export const MEP_ITEMS = mepJson as unknown as MepItem[]
 export const DEFAULT_LAYOUT = layoutJson as unknown as Layout
 
 export const CATEGORY_LABEL: Record<CatalogItem['category'], string> = {

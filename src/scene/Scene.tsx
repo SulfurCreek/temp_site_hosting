@@ -4,9 +4,10 @@ import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 import { BlueprintPlane, CalibrationLayer } from './Blueprint'
 import { CameraRig } from './CameraRig'
-import { Floor, Ground } from './Floor'
+import { Floor, FloorZones, Ground } from './Floor'
 import { FurnitureLayer } from './Furniture'
 import { Gizmo } from './Gizmo'
+import { MepLayer } from './Mep'
 import { Lighting } from './Lighting'
 import { Walls } from './Walls'
 
@@ -55,10 +56,12 @@ export function Scene() {
         <Ground />
         <BlueprintPlane />
         <Floor />
+        <FloorZones />
         <Walls />
         <FurnitureLayer />
         <GridLines />
         <Gizmo />
+        <MepLayer />
         <CalibrationLayer />
       </Suspense>
     </Canvas>

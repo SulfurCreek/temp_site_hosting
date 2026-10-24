@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import type { FloorZone } from '../types'
 import { useMetricFloor } from '../lib/geometry'
 import { usePBRMaterial } from '../lib/materials'
 import { useLayout } from '../store/layoutStore'
@@ -33,6 +34,30 @@ export function Floor() {
       }}
     />
   )
+}
+
+function ZoneView({ zone }: { zone: FloorZone }) {
+  const mat = usePBRMaterial(zone.material)
+  const geo = useMetricFloor(zone.size[0], zone.size[1])
+  return (
+    <mesh
+      geometry={geo}
+      material={mat}
+      position={[zone.center[0], 0.002, zone.center[1]]}
+      receiveShadow
+      onClick={(e) => {
+        if (useUi.getState().calib.active) return
+        e.stopPropagation()
+        useUi.getState().select({ type: 'floor' })
+      }}
+    />
+  )
+}
+
+/** 玄關落塵區、浴室、陽台等分區地板 */
+export function FloorZones() {
+  const zones = useLayout((s) => s.layout.floorZones)
+  return <>{zones?.map((z) => <ZoneView key={z.id} zone={z} />)}</>
 }
 
 /** 房間以外的地面（淡色），讓地板透明時不至於露出背景 */

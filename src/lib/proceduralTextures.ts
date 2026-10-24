@@ -5,11 +5,14 @@
 
 export const BUILTIN_TEXTURES = [
   { id: 'builtin:oak', label: '橡木地板' },
+  { id: 'builtin:oak-light', label: '淺橡木' },
   { id: 'builtin:walnut', label: '胡桃木' },
   { id: 'builtin:tile', label: '白色方磚' },
+  { id: 'builtin:tile-gray', label: '灰階地磚' },
   { id: 'builtin:concrete', label: '清水模' },
   { id: 'builtin:fabric', label: '織布' },
   { id: 'builtin:marble', label: '大理石' },
+  { id: 'builtin:encaustic', label: '八角花磚' },
 ] as const
 
 /** 可重現的偽亂數，讓每次生成的貼圖一致 */
@@ -89,6 +92,27 @@ function tile() {
   return cv
 }
 
+function tileGray() {
+  const cv = document.createElement('canvas')
+  cv.width = cv.height = SIZE
+  const g = cv.getContext('2d')!
+  const r = rng(17)
+  const n = 2
+  const s = SIZE / n
+  g.fillStyle = '#8f8f8c'
+  g.fillRect(0, 0, SIZE, SIZE)
+  for (let i = 0; i < n; i++)
+    for (let j = 0; j < n; j++) {
+      g.fillStyle = shade('#b4b4b0', 0.94 + r() * 0.1)
+      g.fillRect(i * s + 3, j * s + 3, s - 6, s - 6)
+      for (let k = 0; k < 400; k++) {
+        g.fillStyle = `rgba(${r() > 0.5 ? '0,0,0' : '255,255,255'},${r() * 0.06})`
+        g.fillRect(i * s + r() * s, j * s + r() * s, 2, 2)
+      }
+    }
+  return cv
+}
+
 function noise(base: string, seed: number, grain: number, blotch: number) {
   const cv = document.createElement('canvas')
   cv.width = cv.height = SIZE
@@ -154,13 +178,62 @@ function marble() {
   return cv
 }
 
+/** 米白八角花磚 + 橘紅小方塊（玄關參考照右版）。每 50 cm 一格，1 m 內 2×2 */
+function encaustic() {
+  const cv = document.createElement('canvas')
+  cv.width = cv.height = SIZE
+  const g = cv.getContext('2d')!
+  const n = 2
+  const s = SIZE / n
+  g.fillStyle = '#ece6d8'
+  g.fillRect(0, 0, SIZE, SIZE)
+  // 八角形輪廓線
+  g.strokeStyle = '#cfc7b4'
+  g.lineWidth = 2.5
+  const c = s * 0.29
+  for (let i = 0; i < n; i++)
+    for (let j = 0; j < n; j++) {
+      const x = i * s
+      const y = j * s
+      g.beginPath()
+      g.moveTo(x + c, y)
+      g.lineTo(x + s - c, y)
+      g.lineTo(x + s, y + c)
+      g.lineTo(x + s, y + s - c)
+      g.lineTo(x + s - c, y + s)
+      g.lineTo(x + c, y + s)
+      g.lineTo(x, y + s - c)
+      g.lineTo(x, y + c)
+      g.closePath()
+      g.stroke()
+    }
+  // 橘紅小方塊：格心（正）與格角（菱形，跨磚拼合）
+  g.fillStyle = '#c4532f'
+  const q = s * 0.1
+  for (let i = 0; i < n; i++)
+    for (let j = 0; j < n; j++) {
+      g.fillRect(i * s + s / 2 - q, j * s + s / 2 - q, q * 2, q * 2)
+      for (const [ox, oy] of [[0, 0], [s, 0], [0, s], [s, s]] as const) {
+        g.save()
+        g.translate((i * s + ox + SIZE) % SIZE, (j * s + oy + SIZE) % SIZE)
+        g.rotate(Math.PI / 4)
+        g.fillRect(-q * 0.7, -q * 0.7, q * 1.4, q * 1.4)
+        g.restore()
+      }
+    }
+  return cv
+}
+
 const makers: Record<string, () => HTMLCanvasElement> = {
   'builtin:oak': () => wood('#c9a171', 5, 3),
+  'builtin:oak-light': () => wood('#dcc8a6', 5, 5),
   'builtin:walnut': () => wood('#6b4a33', 4, 9),
+  'builtin:tile-gray': () => tileGray(),
   'builtin:tile': tile,
   'builtin:concrete': () => noise('#b4b4b0', 13, 9000, 60),
   'builtin:fabric': fabric,
   'builtin:marble': marble,
+  'builtin:encaustic': encaustic,
 }
 
 const cache = new Map<string, HTMLCanvasElement>()

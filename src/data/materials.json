@@ -1,0 +1,90 @@
+[
+  {
+    "id": "ED-KS81555",
+    "name": "超耐磨木地板 ED-KS81555（溫潤淺橡）",
+    "brand": "超耐磨",
+    "code": "ED-KS81555",
+    "note": "全室木地板；圖面另有 ED-KS83555 為廚房檯面石材標示。實景照（往陽台看）地板呈偏灰淺木紋，比內建淺橡略冷，可在材質面板降低色彩飽和度微調",
+    "spec": {
+      "color": "#ffffff",
+      "roughness": 0.55,
+      "metalness": 0,
+      "map": "builtin:oak-light",
+      "repeat": 1
+    }
+  },
+  {
+    "id": "CW025501",
+    "name": "玄關落塵區地磚 CW025501-25504（灰階）",
+    "brand": "",
+    "code": "CW025501-25504",
+    "note": "施工圖指定；實景參考改選右版花磚（見 ENCAUSTIC-REF）",
+    "spec": {
+      "color": "#ffffff",
+      "roughness": 0.45,
+      "metalness": 0,
+      "map": "builtin:tile-gray",
+      "repeat": 1
+    }
+  },
+  {
+    "id": "ENCAUSTIC-REF",
+    "name": "玄關花磚（實景參考右版：米白八角 + 橘紅小方塊）",
+    "note": "2026/10 使用者選定右版；目視估色",
+    "spec": {
+      "color": "#ffffff",
+      "roughness": 0.42,
+      "metalness": 0,
+      "map": "builtin:encaustic",
+      "repeat": 1
+    }
+  },
+  {
+    "id": "DULUX-LILY",
+    "name": "得利乳膠漆「百合白」",
+    "brand": "Dulux 得利",
+    "code": "百合白",
+    "note": "蛋殼光 roughness 0.65",
+    "spec": {
+      "color": "#F7F5F0",
+      "roughness": 0.65,
+      "metalness": 0
+    }
+  },
+  {
+    "id": "EGGER-W1000-ST19",
+    "name": "EGGER W1000 ST19 至尊消光白",
+    "brand": "EGGER",
+    "code": "W1000 ST19",
+    "note": "系統櫃外觀板材；消光",
+    "spec": {
+      "color": "#f1f0ec",
+      "roughness": 0.8,
+      "metalness": 0
+    }
+  },
+  {
+    "id": "EGGER-U708-ST9",
+    "name": "EGGER U708 ST9 淺灰（花崗岩灰）",
+    "brand": "EGGER",
+    "code": "U708 ST9",
+    "note": "玄關鞋櫃內部層板",
+    "spec": {
+      "color": "#c3c3c1",
+      "roughness": 0.85,
+      "metalness": 0
+    }
+  },
+  {
+    "id": "EGGER-U727-ST9",
+    "name": "EGGER U727 ST9 石頭灰",
+    "brand": "EGGER",
+    "code": "U727 ST9",
+    "note": "儲藏室/延伸櫃內部層板",
+    "spec": {
+      "color": "#a8a6a1",
+      "roughness": 0.85,
+      "metalness": 0
+    }
+  }
+]

@@ -291,6 +291,27 @@ export function BlueprintPanel() {
       />
       <UploadButton label="上傳平面施工圖" maxSize={2600} onUrl={(url, f) => set({ url, name: f.name, visible: true })} />
 
+      {bp?.layers && bp.layers.length > 0 && (
+        <Field label="施工圖圖層切換">
+          <div className="grid grid-cols-2 gap-1.5">
+            {bp.layers.map((l) => {
+              const on = (bp.layerId ?? bp.layers![0].id) === l.id
+              return (
+                <button
+                  key={l.id}
+                  onClick={() => set({ layerId: l.id, visible: true })}
+                  className={cx(
+                    'rounded-md border px-2 py-1.5 text-xs font-medium',
+                    on ? 'border-sky-400 bg-sky-500 text-white' : 'border-white/10 bg-slate-800/70 text-slate-200 hover:bg-slate-700',
+                  )}
+                >
+                  {l.name}
+                </button>
+              )
+            })}
+          </div>
+        </Field>
+      )}
       {bp ? (
         <div className="space-y-3 border-t border-white/10 pt-3">
           <div className="flex items-center justify-between gap-2">

@@ -53,7 +53,7 @@ export function CameraRig() {
       target: new THREE.Vector3(floorCenter[0], 0, floorCenter[1]),
       azimuth: VIEW_PRESETS.SE.azimuth,
       polar: ISO_POLAR,
-      viewSize: Math.max(9, need / Math.max(size.width / Math.max(size.height, 1), 0.2)),
+      viewSize: Math.max(9, (fs[0] + fs[1]) * 0.62 + 3.5, need / Math.max(size.width / Math.max(size.height, 1), 0.2)),
     }
   }
   const anim = useRef<{ preset: ViewPreset; azimuth: number; polar: number } | null>(null)

@@ -8,6 +8,8 @@ Vite + React 19 + TypeScript + Tailwind v4 + Three.js（`@react-three/fiber` / `
 > **當使用者提供平面施工圖、實景照片或商品照片時，Claude 必須自動使用視覺能力讀取圖片，計算比例或提取色彩/材質特徵，並直接更新 `src/data/defaultLayout.json` 或 `src/data/catalog.json`。**
 > 不要只回覆文字描述，也不要請使用者手動輸入數字——先讀圖、算出數值、改檔，再告訴使用者改了什麼、哪些是估計值。
 
+**快速入口：`/update-room [檔案路徑...]`**（`.claude/commands/update-room.md`）會自動掃描輸入、依類型解析、做 Diff 式更新、跑 build 並回報；使用者丟新圖時優先用它的流程。
+
 使用者通常會把圖片丟到 `public/inputs/` 下，或直接貼在對話裡。處理流程見下方〈視覺輸入處理手冊〉。
 修改 `defaultLayout.json` 後**必須把 `rev` 加 1**（見〈資料檔注意事項〉），並執行 `npm run build` 確認型別與建置通過。
 
@@ -47,6 +49,7 @@ Vite + React 19 + TypeScript + Tailwind v4 + Three.js（`@react-three/fiber` / `
 
 ```
 CLAUDE.md
+.claude/commands/update-room.md  /update-room 斜線指令（視覺輸入 → 資料更新工作流）
 wrangler.jsonc               Cloudflare Workers Static Assets 設定
 vite.config.ts               含 inputs-manifest plugin（掃描 public/inputs/*）
 public/
@@ -95,6 +98,9 @@ src/
     "size": [5.4, 4.2],         // [寬 X, 深 Z]
     "material": MaterialSpec
   },
+  "floorZones": [               // 選填：疊在主地板上的分區（玄關磁磚、浴室、陽台…）
+    { "id": "z-foyer", "name": "玄關落塵區", "center": [-3.6, 2.1], "size": [1.9, 1.5], "material": MaterialSpec }
+  ],
   "walls": [Wall, ...],
   "furniture": [FurnitureInstance, ...],
   "blueprint": Blueprint | null,
@@ -136,6 +142,10 @@ src/
 ```jsonc
 {
   "url": "/inputs/floorplans/plan.png",
+  "layers": [                // 選填：多圖層（平面/插座/燈具/開關…），UI 左側「施工圖圖層切換」
+    { "id": "plan", "name": "平面配置圖", "url": "/inputs/floorplans/hongzhu-1-plan.png" }
+  ],
+  "layerId": "plan",         // 目前顯示的圖層；各圖層必須「預先對位成同一座標框、同一像素尺寸」，共用下面的 widthMeters/offset
   "name": "plan",
   "widthMeters": 6.4,        // 整張「圖片」的實際寬度（公尺）。高度 = 寬 / 圖片長寬比
   "opacity": 0.55,           // 0..1
@@ -201,6 +211,24 @@ src/
 ```
 各 `kind` 的幾何都以 `size` 參數化：改 `size` 會精準縮放各部件（椅腳粗細等有上限，不會被拉歪）。
 
+### 其他資料檔
+- `src/data/materials.json`：**材質庫**，`[{ id, name, brand?, code?, note?, spec: MaterialSpec }]`。建材型號（EGGER W1000 ST19、地磚、漆色…）註冊在這；UI 的「材質庫」下拉會套用 `spec`。新增型號時同時填 `code` 與 `note`（來源/估計）。
+- `src/data/mep.json`：**水電/燈具標記**，`[MepItem]`（型別見 `types.ts`）。`kind`: outlet | dedicated | weak | switch | water | track | ceiling | fan | downlight | strip；`at:[x,z]`；`h`＝離地/安裝高度（公尺）；`face`＝牆面朝向（從牆指向室內：N 朝北 -Z、S 朝南 +Z、E 朝東、W 朝西；天花板燈具省略）；`assumed:true` 表示圖面未標、為推估值；`src`＝圖面來源頁。頂部工具列 **MEP** 開關控制顯示，點標記看資訊。
+- `CatalogItem.notes?: string[]`：施工圖規格備註（板材型號、預留尺寸…），顯示在屬性面板。
+- `parametric.kind` 另有 `toilet` / `sink` / `hob`（衛浴與廚房設備）；cabinet 的 `count` = 門片數。
+
+---
+
+## 專案紀錄：鴻築麗苑（柏毅室內裝修工程行，2026/10/19 施工圖，5 頁）
+
+- 來源 PDF：平面配置圖 / 插座圖 / 燈具圖 / 開關圖 / 系統櫃立面圖（第 5 頁）。已轉成 `public/inputs/floorplans/hongzhu-{1-plan,2-outlets,3-lights,4-switches}.png`，四張**已對位成同一框**（3300×… 取同一裁切框，`widthMeters = 10.264`，`offset=[0,0]`），可無縫切換。
+- **世界原點 = 建物外包（含結構柱）中心**。比例由圖上標註 `100 / 275 / 302` 實測（≈2.348 px/cm @300dpi，並以 185、75、67.5 等標註交叉驗證）：外包約 **950 × 667 cm**。⚠️ 與使用者口述的「約 750 × 520」「230」不同——圖面實測為準；`230` 在圖上實為 `280/302`。圖面備註：**尺寸為包外**。
+- 圖面 `185` 是**主臥室內寬**不是床寬；床（洋紅框）實測約 155×200。十字叉方塊＝主臥衣櫃（71 深、200 長）。
+- 圖面手寫藍字：「有管道 / 一樣的話保留」→ 管道間 `part-shaft` 保留；「改乾濕分離滑門」；「改推門」。
+- **估計項目**（圖面未明示）：乾濕分離玻璃位置、衛浴門位置、各插座中未標高度者（`assumed:true`）、開關高度（預設 120，主臥入口 100 為圖面值）、窗尺寸高度（台 37.5 / H194.9 取自圖面標註）。
+- 材質：地板 ED-KS81555（內建淺橡貼圖）、百合白 `#F7F5F0` 蛋殼光 0.65、EGGER W1000 ST19 / U708 ST9 / U727 ST9；玄關落塵區依使用者選的實景參考右版使用 `builtin:encaustic` 花磚（原圖面 CW025501 灰磚仍在材質庫）。
+- 資料由 `scripts/gen-hongzhu-data.py` 產生（可讀作座標來源紀錄；之後的微調直接改 JSON，並依 `/update-room` 的 Diff 原則，不要重跑覆蓋使用者的調整）。
+
 ---
 
 ## 視覺輸入處理手冊（Claude 必讀）
@@ -249,6 +277,8 @@ src/
 5. 需要時一併在 `defaultLayout.json` 放一個實例讓使用者立刻看到。
 
 ### D. 通用規範
+
+- **Diff 原則**：更新既有專案時只改圖面確實變動的項目，**不覆蓋使用者手動微調過的家具座標**（見 `/update-room`）。
 
 - 只改資料，不要為了單一圖片去改場景程式；真的缺功能（新的 `kind`）才改 `src/scene/Furniture.tsx` 並同步更新本文件與 `types.ts`。
 - 檔案放哪：施工圖 → `public/inputs/floorplans/`；照片/渲染圖 → `public/inputs/references/`；商品圖與 `.glb` → `public/inputs/products/`。

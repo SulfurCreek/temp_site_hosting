@@ -23,6 +23,7 @@ export const DEFAULT_SETTINGS: Settings = {
   tool: 'drag',
   showGrid: true,
   showHud: true,
+  showMep: false,
 }
 
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v))
@@ -37,6 +38,7 @@ export function normalizeLayout(raw: unknown): Layout {
     rev: l.rev,
     name: l.name ?? '未命名格局',
     floor: l.floor,
+    floorZones: l.floorZones ?? [],
     walls: l.walls.map((w) => ({ ...w, openings: w.openings ?? [] })),
     furniture: l.furniture,
     blueprint: l.blueprint ?? null,

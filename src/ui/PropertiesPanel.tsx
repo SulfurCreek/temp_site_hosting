@@ -99,6 +99,15 @@ function FurnitureProps({ f }: { f: FurnitureInstance }) {
         )}
       </Section>
 
+      {item?.notes && item.notes.length > 0 && (
+        <Section title="施工圖規格備註">
+          <ul className="list-disc space-y-1 pl-4 text-[11px] leading-relaxed text-slate-300">
+            {item.notes.map((n, i) => (
+              <li key={i}>{n}</li>
+            ))}
+          </ul>
+        </Section>
+      )}
       {item?.mode === 'parametric' && (
         <>
           <Section title="材質貼皮 / 油漆">

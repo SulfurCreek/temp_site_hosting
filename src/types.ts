@@ -48,6 +48,15 @@ export interface Wall {
   openings: Opening[]
 }
 
+/** 地板分區（疊在主地板上方，例如玄關落塵區磁磚、浴室、陽台） */
+export interface FloorZone {
+  id: string
+  name: string
+  center: Vec2
+  size: Vec2
+  material: MaterialSpec
+}
+
 export interface Floor {
   /** 地板中心 [x, z] */
   center: Vec2
@@ -57,8 +66,18 @@ export interface Floor {
 }
 
 /** 平面施工圖描圖層 */
+export interface BlueprintLayer {
+  id: string
+  name: string
+  url: string
+}
+
 export interface Blueprint {
   url: string
+  /** 多圖層施工圖（平面/插座/燈具/開關…）。各圖已預先對位成同一座標框，共用 widthMeters/offset。 */
+  layers?: BlueprintLayer[]
+  /** 目前顯示的圖層 id；有 layers 時以它為準，url 僅作後備 */
+  layerId?: string
   name?: string
   /** 圖片「實際寬度」（公尺）。高度由圖片長寬比推算。 */
   widthMeters: number
@@ -81,7 +100,7 @@ export interface ReferenceImage {
 
 export type FurnitureMode = 'glb' | 'parametric' | 'billboard'
 export type FaceName = 'front' | 'back' | 'left' | 'right' | 'top'
-export type ParametricKind = 'box' | 'table' | 'sofa' | 'cabinet' | 'chair' | 'bed' | 'rug'
+export type ParametricKind = 'box' | 'table' | 'sofa' | 'cabinet' | 'chair' | 'bed' | 'rug' | 'toilet' | 'sink' | 'hob'
 
 /** 把商品照貼在家具指定表面（模式 B） */
 export interface Decal {
@@ -100,6 +119,8 @@ export interface CatalogItem {
   size: Vec3
   /** 目錄縮圖（選填） */
   thumbnail?: string
+  /** 施工圖規格備註（內部層板、預留尺寸…），顯示在屬性面板 */
+  notes?: string[]
   /** 模式 A */
   glb?: { url: string; fit?: 'stretch' | 'contain' }
   /** 模式 B */
@@ -146,6 +167,7 @@ export interface Layout {
   rev?: number
   name: string
   floor: Floor
+  floorZones?: FloorZone[]
   walls: Wall[]
   furniture: FurnitureInstance[]
   blueprint: Blueprint | null
@@ -166,7 +188,40 @@ export type ToolMode = 'drag' | 'move' | 'rotate'
 export type Kelvin = 3000 | 4000 | 6000
 export type ViewPreset = 'SE' | 'SW' | 'NE' | 'NW' | 'TOP'
 
+/** 水電 / 燈具標記點。座標 [x, z]，高度 h 皆為公尺。 */
+export type MepKind = 'outlet' | 'dedicated' | 'weak' | 'switch' | 'water' | 'track' | 'ceiling' | 'fan' | 'downlight' | 'strip'
+export interface MepItem {
+  id: string
+  kind: MepKind
+  label: string
+  /** 位置 [x, z] */
+  at: Vec2
+  /** 離地高度（插座/開關）或安裝高度（燈具） */
+  h: number
+  /** 牆面朝向（從牆面指向室內的方向）：N=朝北(-Z) S=朝南(+Z) E=朝東(+X) W=朝西(-X)；天花板燈具省略 */
+  face?: 'N' | 'S' | 'E' | 'W'
+  /** 軌道燈/燈條：長度與方向；吸頂燈：直徑 */
+  length?: number
+  dir?: 'x' | 'z'
+  heads?: number
+  diameter?: number
+  /** 圖面來源與是否為估計值 */
+  src?: string
+  assumed?: boolean
+}
+
+/** 材質庫（建材型號 → PBR 設定） */
+export interface MaterialLibItem {
+  id: string
+  name: string
+  brand?: string
+  code?: string
+  note?: string
+  spec: MaterialSpec
+}
+
 export interface Settings {
+  showMep: boolean
   projection: Projection
   cutaway: CutawayMode
   kelvin: Kelvin

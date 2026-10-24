@@ -4,6 +4,7 @@ import { fileToDataUrl } from '../lib/image'
 import { PAINT_FINISHES, finishOf } from '../lib/materials'
 import { BUILTIN_TEXTURES, getBuiltinCanvas } from '../lib/proceduralTextures'
 import { isHex } from '../lib/color'
+import { MATERIAL_LIB } from '../data'
 import { useUi } from '../store/uiStore'
 import type { MaterialSpec } from '../types'
 import { AssetGrid, CropModal, UploadButton } from './assets'
@@ -55,6 +56,23 @@ export function MaterialEditor({
 
   return (
     <div className="space-y-3">
+      <Field label="材質庫（建材型號）">
+        <select
+          value=""
+          onChange={(e) => {
+            const m = MATERIAL_LIB.find((x) => x.id === e.target.value)
+            if (m) onChange({ opacity: undefined, map: undefined, ...m.spec })
+          }}
+          className="w-full rounded-md border border-white/10 bg-slate-800/80 px-2 py-1.5 text-sm text-slate-100"
+        >
+          <option value="">選擇型號套用…</option>
+          {MATERIAL_LIB.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name}
+            </option>
+          ))}
+        </select>
+      </Field>
       <Field label="顏色（Hex）">
         <div className="flex gap-2">
           <input

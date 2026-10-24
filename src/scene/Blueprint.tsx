@@ -8,23 +8,24 @@ import { useUi } from '../store/uiStore'
 export function BlueprintPlane() {
   const bp = useLayout((s) => s.layout.blueprint)
   const [tex, setTex] = useState<THREE.Texture | null>(null)
+  const activeUrl = bp ? (bp.layers?.find((l) => l.id === bp.layerId)?.url ?? bp.url) : ''
 
   useEffect(() => {
-    if (!bp?.url) {
+    if (!activeUrl) {
       setTex(null)
       return
     }
     let alive = true
-    loadBaseTexture(bp.url)
+    loadBaseTexture(activeUrl)
       .then((t) => alive && setTex(t))
       .catch(() => {
         if (alive) setTex(null)
-        useUi.getState().showToast('施工圖載入失敗：' + bp.url.slice(0, 60))
+        useUi.getState().showToast('施工圖載入失敗：' + activeUrl.slice(0, 60))
       })
     return () => {
       alive = false
     }
-  }, [bp?.url])
+  }, [activeUrl])
 
   const aspect = useMemo(() => {
     const img = tex?.image as { width?: number; height?: number; naturalWidth?: number; naturalHeight?: number } | undefined

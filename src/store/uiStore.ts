@@ -9,6 +9,10 @@ interface UiState {
   selection: Selection
   select: (s: Selection) => void
 
+  /** 目前點選的水電/燈具標記 id */
+  mepId: string | null
+  selectMep: (id: string | null) => void
+
   leftOpen: boolean
   setLeftOpen: (v: boolean) => void
 
@@ -48,6 +52,9 @@ let toastTimer: ReturnType<typeof setTimeout> | undefined
 export const useUi = create<UiState>()((set) => ({
   selection: null,
   select: (selection) => set({ selection }),
+
+  mepId: null,
+  selectMep: (mepId) => set({ mepId }),
 
   leftOpen: true,
   setLeftOpen: (leftOpen) => set({ leftOpen }),

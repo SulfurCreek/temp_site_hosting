@@ -5,6 +5,7 @@ import { useUi } from './store/uiStore'
 import { Hud, Toast } from './ui/Hud'
 import { useIsMobile } from './ui/hooks'
 import { BottomSheet, LeftDrawer, RightPanel } from './ui/Panels'
+import { MepInfo } from './ui/MepInfo'
 import { ReferenceViewer } from './ui/ReferenceViewer'
 import { DesktopTopBar, MobileTopBar } from './ui/TopBar'
 import { useHotkeys } from './ui/useHotkeys'
@@ -42,6 +43,7 @@ export default function App() {
         </div>
         <ReferenceViewer />
         <Hud />
+        <MepInfo />
         <Toast />
         {calibActive && (
           <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center">

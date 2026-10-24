@@ -201,6 +201,49 @@ function BedGen({ w, h, d, m }: GenProps) {
   )
 }
 
+function ToiletGen({ w, h, d, m }: GenProps) {
+  const tankD = d * 0.22
+  const bowlD = d - tankD
+  return (
+    <>
+      <Box pos={[0, h / 2, -d / 2 + tankD / 2]} dims={[w * 0.92, h, tankD]} mat={m.main} />
+      <Box pos={[0, 0.2, d / 2 - bowlD / 2]} dims={[w * 0.9, 0.4, bowlD]} mat={m.main} />
+      <Box pos={[0, 0.415, d / 2 - bowlD / 2]} dims={[w * 0.96, 0.035, bowlD * 0.96]} mat={m.secondary} />
+    </>
+  )
+}
+
+function SinkGen({ w, h, d, m }: GenProps) {
+  return (
+    <>
+      <Box pos={[0, h / 2, 0]} dims={[w, h, d]} mat={m.main} />
+      <Box pos={[0, h + 0.002, 0.01]} dims={[w * 0.82, 0.004, d * 0.7]} mat={m.secondary} shadow={false} />
+      <Box pos={[0, h + 0.1, -d / 2 + 0.03]} dims={[0.025, 0.2, 0.025]} mat={m.accent} />
+      <Box pos={[0, h + 0.19, -d / 2 + 0.09]} dims={[0.02, 0.02, 0.14]} mat={m.accent} />
+    </>
+  )
+}
+
+function Cyl({ pos, r, h, mat }: { pos: Vec3; r: number; h: number; mat: THREE.Material }) {
+  return (
+    <mesh position={pos} material={mat} castShadow receiveShadow>
+      <cylinderGeometry args={[r, r, h, 24]} />
+    </mesh>
+  )
+}
+
+function HobGen({ w, h, d, m }: GenProps) {
+  const r = Math.min(d * 0.36, w * 0.2)
+  return (
+    <>
+      <Box pos={[0, h / 2, 0]} dims={[w, h, d]} mat={m.main} />
+      {[-1, 1].map((s) => (
+        <Cyl key={s} pos={[s * w * 0.25, h + 0.01, 0]} r={r} h={0.02} mat={m.secondary} />
+      ))}
+    </>
+  )
+}
+
 function ParametricModel({
   item,
   inst,
@@ -235,6 +278,15 @@ function ParametricModel({
       break
     case 'bed':
       body = <BedGen {...props} />
+      break
+    case 'toilet':
+      body = <ToiletGen {...props} />
+      break
+    case 'sink':
+      body = <SinkGen {...props} />
+      break
+    case 'hob':
+      body = <HobGen {...props} />
       break
     case 'rug':
     case 'box':
