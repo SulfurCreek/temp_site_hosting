@@ -195,6 +195,7 @@ src/
   "parametric": {
     "kind": "sofa",              // box | table | sofa | cabinet | chair | bed | rug
     "count": 3,                  // sofa: 座位數(1=單椅)；cabinet: 門片數
+    "niche": { "w": 0.68, "h": 2.165 },  // 選填，cabinet：正面開放壁龕（放電子衣櫥/家電），上方自動加上櫃門
     "materials": {
       "main": MaterialSpec,      // 主體（沙發本體/桌面/櫃門）
       "secondary": MaterialSpec, // 次要（椅腳/桌腳/櫃體/床框）
@@ -227,7 +228,8 @@ src/
 - 圖面手寫藍字：「有管道 / 一樣的話保留」→ 管道間 `part-shaft` 保留；「改乾濕分離滑門」；「改推門」。
 - **估計項目**（圖面未明示）：乾濕分離玻璃位置、衛浴門位置、各插座中未標高度者（`assumed:true`）、開關高度（預設 120，主臥入口 100 為圖面值）、窗尺寸高度（台 37.5 / H194.9 取自圖面標註）。
 - 材質：地板 ED-KS81555（內建淺橡貼圖）、百合白 `#F7F5F0` 蛋殼光 0.65、EGGER W1000 ST19 / U708 ST9 / U727 ST9；玄關落塵區依使用者選的實景參考右版使用 `builtin:encaustic` 花磚（原圖面 CW025501 灰磚仍在材質庫）。
-- 資料由 `scripts/gen-hongzhu-data.py` 產生（可讀作座標來源紀錄；之後的微調直接改 JSON，並依 `/update-room` 的 Diff 原則，不要重跑覆蓋使用者的調整）。
+- **rev 3（材質對照更新）**：依實景 AI 圖與手繪材質圖調整——地板改為灰褐橡木 `builtin:oak-ash`（手繪的棕色僅代表「木地板」，未採用）、衛浴深灰磁磚、淋浴區大理石、陽台木地板、廚具橘棕木色、床粉色寢具；進門左側儲藏櫃改 3 門 + 72cm 電子衣櫥壁龕（`niche`）並放入 `lg-styler`（LG 電子衣櫥 5 件式 60×196.5）。玄關仍為花磚，非手繪的藍色。參考圖在 `public/inputs/references/`（已加入 `layout.references`）。
+- 初版資料由 `scripts/gen-hongzhu-data.py` 產生（rev 2；之後以 JSON 直接 Diff 修改，勿重跑覆蓋）（可讀作座標來源紀錄；之後的微調直接改 JSON，並依 `/update-room` 的 Diff 原則，不要重跑覆蓋使用者的調整）。
 
 ---
 

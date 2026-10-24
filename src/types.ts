@@ -128,6 +128,8 @@ export interface CatalogItem {
     kind: ParametricKind
     /** 櫃體門片數（cabinet）或座位數（sofa）等 */
     count?: number
+    /** cabinet：正面留一個開放壁龕（放電子衣櫥/家電），w/h 為開口寬高（公尺），上方自動加一片上櫃門 */
+    niche?: { w: number; h: number }
     /** main = 主體；secondary = 次要（椅墊/桌腳…）；accent = 點綴（把手/抱枕…） */
     materials: { main: MaterialSpec; secondary?: MaterialSpec; accent?: MaterialSpec }
     decals?: Decal[]

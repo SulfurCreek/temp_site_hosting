@@ -14,7 +14,7 @@
       "count": 3,
       "materials": {
         "main": {
-          "color": "#8e9bab",
+          "color": "#2f4126",
           "roughness": 0.95,
           "metalness": 0,
           "map": "builtin:fabric",
@@ -291,7 +291,7 @@
           "repeat": 1
         },
         "accent": {
-          "color": "#8e9bab",
+          "color": "#f2a0c4",
           "roughness": 0.95,
           "metalness": 0,
           "map": "builtin:fabric",
@@ -447,7 +447,7 @@
       "kind": "cabinet",
       "materials": {
         "main": {
-          "color": "#f1f0ec",
+          "color": "#e2ddd0",
           "roughness": 0.8,
           "metalness": 0
         },
@@ -462,18 +462,20 @@
           "metalness": 0.9
         }
       },
-      "count": 2
+      "count": 3
     },
     "notes": [
       "外觀：W1000 ST19 至尊消光白；內部層板：U727 ST9 石頭灰",
       "電子衣櫥預留空間：寬 60 × 高 196.5 cm",
       "左右各預留 5cm、上方預留 20cm 散熱",
-      "穿線孔、側插座；燈條 3000K H237"
+      "穿線孔、側插座；燈條 3000K H237",
+      "實景參考：3 片通高門片 + 右側 72cm 電子衣櫥壁龕（見 cabinet-72）",
+      "外觀色取自實景 AI 圖（略暖消光白），規格仍為 W1000 ST19"
     ]
   },
   {
     "id": "cabinet-72",
-    "name": "儲藏延伸櫃 72×70",
+    "name": "電子衣櫥壁龕櫃 72×70",
     "category": "storage",
     "mode": "parametric",
     "size": [
@@ -485,7 +487,7 @@
       "kind": "cabinet",
       "materials": {
         "main": {
-          "color": "#f1f0ec",
+          "color": "#e2ddd0",
           "roughness": 0.8,
           "metalness": 0
         },
@@ -500,11 +502,17 @@
           "metalness": 0.9
         }
       },
-      "count": 1
+      "count": 1,
+      "niche": {
+        "w": 0.68,
+        "h": 2.165
+      }
     },
     "notes": [
       "外觀：W1000 ST19 至尊消光白；內部層板：U727 ST9 石頭灰",
-      "接續儲藏室 118×75 櫃體"
+      "接續儲藏室 118×75 櫃體",
+      "壁龕放 LG 電子衣櫥（60×196.5），上方 20cm 散熱 + 上櫃門",
+      "壁龕寬取 68cm（含側板厚度）；圖面標示左右各預留 5cm"
     ]
   },
   {
@@ -666,9 +674,11 @@
       "kind": "cabinet",
       "materials": {
         "main": {
-          "color": "#e6e2d9",
-          "roughness": 0.55,
-          "metalness": 0
+          "color": "#e2a566",
+          "roughness": 0.5,
+          "metalness": 0,
+          "map": "builtin:oak",
+          "repeat": 1
         },
         "secondary": {
           "color": "#c9c5bb",
@@ -837,5 +847,31 @@
         }
       }
     }
+  },
+  {
+    "id": "lg-styler",
+    "name": "LG 電子衣櫥（5 件式）",
+    "category": "storage",
+    "mode": "parametric",
+    "size": [
+      0.6,
+      1.965,
+      0.585
+    ],
+    "parametric": {
+      "kind": "box",
+      "materials": {
+        "main": {
+          "color": "#0d0e10",
+          "roughness": 0.08,
+          "metalness": 0.6
+        }
+      }
+    },
+    "notes": [
+      "LG Styler 電子衣櫥，5 件式（5 hangers）",
+      "寬 60 × 高 196.5 cm（圖面預留空間）",
+      "外觀為黑色玻璃面（實景 AI 圖）；深度為估計值 58.5 cm"
+    ]
   }
 ]

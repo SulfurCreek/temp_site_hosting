@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 2,
+  "rev": 3,
   "name": "鴻築麗苑（柏毅 2026/10/19 施工圖）",
   "floor": {
     "center": [
@@ -15,7 +15,7 @@
       "color": "#ffffff",
       "roughness": 0.55,
       "metalness": 0,
-      "map": "builtin:oak-light",
+      "map": "builtin:oak-ash",
       "repeat": 1
     }
   },
@@ -41,7 +41,7 @@
     },
     {
       "id": "z-bath",
-      "name": "衛浴地磚",
+      "name": "衛浴地磚（深灰）",
       "center": [
         -0.3325,
         -1.3295
@@ -52,15 +52,15 @@
       ],
       "material": {
         "color": "#ffffff",
-        "roughness": 0.3,
+        "roughness": 0.35,
         "metalness": 0,
-        "map": "builtin:tile",
+        "map": "builtin:tile-dark",
         "repeat": 1
       }
     },
     {
       "id": "z-balcony",
-      "name": "工作陽台",
+      "name": "工作陽台（木地板）",
       "center": [
         3.92,
         1.463
@@ -71,9 +71,9 @@
       ],
       "material": {
         "color": "#ffffff",
-        "roughness": 0.6,
+        "roughness": 0.7,
         "metalness": 0,
-        "map": "builtin:tile-gray",
+        "map": "builtin:walnut",
         "repeat": 1
       }
     },
@@ -92,6 +92,25 @@
         "color": "#e3e8ee",
         "roughness": 1,
         "metalness": 0
+      }
+    },
+    {
+      "id": "z-shower",
+      "name": "淋浴區（大理石）",
+      "center": [
+        0.1525,
+        -1.3295
+      ],
+      "size": [
+        0.705,
+        2.411
+      ],
+      "material": {
+        "color": "#d6d4d0",
+        "roughness": 0.2,
+        "metalness": 0,
+        "map": "builtin:marble",
+        "repeat": 0.8
       }
     }
   ],
@@ -650,7 +669,16 @@
         1.55,
         0.9,
         2.0
-      ]
+      ],
+      "materials": {
+        "accent": {
+          "color": "#f2a0c4",
+          "roughness": 0.95,
+          "metalness": 0,
+          "map": "builtin:fabric",
+          "repeat": 3
+        }
+      }
     },
     {
       "id": "tv",
@@ -827,6 +855,22 @@
         0.85,
         0.6
       ]
+    },
+    {
+      "id": "styler",
+      "catalogId": "lg-styler",
+      "name": "LG 電子衣櫥（5 件式）",
+      "position": [
+        -3.04,
+        0,
+        0.9
+      ],
+      "rotationY": 0,
+      "size": [
+        0.6,
+        1.965,
+        0.585
+      ]
     }
   ],
   "blueprint": {
@@ -865,6 +909,17 @@
     "visible": true,
     "placement": "under"
   },
-  "references": [],
+  "references": [
+    {
+      "id": "ref-hand",
+      "name": "手繪材質參考",
+      "url": "/inputs/references/hand-drawn-materials.jpg"
+    },
+    {
+      "id": "ref-left-cab",
+      "name": "進門左側置物櫃 + LG 電子衣櫥",
+      "url": "/inputs/references/foyer-left-cabinet-lg-styler.jpg"
+    }
+  ],
   "customCatalog": []
 }
