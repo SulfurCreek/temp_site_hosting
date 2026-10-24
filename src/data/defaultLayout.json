@@ -1,0 +1,870 @@
+{
+  "version": 1,
+  "rev": 2,
+  "name": "鴻築麗苑（柏毅 2026/10/19 施工圖）",
+  "floor": {
+    "center": [
+      -0.175,
+      -0.1475
+    ],
+    "size": [
+      8.85,
+      6.065
+    ],
+    "material": {
+      "color": "#ffffff",
+      "roughness": 0.55,
+      "metalness": 0,
+      "map": "builtin:oak-light",
+      "repeat": 1
+    }
+  },
+  "floorZones": [
+    {
+      "id": "z-foyer",
+      "name": "玄關落塵區（花磚）",
+      "center": [
+        -3.645,
+        2.11
+      ],
+      "size": [
+        1.91,
+        1.55
+      ],
+      "material": {
+        "color": "#ffffff",
+        "roughness": 0.42,
+        "metalness": 0,
+        "map": "builtin:encaustic",
+        "repeat": 1
+      }
+    },
+    {
+      "id": "z-bath",
+      "name": "衛浴地磚",
+      "center": [
+        -0.3325,
+        -1.3295
+      ],
+      "size": [
+        1.675,
+        2.411
+      ],
+      "material": {
+        "color": "#ffffff",
+        "roughness": 0.3,
+        "metalness": 0,
+        "map": "builtin:tile",
+        "repeat": 1
+      }
+    },
+    {
+      "id": "z-balcony",
+      "name": "工作陽台",
+      "center": [
+        3.92,
+        1.463
+      ],
+      "size": [
+        1.36,
+        3.074
+      ],
+      "material": {
+        "color": "#ffffff",
+        "roughness": 0.6,
+        "metalness": 0,
+        "map": "builtin:tile-gray",
+        "repeat": 1
+      }
+    },
+    {
+      "id": "z-outside",
+      "name": "北側凹口（室外）",
+      "center": [
+        -2.08,
+        -2.9
+      ],
+      "size": [
+        4.68,
+        0.56
+      ],
+      "material": {
+        "color": "#e3e8ee",
+        "roughness": 1,
+        "metalness": 0
+      }
+    }
+  ],
+  "walls": [
+    {
+      "id": "wall-w",
+      "name": "西牆（玄關大門）",
+      "start": [
+        -4.675,
+        -2.62
+      ],
+      "end": [
+        -4.675,
+        2.96
+      ],
+      "height": 2.6,
+      "thickness": 0.15,
+      "exterior": true,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": [
+        {
+          "id": "door-main",
+          "type": "door",
+          "at": 4.635,
+          "width": 0.9,
+          "height": 2.1,
+          "sill": 0
+        }
+      ]
+    },
+    {
+      "id": "wall-n1",
+      "name": "北牆（次臥窗）",
+      "start": [
+        -4.675,
+        -2.62
+      ],
+      "end": [
+        0.44,
+        -2.62
+      ],
+      "height": 2.6,
+      "thickness": 0.17,
+      "exterior": true,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": [
+        {
+          "id": "win-n1",
+          "type": "window",
+          "at": 1.45,
+          "width": 1.33,
+          "height": 1.574,
+          "sill": 0.375
+        },
+        {
+          "id": "win-n2",
+          "type": "window",
+          "at": 2.609,
+          "width": 0.4,
+          "height": 1.574,
+          "sill": 0.375
+        },
+        {
+          "id": "win-n3",
+          "type": "window",
+          "at": 4.475,
+          "width": 0.79,
+          "height": 1.574,
+          "sill": 0.375
+        }
+      ]
+    },
+    {
+      "id": "wall-n2",
+      "name": "北牆凹口側牆",
+      "start": [
+        0.44,
+        -2.62
+      ],
+      "end": [
+        0.44,
+        -3.255
+      ],
+      "height": 2.6,
+      "thickness": 0.12,
+      "exterior": true,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": []
+    },
+    {
+      "id": "wall-n3",
+      "name": "北牆（主臥）",
+      "start": [
+        0.44,
+        -3.255
+      ],
+      "end": [
+        4.4,
+        -3.255
+      ],
+      "height": 2.6,
+      "thickness": 0.15,
+      "exterior": true,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": []
+    },
+    {
+      "id": "wall-e1",
+      "name": "東牆（主臥窗）",
+      "start": [
+        4.4,
+        -3.255
+      ],
+      "end": [
+        4.4,
+        -0.074
+      ],
+      "height": 2.6,
+      "thickness": 0.3,
+      "exterior": true,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": [
+        {
+          "id": "win-e1",
+          "type": "window",
+          "at": 1.925,
+          "width": 1.78,
+          "height": 1.574,
+          "sill": 0.375
+        }
+      ]
+    },
+    {
+      "id": "wall-e2",
+      "name": "廚房東牆（DW1 落地門）",
+      "start": [
+        3.14,
+        -0.074
+      ],
+      "end": [
+        3.14,
+        2.96
+      ],
+      "height": 2.6,
+      "thickness": 0.2,
+      "exterior": true,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": [
+        {
+          "id": "door-dw1",
+          "type": "door",
+          "at": 1.484,
+          "width": 1.58,
+          "height": 2.07,
+          "sill": 0.12
+        }
+      ]
+    },
+    {
+      "id": "wall-s1",
+      "name": "南牆（玄關段 100）",
+      "start": [
+        -4.675,
+        2.96
+      ],
+      "end": [
+        -2.69,
+        2.96
+      ],
+      "height": 2.6,
+      "thickness": 0.15,
+      "exterior": true,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": []
+    },
+    {
+      "id": "wall-s2",
+      "name": "半牆（客廳段 275，H120 厚11.5）",
+      "start": [
+        -2.69,
+        2.9425
+      ],
+      "end": [
+        0.07,
+        2.9425
+      ],
+      "height": 1.2,
+      "thickness": 0.115,
+      "exterior": false,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": []
+    },
+    {
+      "id": "wall-s3",
+      "name": "南牆（廚房段）",
+      "start": [
+        0.07,
+        2.96
+      ],
+      "end": [
+        3.14,
+        2.96
+      ],
+      "height": 2.6,
+      "thickness": 0.15,
+      "exterior": true,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": []
+    },
+    {
+      "id": "part-tv",
+      "name": "電視牆（不預留貓道）",
+      "start": [
+        -1.26,
+        -1.63
+      ],
+      "end": [
+        -1.26,
+        -0.03
+      ],
+      "height": 2.6,
+      "thickness": 0.18,
+      "exterior": false,
+      "material": {
+        "color": "#e4e0d8",
+        "roughness": 0.85,
+        "metalness": 0
+      },
+      "openings": []
+    },
+    {
+      "id": "part-shaft",
+      "name": "管道間（保留）",
+      "start": [
+        -1.135,
+        -2.535
+      ],
+      "end": [
+        -1.135,
+        -1.63
+      ],
+      "height": 2.6,
+      "thickness": 0.43,
+      "exterior": false,
+      "material": {
+        "color": "#cfcdc7",
+        "roughness": 0.9,
+        "metalness": 0
+      },
+      "openings": []
+    },
+    {
+      "id": "part-south",
+      "name": "衛浴/主臥南隔間",
+      "start": [
+        -1.17,
+        -0.074
+      ],
+      "end": [
+        4.4,
+        -0.074
+      ],
+      "height": 2.6,
+      "thickness": 0.1,
+      "exterior": false,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": [
+        {
+          "id": "door-bath",
+          "type": "door",
+          "at": 0.62,
+          "width": 0.75,
+          "height": 2.1,
+          "sill": 0
+        },
+        {
+          "id": "door-master",
+          "type": "door",
+          "at": 2.23,
+          "width": 0.75,
+          "height": 2.1,
+          "sill": 0
+        }
+      ]
+    },
+    {
+      "id": "part-bath-master",
+      "name": "衛浴/主臥隔間",
+      "start": [
+        0.555,
+        -2.617
+      ],
+      "end": [
+        0.555,
+        -0.074
+      ],
+      "height": 2.6,
+      "thickness": 0.1,
+      "exterior": false,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": []
+    },
+    {
+      "id": "part-wet",
+      "name": "乾濕分離玻璃（估計位置）",
+      "start": [
+        -0.2,
+        -2.535
+      ],
+      "end": [
+        -0.2,
+        -0.124
+      ],
+      "height": 2.0,
+      "thickness": 0.02,
+      "exterior": false,
+      "material": {
+        "color": "#bfe3f5",
+        "roughness": 0.05,
+        "metalness": 0,
+        "opacity": 0.25
+      },
+      "openings": []
+    },
+    {
+      "id": "rail-e",
+      "name": "陽台欄杆（東）",
+      "start": [
+        4.6,
+        -0.074
+      ],
+      "end": [
+        4.6,
+        3.0
+      ],
+      "height": 1.1,
+      "thickness": 0.06,
+      "exterior": false,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": []
+    },
+    {
+      "id": "rail-s",
+      "name": "陽台欄杆（南）",
+      "start": [
+        3.24,
+        3.0
+      ],
+      "end": [
+        4.6,
+        3.0
+      ],
+      "height": 1.1,
+      "thickness": 0.06,
+      "exterior": false,
+      "material": {
+        "color": "#F7F5F0",
+        "roughness": 0.65,
+        "metalness": 0
+      },
+      "openings": []
+    }
+  ],
+  "furniture": [
+    {
+      "id": "col-tl",
+      "catalogId": "structural-column",
+      "name": "結構柱 左上",
+      "position": [
+        -4.34,
+        0,
+        -2.935
+      ],
+      "rotationY": 0,
+      "size": [
+        0.82,
+        2.6,
+        0.8
+      ],
+      "locked": true
+    },
+    {
+      "id": "col-tr",
+      "catalogId": "structural-column",
+      "name": "結構柱 右上",
+      "position": [
+        4.34,
+        0,
+        -2.985
+      ],
+      "rotationY": 0,
+      "size": [
+        0.8,
+        2.6,
+        0.7
+      ],
+      "locked": true
+    },
+    {
+      "id": "col-bl",
+      "catalogId": "structural-column",
+      "name": "結構柱 左下",
+      "position": [
+        -4.34,
+        0,
+        2.94
+      ],
+      "rotationY": 0,
+      "size": [
+        0.82,
+        2.6,
+        0.8
+      ],
+      "locked": true
+    },
+    {
+      "id": "col-br",
+      "catalogId": "structural-column",
+      "name": "結構柱 右下",
+      "position": [
+        4.39,
+        0,
+        2.94
+      ],
+      "rotationY": 0,
+      "size": [
+        0.7,
+        2.6,
+        0.8
+      ],
+      "locked": true
+    },
+    {
+      "id": "shoe",
+      "catalogId": "shoe-cabinet",
+      "name": "玄關鞋櫃",
+      "position": [
+        -3.19,
+        0,
+        2.712
+      ],
+      "rotationY": 180,
+      "size": [
+        1.0,
+        2.37,
+        0.35
+      ]
+    },
+    {
+      "id": "storage",
+      "catalogId": "ewardrobe-room",
+      "name": "儲藏室（電子衣櫥）",
+      "position": [
+        -4.01,
+        0,
+        0.96
+      ],
+      "rotationY": 0,
+      "size": [
+        1.18,
+        2.37,
+        0.75
+      ]
+    },
+    {
+      "id": "cab72",
+      "catalogId": "cabinet-72",
+      "name": "延伸櫃 72×70",
+      "position": [
+        -3.04,
+        0,
+        0.935
+      ],
+      "rotationY": 0,
+      "size": [
+        0.72,
+        2.37,
+        0.7
+      ]
+    },
+    {
+      "id": "wardrobe",
+      "catalogId": "wardrobe-master",
+      "name": "主臥大衣櫃",
+      "position": [
+        1.01,
+        0,
+        -2.185
+      ],
+      "rotationY": 90,
+      "size": [
+        2.0,
+        2.4,
+        0.7
+      ]
+    },
+    {
+      "id": "bed",
+      "catalogId": "bed-double",
+      "name": "主臥雙人床",
+      "position": [
+        3.162,
+        0,
+        -2.185
+      ],
+      "rotationY": 0,
+      "size": [
+        1.55,
+        0.9,
+        2.0
+      ]
+    },
+    {
+      "id": "tv",
+      "catalogId": "tv-wall",
+      "name": "主臥電視",
+      "position": [
+        3.6,
+        0.85,
+        -0.154
+      ],
+      "rotationY": 180,
+      "size": [
+        1.2,
+        0.7,
+        0.06
+      ]
+    },
+    {
+      "id": "ac-in",
+      "catalogId": "ac-indoor",
+      "name": "冷氣室內機（主臥）",
+      "position": [
+        4.13,
+        2.0,
+        -1.14
+      ],
+      "rotationY": 0,
+      "size": [
+        0.24,
+        0.3,
+        0.8
+      ]
+    },
+    {
+      "id": "fridge",
+      "catalogId": "fridge",
+      "name": "冰箱",
+      "position": [
+        2.633,
+        0,
+        0.37
+      ],
+      "rotationY": 0,
+      "size": [
+        0.62,
+        1.8,
+        0.62
+      ]
+    },
+    {
+      "id": "kitchen",
+      "catalogId": "kitchen-run",
+      "name": "一字型廚具 230",
+      "position": [
+        1.89,
+        0,
+        2.585
+      ],
+      "rotationY": 180,
+      "size": [
+        2.3,
+        0.85,
+        0.6
+      ]
+    },
+    {
+      "id": "sink",
+      "catalogId": "sink",
+      "name": "水槽",
+      "position": [
+        1.305,
+        0.85,
+        2.55
+      ],
+      "rotationY": 180,
+      "size": [
+        0.72,
+        0.12,
+        0.4
+      ]
+    },
+    {
+      "id": "hob",
+      "catalogId": "hob",
+      "name": "雙口爐",
+      "position": [
+        2.58,
+        0.85,
+        2.52
+      ],
+      "rotationY": 180,
+      "size": [
+        0.84,
+        0.05,
+        0.45
+      ]
+    },
+    {
+      "id": "toilet",
+      "catalogId": "toilet",
+      "name": "免治馬桶",
+      "position": [
+        -0.73,
+        0,
+        -1.2
+      ],
+      "rotationY": 90,
+      "size": [
+        0.44,
+        0.75,
+        0.69
+      ]
+    },
+    {
+      "id": "vanity",
+      "catalogId": "vanity",
+      "name": "洗手台櫃",
+      "position": [
+        -0.83,
+        0,
+        -0.425
+      ],
+      "rotationY": 90,
+      "size": [
+        0.55,
+        0.85,
+        0.5
+      ]
+    },
+    {
+      "id": "basin",
+      "catalogId": "basin",
+      "name": "洗手盆",
+      "position": [
+        -0.83,
+        0.85,
+        -0.425
+      ],
+      "rotationY": 90,
+      "size": [
+        0.45,
+        0.12,
+        0.4
+      ]
+    },
+    {
+      "id": "ac-out",
+      "catalogId": "ac-outdoor",
+      "name": "冷氣室外機",
+      "position": [
+        2.9,
+        0,
+        3.2
+      ],
+      "rotationY": 0,
+      "size": [
+        0.8,
+        0.7,
+        0.3
+      ]
+    },
+    {
+      "id": "washer",
+      "catalogId": "washer",
+      "name": "洗衣機（工作陽台）",
+      "position": [
+        4.0,
+        0,
+        0.5
+      ],
+      "rotationY": 0,
+      "size": [
+        0.6,
+        0.85,
+        0.6
+      ]
+    }
+  ],
+  "blueprint": {
+    "url": "/inputs/floorplans/hongzhu-1-plan.png",
+    "layers": [
+      {
+        "id": "plan",
+        "name": "平面配置圖",
+        "url": "/inputs/floorplans/hongzhu-1-plan.png"
+      },
+      {
+        "id": "outlets",
+        "name": "插座圖",
+        "url": "/inputs/floorplans/hongzhu-2-outlets.png"
+      },
+      {
+        "id": "lights",
+        "name": "燈具圖",
+        "url": "/inputs/floorplans/hongzhu-3-lights.png"
+      },
+      {
+        "id": "switches",
+        "name": "開關圖",
+        "url": "/inputs/floorplans/hongzhu-4-switches.png"
+      }
+    ],
+    "layerId": "plan",
+    "name": "鴻築麗苑 施工圖",
+    "widthMeters": 10.264,
+    "opacity": 0.6,
+    "offset": [
+      0,
+      0
+    ],
+    "rotation": 0,
+    "visible": true,
+    "placement": "under"
+  },
+  "references": [],
+  "customCatalog": []
+}

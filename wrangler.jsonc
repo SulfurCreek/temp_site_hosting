@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "interior-planner-3d",
+  "compatibility_date": "2025-10-01",
+  // Cloudflare Workers Static Assets：不需要 Worker 程式碼，直接把 Vite 的 dist 當靜態資源託管。
+  "assets": {
+    "directory": "./dist",
+    // 單頁應用：找不到檔案時回傳 index.html
+    "not_found_handling": "single-page-application"
+  }
+}

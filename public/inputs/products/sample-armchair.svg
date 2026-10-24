@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
+  <!-- 範例商品照：單人沙發（透明背景） -->
+  <rect x="120" y="60" width="280" height="230" rx="40" fill="#b87d5a"/>
+  <rect x="50" y="200" width="80" height="210" rx="32" fill="#a86f4f"/>
+  <rect x="390" y="200" width="80" height="210" rx="32" fill="#a86f4f"/>
+  <rect x="110" y="270" width="300" height="140" rx="26" fill="#c98f6b"/>
+  <rect x="62" y="410" width="396" height="30" rx="12" fill="#a86f4f"/>
+  <path d="M90 440v50M430 440v50" stroke="#3b2f2a" stroke-width="16" stroke-linecap="round"/>
+</svg>

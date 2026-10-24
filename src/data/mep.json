@@ -1,0 +1,709 @@
+[
+  {
+    "id": "liv-0-30",
+    "kind": "outlet",
+    "label": "客廳主牆插座 H:30",
+    "at": [
+      -0.22,
+      2.885
+    ],
+    "h": 0.3,
+    "face": "N",
+    "src": "插座圖 W:317/302/原有+10"
+  },
+  {
+    "id": "liv-0-165",
+    "kind": "dedicated",
+    "label": "客廳主牆插座 H:165（110V 專用迴路）",
+    "at": [
+      -0.22,
+      2.885
+    ],
+    "h": 1.65,
+    "face": "N",
+    "src": "插座圖 W:317/302/原有+10"
+  },
+  {
+    "id": "liv-1-30",
+    "kind": "outlet",
+    "label": "客廳主牆插座 H:30",
+    "at": [
+      0.003,
+      2.885
+    ],
+    "h": 0.3,
+    "face": "N",
+    "src": "插座圖 W:317/302/原有+10"
+  },
+  {
+    "id": "liv-1-108",
+    "kind": "outlet",
+    "label": "客廳主牆插座 H:108",
+    "at": [
+      0.003,
+      2.885
+    ],
+    "h": 1.08,
+    "face": "N",
+    "src": "插座圖 W:317/302/原有+10"
+  },
+  {
+    "id": "liv-2-108",
+    "kind": "outlet",
+    "label": "客廳主牆插座 H:108",
+    "at": [
+      0.33,
+      2.885
+    ],
+    "h": 1.08,
+    "face": "N",
+    "src": "插座圖 W:317/302/原有+10"
+  },
+  {
+    "id": "liv-2-150",
+    "kind": "dedicated",
+    "label": "客廳主牆插座 H:150（110V 專用迴路）",
+    "at": [
+      0.33,
+      2.885
+    ],
+    "h": 1.5,
+    "face": "N",
+    "src": "插座圖 W:317/302/原有+10"
+  },
+  {
+    "id": "liv-weak",
+    "kind": "weak",
+    "label": "弱電/網路（客廳主牆）",
+    "at": [
+      0.536,
+      2.885
+    ],
+    "h": 0.3,
+    "face": "N",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "shoe-165",
+    "kind": "outlet",
+    "label": "鞋櫃側 H:165",
+    "at": [
+      -2.59,
+      2.885
+    ],
+    "h": 1.65,
+    "face": "N",
+    "src": "插座圖"
+  },
+  {
+    "id": "cab72-30",
+    "kind": "outlet",
+    "label": "延伸櫃側 H:30",
+    "at": [
+      -2.68,
+      0.68
+    ],
+    "h": 0.3,
+    "face": "E",
+    "src": "插座圖"
+  },
+  {
+    "id": "stor-30a",
+    "kind": "outlet",
+    "label": "儲藏室穿線孔 H:30",
+    "at": [
+      -3.687,
+      0.585
+    ],
+    "h": 0.3,
+    "face": "N",
+    "src": "插座圖"
+  },
+  {
+    "id": "stor-30b",
+    "kind": "outlet",
+    "label": "儲藏室穿線孔 H:30",
+    "at": [
+      -3.52,
+      0.585
+    ],
+    "h": 0.3,
+    "face": "N",
+    "src": "插座圖"
+  },
+  {
+    "id": "stor-70a",
+    "kind": "outlet",
+    "label": "天花板音響 H:70",
+    "at": [
+      -4.349,
+      0.585
+    ],
+    "h": 0.7,
+    "face": "N",
+    "src": "插座圖"
+  },
+  {
+    "id": "stor-70b",
+    "kind": "outlet",
+    "label": "天花板音響 H:70",
+    "at": [
+      -4.053,
+      0.585
+    ],
+    "h": 0.7,
+    "face": "N",
+    "src": "插座圖"
+  },
+  {
+    "id": "cur-nw1",
+    "kind": "outlet",
+    "label": "窗簾盒插座 H:70",
+    "at": [
+      -4.17,
+      -2.535
+    ],
+    "h": 0.7,
+    "face": "S",
+    "src": "插座圖"
+  },
+  {
+    "id": "cur-nw2",
+    "kind": "outlet",
+    "label": "窗簾盒插座",
+    "at": [
+      -4.5,
+      -2.35
+    ],
+    "h": 0.7,
+    "face": "E",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "tv-w80",
+    "kind": "outlet",
+    "label": "次臥電視牆 W:30 H:80",
+    "at": [
+      -1.35,
+      -0.89
+    ],
+    "h": 0.8,
+    "face": "W",
+    "src": "插座圖"
+  },
+  {
+    "id": "tv-w30",
+    "kind": "outlet",
+    "label": "次臥電視牆 W:30 H:30",
+    "at": [
+      -1.35,
+      -0.69
+    ],
+    "h": 0.3,
+    "face": "W",
+    "src": "插座圖"
+  },
+  {
+    "id": "weak-n",
+    "kind": "weak",
+    "label": "TV/網路（次臥北牆）",
+    "at": [
+      -2.18,
+      -2.535
+    ],
+    "h": 0.3,
+    "face": "S",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "weak-w",
+    "kind": "weak",
+    "label": "TV/網路（次臥西牆）",
+    "at": [
+      -4.5,
+      -0.43
+    ],
+    "h": 0.3,
+    "face": "E",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "weak-ps0",
+    "kind": "weak",
+    "label": "弱電（衛浴南牆外側）",
+    "at": [
+      -0.404,
+      -0.024
+    ],
+    "h": 0.3,
+    "face": "S",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "weak-ps1",
+    "kind": "weak",
+    "label": "弱電（衛浴南牆外側）",
+    "at": [
+      -0.186,
+      -0.024
+    ],
+    "h": 0.3,
+    "face": "S",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "weak-ps2",
+    "kind": "weak",
+    "label": "弱電（衛浴南牆外側）",
+    "at": [
+      0.022,
+      -0.024
+    ],
+    "h": 0.3,
+    "face": "S",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "bed-55a",
+    "kind": "dedicated",
+    "label": "床頭插座 H:55（110V 專用）",
+    "at": [
+      1.885,
+      -3.18
+    ],
+    "h": 0.55,
+    "face": "S",
+    "src": "插座圖"
+  },
+  {
+    "id": "bed-55b",
+    "kind": "dedicated",
+    "label": "床頭插座 H:55（110V 專用）",
+    "at": [
+      2.07,
+      -3.18
+    ],
+    "h": 0.55,
+    "face": "S",
+    "src": "插座圖"
+  },
+  {
+    "id": "bed-weak1",
+    "kind": "weak",
+    "label": "TV/網路（床頭左）",
+    "at": [
+      1.15,
+      -3.18
+    ],
+    "h": 0.3,
+    "face": "S",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "bed-weak2",
+    "kind": "weak",
+    "label": "TV/網路（床頭右）",
+    "at": [
+      3.54,
+      -3.18
+    ],
+    "h": 0.3,
+    "face": "S",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "master-cur",
+    "kind": "outlet",
+    "label": "窗簾盒插座",
+    "at": [
+      4.25,
+      -2.44
+    ],
+    "h": 2.2,
+    "face": "W",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "master-tv30",
+    "kind": "outlet",
+    "label": "電視牆插座 H:30",
+    "at": [
+      3.71,
+      -0.124
+    ],
+    "h": 0.3,
+    "face": "N",
+    "src": "插座圖"
+  },
+  {
+    "id": "master-tvweak",
+    "kind": "weak",
+    "label": "電視 TV/網路",
+    "at": [
+      2.42,
+      -0.124
+    ],
+    "h": 0.3,
+    "face": "N",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "master-100",
+    "kind": "dedicated",
+    "label": "110V 專用迴路 H:100（原有插座往上新增）",
+    "at": [
+      1.69,
+      -0.024
+    ],
+    "h": 1.0,
+    "face": "S",
+    "src": "插座圖"
+  },
+  {
+    "id": "kit-110a",
+    "kind": "outlet",
+    "label": "檯面插座 H:110",
+    "at": [
+      0.826,
+      2.885
+    ],
+    "h": 1.1,
+    "face": "N",
+    "src": "插座圖"
+  },
+  {
+    "id": "kit-110b",
+    "kind": "outlet",
+    "label": "檯面插座 W:108 H:110",
+    "at": [
+      1.91,
+      2.885
+    ],
+    "h": 1.1,
+    "face": "N",
+    "src": "插座圖"
+  },
+  {
+    "id": "kit-water",
+    "kind": "water",
+    "label": "掃地機上下水（側邊櫃內）",
+    "at": [
+      1.07,
+      2.885
+    ],
+    "h": 0.3,
+    "face": "N",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "kit-sweeper",
+    "kind": "dedicated",
+    "label": "掃地機專用插座（側邊櫃內）",
+    "at": [
+      1.0,
+      2.885
+    ],
+    "h": 0.3,
+    "face": "N",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "kit-dw",
+    "kind": "dedicated",
+    "label": "廚下 220V 洗碗機",
+    "at": [
+      1.086,
+      2.885
+    ],
+    "h": 0.3,
+    "face": "N",
+    "src": "插座圖"
+  },
+  {
+    "id": "kit-heater",
+    "kind": "dedicated",
+    "label": "廚下 220V 瞬熱",
+    "at": [
+      1.264,
+      2.885
+    ],
+    "h": 0.3,
+    "face": "N",
+    "src": "插座圖"
+  },
+  {
+    "id": "kit-weak",
+    "kind": "weak",
+    "label": "TV/網路",
+    "at": [
+      0.536,
+      2.885
+    ],
+    "h": 0.3,
+    "face": "N",
+    "src": "插座圖",
+    "assumed": true
+  },
+  {
+    "id": "dryer-120",
+    "kind": "dedicated",
+    "label": "110V 專用迴路（烘衣機）H:120",
+    "at": [
+      3.24,
+      2.55
+    ],
+    "h": 1.2,
+    "face": "E",
+    "src": "插座圖"
+  },
+  {
+    "id": "sw-0",
+    "kind": "switch",
+    "label": "次臥 對切開關（新增）",
+    "at": [
+      -4.45,
+      -2.21
+    ],
+    "h": 1.2,
+    "face": "E",
+    "src": "開關圖",
+    "assumed": true
+  },
+  {
+    "id": "sw-1",
+    "kind": "switch",
+    "label": "玄關 ONE 開關（新增）",
+    "at": [
+      -4.45,
+      1.52
+    ],
+    "h": 1.2,
+    "face": "E",
+    "src": "開關圖",
+    "assumed": true
+  },
+  {
+    "id": "sw-2",
+    "kind": "switch",
+    "label": "客餐廳/衛浴 開關",
+    "at": [
+      -1.335,
+      -0.106
+    ],
+    "h": 1.2,
+    "face": "S",
+    "src": "開關圖",
+    "assumed": true
+  },
+  {
+    "id": "sw-3",
+    "kind": "switch",
+    "label": "客廳 開關",
+    "at": [
+      0.55,
+      0.18
+    ],
+    "h": 1.2,
+    "face": "S",
+    "src": "開關圖",
+    "assumed": true
+  },
+  {
+    "id": "sw-4",
+    "kind": "switch",
+    "label": "衛浴/主臥 開關（移位 烤漆平面白）",
+    "at": [
+      1.0,
+      -1.015
+    ],
+    "h": 1.2,
+    "face": "E",
+    "src": "開關圖",
+    "assumed": true
+  },
+  {
+    "id": "sw-5",
+    "kind": "switch",
+    "label": "主臥入口開關 H:100",
+    "at": [
+      1.78,
+      -0.124
+    ],
+    "h": 1.0,
+    "face": "N",
+    "src": "開關圖"
+  },
+  {
+    "id": "sw-6",
+    "kind": "switch",
+    "label": "床頭開關",
+    "at": [
+      3.995,
+      -3.18
+    ],
+    "h": 1.2,
+    "face": "S",
+    "src": "開關圖",
+    "assumed": true
+  },
+  {
+    "id": "trk-bed2",
+    "kind": "track",
+    "label": "次臥軌道燈（3 燈頭）",
+    "at": [
+      -4.125,
+      -0.9
+    ],
+    "h": 2.5,
+    "src": "燈具圖",
+    "length": 2.31,
+    "dir": "z",
+    "heads": 3
+  },
+  {
+    "id": "trk-liv",
+    "kind": "track",
+    "label": "客廳軌道燈（4 燈頭）",
+    "at": [
+      -0.655,
+      0.458
+    ],
+    "h": 2.5,
+    "src": "燈具圖",
+    "length": 2.65,
+    "dir": "x",
+    "heads": 4
+  },
+  {
+    "id": "ce-bed2",
+    "kind": "ceiling",
+    "label": "次臥 40CM 吸頂燈",
+    "at": [
+      -2.87,
+      -0.908
+    ],
+    "h": 2.6,
+    "src": "燈具圖",
+    "diameter": 0.4
+  },
+  {
+    "id": "ce-master",
+    "kind": "ceiling",
+    "label": "主臥 40CM 吸頂燈",
+    "at": [
+      2.204,
+      -1.363
+    ],
+    "h": 2.6,
+    "src": "燈具圖",
+    "diameter": 0.4
+  },
+  {
+    "id": "ce-bath",
+    "kind": "ceiling",
+    "label": "衛浴吸頂燈",
+    "at": [
+      -0.09,
+      -0.93
+    ],
+    "h": 2.6,
+    "src": "燈具圖",
+    "assumed": true,
+    "diameter": 0.2
+  },
+  {
+    "id": "fan-liv",
+    "kind": "fan",
+    "label": "客廳吊扇燈（40CM）",
+    "at": [
+      -0.652,
+      1.7
+    ],
+    "h": 2.6,
+    "src": "燈具圖",
+    "diameter": 0.4
+  },
+  {
+    "id": "dl-entry",
+    "kind": "downlight",
+    "label": "玄關嵌燈",
+    "at": [
+      -3.52,
+      1.91
+    ],
+    "h": 2.6,
+    "src": "燈具圖"
+  },
+  {
+    "id": "dl-b2a",
+    "kind": "downlight",
+    "label": "次臥嵌燈",
+    "at": [
+      -1.61,
+      -2.19
+    ],
+    "h": 2.6,
+    "src": "燈具圖",
+    "assumed": true
+  },
+  {
+    "id": "dl-b2b",
+    "kind": "downlight",
+    "label": "次臥嵌燈",
+    "at": [
+      -1.61,
+      -0.58
+    ],
+    "h": 2.6,
+    "src": "燈具圖",
+    "assumed": true
+  },
+  {
+    "id": "dl-k1",
+    "kind": "downlight",
+    "label": "廚房嵌燈",
+    "at": [
+      1.24,
+      1.127
+    ],
+    "h": 2.6,
+    "src": "燈具圖"
+  },
+  {
+    "id": "dl-k2",
+    "kind": "downlight",
+    "label": "廚房嵌燈",
+    "at": [
+      2.387,
+      1.127
+    ],
+    "h": 2.6,
+    "src": "燈具圖"
+  },
+  {
+    "id": "st-entry",
+    "kind": "strip",
+    "label": "玄關燈條 3000K H237",
+    "at": [
+      -3.04,
+      1.3
+    ],
+    "h": 2.37,
+    "src": "燈具圖",
+    "length": 1.9,
+    "dir": "x"
+  }
+]

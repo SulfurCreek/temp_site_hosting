@@ -1,0 +1,60 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  --color-panel: rgb(15 23 42 / 0.88);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  background: #0f172a;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+canvas {
+  display: block;
+  outline: none;
+}
+
+.glass {
+  background: var(--color-panel);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #475569 transparent;
+}
+
+/* range input */
+input[type='range'] {
+  accent-color: #38bdf8;
+  height: 1.25rem;
+}
+
+input[type='number']::-webkit-inner-spin-button {
+  opacity: 0.4;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
