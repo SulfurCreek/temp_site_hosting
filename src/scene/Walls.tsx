@@ -197,7 +197,8 @@ function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: nu
           }}
           material={p.glass ? glassMat : mat}
           receiveShadow={!p.glass}
-          castShadow={false}
+          // 牆要擋住燈具光線，否則軌道燈/吸頂燈會穿過隔間牆照進隔壁房間
+          castShadow={!p.glass}
         />
       ))}
     </group>

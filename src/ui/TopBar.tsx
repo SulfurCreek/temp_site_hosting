@@ -21,6 +21,7 @@ import { useUi } from '../store/uiStore'
 import type { Kelvin, ViewPreset } from '../types'
 import { IconBtn, Segmented, Toggle, cx } from './controls'
 import { MobileVantageButtons, VantageButtons } from './FirstPersonBar'
+import { FxQualityToggle, LightSceneToggle } from './LightingControls'
 
 const KELVINS: { k: Kelvin; label: string; dot: string }[] = [
   { k: 3000, label: '3000K 黃光', dot: '#ffb46b' },
@@ -240,6 +241,7 @@ export function DesktopTopBar() {
           </>
         )}
         <LightToggle />
+        <LightSceneToggle />
         <Divider />
         {!fp && (
           <>
@@ -334,6 +336,12 @@ function MoreSheet({ onClose }: { onClose: () => void }) {
         </Row>
         <Row label="燈光色溫">
           <LightToggle />
+        </Row>
+        <Row label="燈光情境">
+          <LightSceneToggle />
+        </Row>
+        <Row label="後期渲染品質">
+          <FxQualityToggle />
         </Row>
         <Row label="家具操作">
           <ToolToggle />
