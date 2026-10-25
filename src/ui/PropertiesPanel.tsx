@@ -132,7 +132,7 @@ function FurnitureProps({ f }: { f: FurnitureInstance }) {
               ]}
             />
             <MaterialEditor
-              brandKinds={['board', 'paint']}
+              brandKinds={['board', 'paint', 'fabric']}
               key={f.id + slot}
               spec={slotSpec}
               onChange={(p) => update(f.id, { materials: { ...f.materials, [slot]: { ...slotSpec, ...p } } }, k + 'mat' + slot)}

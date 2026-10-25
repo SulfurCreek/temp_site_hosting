@@ -79,7 +79,7 @@ export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
     }
     let maps: { normal: HTMLCanvasElement; rough: HTMLCanvasElement } | null = null
     let perMeter: number | null = null
-    if (a === 'paint_eggshell' || a === 'egger_st9' || a === 'egger_st19') {
+    if (a === 'paint_eggshell' || a === 'egger_st9' || a === 'egger_st19' || a === 'fabric_scratch') {
       maps = getStandaloneMicro(a)
       perMeter = 1 / (ARCHETYPES[a].tileMeters as number)
     } else if (tex?.image) {

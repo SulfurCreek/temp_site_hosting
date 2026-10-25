@@ -66,6 +66,18 @@ export const ARCHETYPES: Record<Archetype, ArchetypeDef> = {
     bumpScale: 0.8,
     tileMeters: 'follow',
   },
+  fabric_scratch: {
+    id: 'fabric_scratch',
+    label: '貓抓布（高耐磨織布）',
+    note: '緊密斜紋織理 + 微絨霧面',
+    roughness: 0.92,
+    metalness: 0,
+    clearcoat: 0,
+    clearcoatRoughness: 0.5,
+    reflectivity: 0.3,
+    bumpScale: 0.9,
+    tileMeters: 0.1,
+  },
   matte_tile: {
     id: 'matte_tile',
     label: '霧面石英磚',

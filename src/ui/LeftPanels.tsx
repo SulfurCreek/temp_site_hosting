@@ -32,6 +32,7 @@ function ItemIcon({ item }: { item: CatalogItem }) {
   if (item.mode === 'billboard') return <ImageIcon size={p} />
   if (item.mode === 'glb') return <Package size={p} />
   switch (item.parametric?.kind) {
+    case 'modsofa':
     case 'sofa':
       return item.parametric.count === 1 ? <Armchair size={p} /> : <Sofa size={p} />
     case 'bed':

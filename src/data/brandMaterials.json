@@ -174,5 +174,37 @@
     "hexConfidence": "measured",
     "source": "施工圖指定型號；貼圖為專案內建灰階方磚（目視估計，無官方 Hex）",
     "description": "霧面石英磚，含填縫線與微石材顆粒。"
+  },
+  {
+    "id": "SHEEPER-SCRATCH-OLIVE",
+    "brand": "Sheeper",
+    "code": "組綿羊 貓抓布 橄欖綠",
+    "name": "Sheeper 組綿羊 貓抓布・橄欖綠",
+    "kind": "fabric",
+    "archetype": "fabric_scratch",
+    "hex": "#5A5F34",
+    "roughness": 0.92,
+    "bumpScale": 0.9,
+    "reflectivity": 0.3,
+    "metalness": 0,
+    "hexConfidence": "estimate",
+    "source": "官網 sheeper.com.tw 組綿羊：貓抓布耐磨 >150,000 轉、共 21 色；官網未公開橄欖綠 Hex，色值取自使用者提供的橄欖綠燈芯絨沙發實景照（暖光下取樣 #6a5d28 後校正偏黃）→ 目視估計，請以實體布樣確認",
+    "description": "高耐磨貓抓布：緊密斜紋織理、霧面微絨，以程序化 Normal/Roughness 微紋理表現。"
+  },
+  {
+    "id": "SHEEPER-SCRATCH-BLACK",
+    "brand": "Sheeper",
+    "code": "組綿羊 貓抓布 黑色",
+    "name": "Sheeper 組綿羊 貓抓布・黑色",
+    "kind": "fabric",
+    "archetype": "fabric_scratch",
+    "hex": "#1E1E20",
+    "roughness": 0.92,
+    "bumpScale": 0.9,
+    "reflectivity": 0.3,
+    "metalness": 0,
+    "hexConfidence": "estimate",
+    "source": "使用者指定「黑色」；官網未公開 Hex，取近黑色並保留織理可見度（純黑會吃掉紋理）→ 估計",
+    "description": "同上貓抓布織理，黑色。"
   }
 ]

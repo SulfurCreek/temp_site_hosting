@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 7,
+  "rev": 8,
   "name": "鴻築麗苑（柏毅 2026/10/19 施工圖）",
   "floor": {
     "center": [
@@ -951,9 +951,9 @@
       "catalogId": "round-table-90",
       "name": "90cm 圓桌",
       "position": [
-        1.0,
+        -0.5,
         0,
-        1.2
+        0.45
       ],
       "rotationY": 0,
       "size": [
@@ -1073,6 +1073,22 @@
         1.5,
         0.3
       ]
+    },
+    {
+      "id": "f-sheeper",
+      "catalogId": "sheeper-modular-sheep-90-60-90",
+      "name": "Sheeper 組綿羊沙發 90+60+90",
+      "position": [
+        -4.145,
+        0,
+        -0.97
+      ],
+      "rotationY": 90,
+      "size": [
+        2.4,
+        0.78,
+        0.9
+      ]
     }
   ],
   "blueprint": {
@@ -1131,6 +1147,11 @@
       "id": "ref-balcony",
       "name": "往陽台方向",
       "url": "/inputs/references/balcony-view.png"
+    },
+    {
+      "id": "ref-sheeper",
+      "name": "沙發參考實景（橄欖綠燈芯絨模組）",
+      "url": "/inputs/references/sheeper-sofa-ref.jpg"
     }
   ],
   "customCatalog": []
