@@ -244,7 +244,8 @@ export const useLayout = create<LayoutState>()(
         } catch {
           /* 損毀的存檔 → 使用預設格局 */
         }
-        return { ...current, layout, past, settings: { ...DEFAULT_SETTINGS, ...p.settings } }
+        return { ...current, layout, past, // 標準對色光是「這次工作階段」的暫時模式：不沿用上次存檔，避免開啟後忘記關而看不到燈具與後期效果
+        settings: { ...DEFAULT_SETTINGS, ...p.settings, colorProof: false } }
       },
     },
   ),
