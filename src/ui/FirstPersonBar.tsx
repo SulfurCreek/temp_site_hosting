@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Box, Footprints, LogOut } from 'lucide-react'
+import { useFxTier } from '../lib/fx'
 import { hFovOf, responsiveVFov } from '../lib/useResponsiveFOV'
 import { enterFirstPerson, goHotspot, useHotspots } from '../scene/FirstPerson'
 import { useUi } from '../store/uiStore'
@@ -69,6 +70,9 @@ export function FirstPersonBar() {
   const backoffCm = useUi((s) => s.backoffCm)
   const setBackoffCm = useUi((s) => s.setBackoffCm)
   const vfov = useViewportFov(fov)
+  const dof = useUi((s) => s.dof)
+  const setDof = useUi((s) => s.setDof)
+  const lowFx = useFxTier() === 'low'
   const setViewMode = useUi((s) => s.setViewMode)
   const hotspots = useHotspots()
 
@@ -127,6 +131,12 @@ export function FirstPersonBar() {
             <input type="range" min={0} max={60} step={5} value={backoffCm} onChange={(e) => setBackoffCm(+e.target.value)} className="w-20 accent-sky-400" />
             <span className="w-10 tabular-nums text-slate-100">{backoffCm} cm</span>
           </label>
+          {!lowFx && (
+            <label className="flex items-center gap-1.5 text-[11px] text-slate-300" title="光學景深：以畫面中央的家具 / 牆面距離對焦（手機低品質模式不啟用）">
+              <input type="checkbox" checked={dof} onChange={(e) => setDof(e.target.checked)} className="accent-sky-400" />
+              景深
+            </label>
+          )}
           <button
             onClick={() => setViewMode('isometric')}
             className="ml-auto flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/10 bg-slate-800/70 px-2.5 text-xs font-medium text-slate-200 hover:bg-white/10"

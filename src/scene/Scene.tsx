@@ -11,6 +11,7 @@ import { FurnitureLayer } from './Furniture'
 import { Gizmo } from './Gizmo'
 import { MepLayer } from './Mep'
 import { Lighting } from './Lighting'
+import { DepthOfFieldFx } from './DepthOfFieldFx'
 import { PostFX } from './PostFX'
 import { LIGHT_SCENES } from '../lib/lightScenes'
 import { Walls } from './Walls'
@@ -52,6 +53,7 @@ function Backdrop() {
 
 export function Scene() {
   const fp = useUi((s) => s.viewMode) === 'firstPerson'
+  const dof = useUi((s) => s.dof)
   return (
     <Canvas
       shadows="percentage"
@@ -87,7 +89,7 @@ export function Scene() {
         <MepLayer />
         <CalibrationLayer />
       </Suspense>
-      <PostFX />
+      <PostFX>{fp && dof && <DepthOfFieldFx />}</PostFX>
     </Canvas>
   )
 }
