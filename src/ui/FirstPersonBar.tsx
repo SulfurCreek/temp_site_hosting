@@ -1,4 +1,5 @@
-import { Box, Footprints, LogOut } from 'lucide-react'
+import { LogOut, SlidersHorizontal } from 'lucide-react'
+import { useState } from 'react'
 import { enterFirstPerson, goHotspot, useHotspots } from '../scene/FirstPerson'
 import { useUi } from '../store/uiStore'
 import type { EyeMode } from '../types'
@@ -43,8 +44,80 @@ const EYES: { value: EyeMode; label: string; title: string }[] = [
 ]
 
 /** 第一人稱底部浮動列：預設立足點 + 人眼高度切換 + 視角 FOV */
+/** 單行可橫向滑動的立足點膠囊（手機：俯視 / 第一人稱共用；點選即進入該立足點的第一人稱） */
+export function VantageChips({ className }: { className?: string }) {
+  const hotspots = useHotspots()
+  if (!hotspots.length) return null
+  return (
+    <div className={cx('no-scrollbar pointer-events-auto flex gap-1.5 overflow-x-auto whitespace-nowrap px-2 py-1 text-xs', className)}>
+      {hotspots.map((h) => (
+        <button
+          key={h.id}
+          title={h.note}
+          onClick={() => goHotspot(h)}
+          className="shrink-0 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 font-medium text-slate-100 backdrop-blur-md active:bg-sky-500"
+        >
+          📍{h.name}
+          {h.estimated && <span className="ml-0.5 text-[10px] text-amber-300">估</span>}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function MobileFirstPersonBar() {
+  const [adjust, setAdjust] = useState(false)
+  const eye = useUi((s) => s.eye)
+  const standCm = useUi((s) => s.standCm)
+  const fov = useUi((s) => s.fov)
+  const setEye = useUi((s) => s.setEye)
+  const setStandCm = useUi((s) => s.setStandCm)
+  const setFov = useUi((s) => s.setFov)
+  const setViewMode = useUi((s) => s.setViewMode)
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex flex-col pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <VantageChips />
+      <div className="pointer-events-auto mx-2 flex flex-col gap-1.5 rounded-2xl border border-white/10 bg-black/60 p-1.5 text-slate-100 backdrop-blur-md">
+        <div className="flex items-center gap-1.5">
+          <div className="min-w-0 flex-1 overflow-x-auto no-scrollbar">
+            <Segmented value={eye} onChange={setEye} options={EYES.map((e) => ({ ...e, label: e.label.replace(' ', '') }))} />
+          </div>
+          <button
+            onClick={() => setAdjust(!adjust)}
+            aria-label="視角與高度"
+            className={cx('flex h-8 w-8 shrink-0 items-center justify-center rounded-full', adjust ? 'bg-sky-500 text-white' : 'bg-white/10')}
+          >
+            <SlidersHorizontal size={14} />
+          </button>
+          <button onClick={() => setViewMode('isometric')} aria-label="回俯視" className="flex h-8 shrink-0 items-center gap-1 rounded-full bg-white/10 px-2.5 text-xs font-medium">
+            <LogOut size={13} /> 俯視
+          </button>
+        </div>
+        {adjust && (
+          <div className="flex items-center gap-3 px-1 text-[11px] text-slate-300">
+            <label className={cx('flex flex-1 items-center gap-1.5', eye !== 'stand' && 'opacity-40')}>
+              高
+              <input type="range" min={150} max={185} value={standCm} disabled={eye !== 'stand'} onChange={(e) => setStandCm(+e.target.value)} className="min-w-0 flex-1" />
+              <span className="w-7 tabular-nums">{standCm}</span>
+            </label>
+            <label className="flex flex-1 items-center gap-1.5">
+              視角
+              <input type="range" min={50} max={90} value={fov} onChange={(e) => setFov(+e.target.value)} className="min-w-0 flex-1" />
+              <span className="w-6 tabular-nums">{fov}°</span>
+            </label>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function FirstPersonBar() {
-  const mobile = useIsMobile()
+  const isMobile = useIsMobile()
+  return isMobile ? <MobileFirstPersonBar /> : <DesktopFirstPersonBar />
+}
+
+function DesktopFirstPersonBar() {
   const eye = useUi((s) => s.eye)
   const standCm = useUi((s) => s.standCm)
   const fov = useUi((s) => s.fov)
@@ -57,8 +130,7 @@ export function FirstPersonBar() {
   return (
     <div
       className={cx(
-        'pointer-events-none absolute inset-x-0 z-30 flex justify-center px-2',
-        mobile ? 'bottom-[max(0.5rem,env(safe-area-inset-bottom))]' : 'bottom-3',
+        'pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center px-2',
       )}
     >
       <div className="glass pointer-events-auto flex w-full max-w-[920px] flex-col gap-2 rounded-2xl p-2.5 text-slate-100">
@@ -107,42 +179,8 @@ export function FirstPersonBar() {
             <LogOut size={14} /> 回俯視
           </button>
         </div>
-        {!mobile && (
-          <div className="text-[11px] text-slate-400">
-            拖曳畫面原地環視 · 點地板走過去 · 方向鍵轉頭 · Esc 回俯視
-          </div>
-        )}
+        <div className="text-[11px] text-slate-400">拖曳畫面原地環視 · 點地板走過去 · 方向鍵轉頭 · Esc 回俯視</div>
       </div>
     </div>
-  )
-}
-
-/** 手機頂部精簡按鈕：切換第一人稱 / 放置立足點 */
-export function MobileVantageButtons() {
-  const viewMode = useUi((s) => s.viewMode)
-  const placing = useUi((s) => s.placing)
-  const setViewMode = useUi((s) => s.setViewMode)
-  const setPlacing = useUi((s) => s.setPlacing)
-  const fp = viewMode === 'firstPerson'
-  return (
-    <>
-      <button
-        onClick={() => (fp ? setViewMode('isometric') : enterFirstPerson())}
-        className={cx('flex h-9 items-center gap-1 rounded-full px-3 text-xs font-semibold active:bg-white/15', fp && 'bg-sky-500 text-white')}
-        title={fp ? '回到俯視' : '第一人稱'}
-      >
-        {fp ? <Box size={15} /> : <Footprints size={15} className="text-sky-300" />}
-        {fp ? '俯視' : '第一人稱'}
-      </button>
-      {!fp && (
-        <button
-          onClick={() => setPlacing(!placing)}
-          className={cx('flex h-9 items-center rounded-full px-2.5 text-xs font-semibold active:bg-white/15', placing && 'bg-sky-500 text-white')}
-          title="放置立足點"
-        >
-          📍
-        </button>
-      )}
-    </>
   )
 }
