@@ -1,14 +1,16 @@
-import { Crop, Link2, Pipette, X } from 'lucide-react'
+import { Crop, Lightbulb, Link2, Pipette, X } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { fileToDataUrl } from '../lib/image'
 import { PAINT_FINISHES, finishOf } from '../lib/materials'
 import { BUILTIN_TEXTURES, getBuiltinCanvas } from '../lib/proceduralTextures'
 import { isHex } from '../lib/color'
-import { MATERIAL_LIB } from '../data'
+import { BRAND_MATERIALS, MATERIAL_LIB } from '../data'
+import { ARCHETYPE_LIST, ARCHETYPES, archetypePatch } from '../lib/archetypes'
+import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
-import type { MaterialSpec } from '../types'
+import type { BrandMaterial, MaterialSpec } from '../types'
 import { AssetGrid, CropModal, UploadButton } from './assets'
-import { Btn, Field, Segmented, Slider, cx } from './controls'
+import { Btn, Field, Segmented, Slider, Toggle, cx } from './controls'
 
 function BuiltinThumb({ id, label, active, onClick }: { id: string; label: string; active: boolean; onClick: () => void }) {
   const url = useMemo(() => getBuiltinCanvas(id)?.toDataURL('image/jpeg', 0.6), [id])
@@ -27,11 +29,90 @@ function BuiltinThumb({ id, label, active, onClick }: { id: string; label: strin
   )
 }
 
+const CONF_LABEL: Record<BrandMaterial['hexConfidence'], string> = {
+  official: '官方色值',
+  measured: '專案實測',
+  reference: '官方參考色換算',
+  estimate: '估計值',
+}
+
+/** 把品牌建材字典項目轉成 MaterialSpec 補丁（未指定的物理欄位明確清空，避免殘留舊材質） */
+export function brandPatch(b: BrandMaterial): Partial<MaterialSpec> {
+  const a = ARCHETYPES[b.archetype]
+  return {
+    archetype: b.archetype,
+    color: b.map ? '#ffffff' : b.hex.toLowerCase(),
+    roughness: b.roughness,
+    metalness: b.metalness ?? a.metalness,
+    clearcoat: b.clearcoat ?? a.clearcoat,
+    clearcoatRoughness: b.clearcoatRoughness ?? a.clearcoatRoughness,
+    reflectivity: b.reflectivity ?? a.reflectivity,
+    bumpScale: b.bumpScale,
+    map: b.map,
+    repeat: b.map ? (b.repeat ?? 1) : undefined,
+    opacity: undefined,
+  }
+}
+
+function BrandSwatchPicker({ kinds, onPick }: { kinds?: BrandMaterial['kind'][]; onPick: (b: BrandMaterial) => void }) {
+  const list = BRAND_MATERIALS.filter((b) => !kinds || kinds.includes(b.kind))
+  const [sel, setSel] = useState<string | null>(null)
+  const cur = list.find((b) => b.id === sel)
+  const colorProof = useLayout((s) => !!s.settings.colorProof)
+  const setSettings = useLayout((s) => s.setSettings)
+  return (
+    <div className="space-y-2 rounded-md border border-white/10 p-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-slate-200">品牌色卡 Brand Swatch</span>
+        <span className="text-[10px] text-slate-500">{list.length} 款</span>
+      </div>
+      <div className="grid grid-cols-6 gap-1.5">
+        {list.map((b) => (
+          <button
+            key={b.id}
+            title={`${b.brand} ${b.code}`}
+            onClick={() => {
+              setSel(b.id)
+              onPick(b)
+            }}
+            className={cx(
+              'aspect-square rounded-md border',
+              sel === b.id ? 'border-sky-400 ring-1 ring-sky-400' : 'border-white/15 hover:border-white/40',
+            )}
+            style={{ background: b.hex }}
+          />
+        ))}
+      </div>
+      {cur && (
+        <div className="space-y-0.5 rounded bg-slate-800/70 p-2 text-[11px] leading-relaxed text-slate-300">
+          <div className="font-semibold text-slate-100">
+            {cur.brand} {cur.code}
+          </div>
+          <div>
+            {cur.hex.toUpperCase()}・{ARCHETYPES[cur.archetype].label}・R {cur.roughness}
+          </div>
+          <div className={cur.hexConfidence === 'estimate' ? 'text-amber-300' : 'text-emerald-300'}>色值：{CONF_LABEL[cur.hexConfidence]}</div>
+          <div className="text-slate-400">{cur.description}</div>
+          <div className="break-all text-[10px] text-slate-500">依據：{cur.source}</div>
+        </div>
+      )}
+      <Toggle label="💡 標準對色光（5500K 純白、無環境色偏）" checked={colorProof} onChange={(v) => setSettings({ colorProof: v })} />
+      <p className="flex items-start gap-1 text-[10px] text-slate-500">
+        <Lightbulb size={11} className="mt-0.5 shrink-0" />
+        開啟後場景改用中性白光，避免暖黃室內光造成色差誤判；螢幕色值仍與實體色卡有差，請以樣板為準。
+      </p>
+    </div>
+  )
+}
+
 export function MaterialEditor({
   spec,
   onChange,
   paint = false,
+  brandKinds,
 }: {
+  /** 品牌色卡要顯示哪些類型；不給 = 全部 */
+  brandKinds?: BrandMaterial['kind'][]
   spec: MaterialSpec
   onChange: (patch: Partial<MaterialSpec>) => void
   /** 牆面油漆模式：顯示 平光/蛋殼光/亮光 */
@@ -56,6 +137,34 @@ export function MaterialEditor({
 
   return (
     <div className="space-y-3">
+      <BrandSwatchPicker kinds={brandKinds} onPick={(b) => onChange(brandPatch(b))} />
+      <Field label="建材物理基底 Archetype">
+        <select
+          value={spec.archetype ?? ''}
+          onChange={(e) => {
+            const v = e.target.value as keyof typeof ARCHETYPES | ''
+            onChange(v ? archetypePatch(v) : { archetype: undefined, clearcoat: undefined, clearcoatRoughness: undefined, reflectivity: undefined, bumpScale: undefined })
+          }}
+          className="w-full rounded-md border border-white/10 bg-slate-800/80 px-2 py-1.5 text-sm text-slate-100"
+        >
+          <option value="">無（一般 PBR）</option>
+          {ARCHETYPE_LIST.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.label}
+            </option>
+          ))}
+        </select>
+      </Field>
+      {spec.archetype && (
+        <Slider
+          label="表面顆粒 / 壓紋強度 Bump"
+          value={spec.bumpScale ?? ARCHETYPES[spec.archetype].bumpScale}
+          min={0}
+          max={2}
+          step={0.05}
+          onChange={(v) => onChange({ bumpScale: v })}
+        />
+      )}
       <Field label="材質庫（建材型號）">
         <select
           value=""
