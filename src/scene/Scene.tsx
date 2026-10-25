@@ -1,11 +1,11 @@
 import { Canvas, useThree } from '@react-three/fiber'
-import { Suspense, lazy, useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import * as THREE from 'three'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 import { BlueprintPlane, CalibrationLayer } from './Blueprint'
 import { CameraRig } from './CameraRig'
-import { Ceiling, FirstPersonRig, PlacementLayer } from './FirstPerson'
+import { Ceiling, FirstPersonRig } from './FirstPerson'
 import { Floor, FloorZones, Ground } from './Floor'
 import { FurnitureLayer } from './Furniture'
 import { Gizmo } from './Gizmo'
@@ -13,12 +13,9 @@ import { MepLayer } from './Mep'
 import { Lighting } from './Lighting'
 import { DepthOfFieldFx } from './DepthOfFieldFx'
 import { PostFX } from './PostFX'
-import { LIGHT_SCENES } from '../lib/lightScenes'
-import { FloorContact, StudioExport, StudioSoftShadows } from './Studio'
+import { FrameLoop } from '../lib/frameloop'
+import { FloorContact } from './FloorContact'
 import { Walls } from './Walls'
-
-// 路徑追蹤與 BVH 體積大，只在使用者按下「高品質渲染」時才載入
-const PathTraceRender = lazy(() => import('./PathTraceRender').then((m) => ({ default: m.PathTraceRender })))
 
 function GridLines() {
   const showGrid = useLayout((s) => s.settings.showGrid)
@@ -48,22 +45,18 @@ function DevProbe() {
   return null
 }
 
-/** 背景色隨燈光情境變化（夜燈模式轉暗） */
+/** 背景色 */
 function Backdrop() {
-  const id = useLayout((s) => s.settings.lightScene ?? 'all')
-  const proof = useLayout((s) => !!s.settings.colorProof)
-  return <color attach="background" args={[proof ? '#e8ecf1' : LIGHT_SCENES[id].bg]} />
+  return <color attach="background" args={['#e8ecf1']} />
 }
 
 export function Scene() {
   const fp = useUi((s) => s.viewMode) === 'firstPerson'
-  const dof = useUi((s) => s.dof)
-  const pt = useUi((s) => s.pt.active)
-  const studio = useUi((s) => s.studio)
   return (
     <Canvas
       shadows="percentage"
-      dpr={studio ? 2 : [1, 2]}
+      frameloop="demand"
+      dpr={[1, 2]}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       // 色調映射由 <PostFX /> 管理：預設 ACES Filmic（電影級層次），標準對色光時維持 Khronos Neutral（保留色票原色）
       onCreated={({ gl }) => {
@@ -81,8 +74,7 @@ export function Scene() {
       {fp && <FirstPersonRig />}
       {import.meta.env.DEV && <DevProbe />}
       <Lighting />
-      <StudioSoftShadows />
-      <StudioExport />
+      <FrameLoop />
       <Suspense fallback={null}>
         <Ground />
         <BlueprintPlane />
@@ -90,7 +82,6 @@ export function Scene() {
         <FloorZones />
         <Walls />
         {fp && <Ceiling />}
-        <PlacementLayer />
         <FurnitureLayer />
         <GridLines />
         <FloorContact />
@@ -98,11 +89,7 @@ export function Scene() {
         <MepLayer />
         <CalibrationLayer />
       </Suspense>
-      {pt ? (
-        <Suspense fallback={null}>
-          <PathTraceRender />
-        </Suspense>
-      ) : <PostFX>{fp && dof && <DepthOfFieldFx />}</PostFX>}
+      <PostFX>{fp && <DepthOfFieldFx />}</PostFX>
     </Canvas>
   )
 }

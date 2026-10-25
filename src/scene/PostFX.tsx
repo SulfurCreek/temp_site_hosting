@@ -4,11 +4,9 @@ import { Effect, ToneMappingMode } from 'postprocessing'
 import { useEffect, useMemo, type ReactNode } from 'react'
 import * as THREE from 'three'
 import { Uniform } from 'three'
-import { useFxTier } from '../lib/fx'
 import { useLayout } from '../store/layoutStore'
-import { useUi } from '../store/uiStore'
 
-/** low 品質（手機）或標準對色光：不掛 EffectComposer，直接由 renderer 做色調映射 */
+/** 標準對色光：不掛 EffectComposer，直接由 renderer 做色調映射 */
 function RendererTone({ proof }: { proof: boolean }) {
   const gl = useThree((s) => s.gl)
   useEffect(() => {
@@ -41,35 +39,25 @@ function WarmGrade() {
 }
 
 /**
- * 後期渲染管線。順序固定為：N8AO（環境遮蔽）→ children → Bloom → 暖調白平衡 → ToneMapping → Vignette → SMAA。
+ * 後期渲染管線（所有裝置相同畫質）。順序固定為：N8AO（環境遮蔽）→ children → Bloom → 暖調白平衡 → ToneMapping → Vignette → SMAA。
  * 其他功能（例如 DepthOfField）請以 children 注入，會被放在 AO 之後、Bloom 之前：
  *
  *   <PostFX><DepthOfFieldFx /></PostFX>
  *
- * 相片級算圖模式（uiStore.studio）：N8AO ultra、8x MSAA（取代 SMAA）。
+ * AO 以半解析度計算（N8AO 內建深度感知上採樣，肉眼與全解析度相近），只在出幀時執行；閒置不重繪。
  */
 export function PostFX({ children }: { children?: ReactNode }) {
-  const tier = useFxTier()
   const proof = useLayout((s) => !!s.settings.colorProof)
-  const studio = useUi((s) => s.studio)
-  if (tier === 'low' || proof) return <RendererTone proof={proof} />
-  const high = tier === 'high'
+  if (proof) return <RendererTone proof={proof} />
   return (
-    <EffectComposer multisampling={studio ? 8 : 0} enableNormalPass={false} key={studio ? 'studio' : 'live'}>
-      <N8AO
-        aoRadius={high ? 0.4 : 0.5}
-        intensity={high ? 3.5 : 2.5}
-        distanceFalloff={high ? 0.8 : 1.0}
-        quality={studio ? 'ultra' : high ? 'high' : 'low'}
-        halfRes={!high}
-        color="black"
-      />
+    <EffectComposer multisampling={0} enableNormalPass={false}>
+      <N8AO aoRadius={0.4} intensity={3.5} distanceFalloff={0.8} quality="high" halfRes color="black" />
       {children}
       <Bloom luminanceThreshold={1.1} luminanceSmoothing={0.05} intensity={0.5} mipmapBlur />
       <WarmGrade />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <Vignette eskil={false} offset={0.1} darkness={0.35} />
-      {studio ? <></> : <SMAA />}
+      <SMAA />
     </EffectComposer>
   )
 }

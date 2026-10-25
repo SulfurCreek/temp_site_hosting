@@ -41,7 +41,7 @@ export function Hud() {
           <Key>Backspace</Key> 刪除
         </span>
         <span>
-          <Key>Space</Key> 切換視角
+          <Key>Space</Key> 平面圖
         </span>
         <span>右鍵平移 · 滾輪縮放</span>
         <button aria-label="關閉提示" onClick={() => set({ showHud: false })} className="-mr-1 rounded-full p-0.5 text-slate-500 hover:text-slate-200">

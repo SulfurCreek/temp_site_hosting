@@ -3,8 +3,6 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useMemo, useRef, type ComponentRef } from 'react'
 import * as THREE from 'three'
 import type { FloorZone } from '../types'
-import { useFxTier } from '../lib/fx'
-import { LIGHT_SCENES } from '../lib/lightScenes'
 import { useMetricFloor, useMetricPlane } from '../lib/geometry'
 import { usePBRMaterial } from '../lib/materials'
 import { useLayout } from '../store/layoutStore'
@@ -17,10 +15,9 @@ import { useUi } from '../store/uiStore'
  * 刻意不傳 normalMap：反射器 shader 會拿它扭曲倒影座標，木紋微法線會讓倒影抖動。
  */
 function useReflectiveFloor(opaque: boolean) {
-  const tier = useFxTier()
   const proof = useLayout((s) => !!s.settings.colorProof)
   const persp = useThree((s) => (s.camera as THREE.PerspectiveCamera).isPerspectiveCamera === true)
-  return tier === 'high' && !proof && persp && opaque
+  return !proof && persp && opaque
 }
 
 function ReflectiveSurface({
@@ -44,11 +41,10 @@ function ReflectiveSurface({
   useFrame(() => {
     const m = ref.current
     if (!m) return
-    if (m.map !== mat.map || m.roughnessMap !== mat.roughnessMap || m.normalMap !== mat.normalMap || m.aoMap !== mat.aoMap) {
+    if (m.map !== mat.map || m.roughnessMap !== mat.roughnessMap || m.normalMap !== mat.normalMap) {
       m.map = mat.map
       m.roughnessMap = mat.roughnessMap
       m.normalMap = mat.normalMap
-      m.aoMap = mat.aoMap
       m.needsUpdate = true
     }
     m.normalScale.copy(mat.normalScale)
@@ -90,7 +86,6 @@ export function Floor() {
   const mat = usePBRMaterial(spec, { highlight: selected })
   const geo = useMetricFloor(floor.size[0], floor.size[1])
   const reflect = useReflectiveFloor(spec.opacity === undefined || spec.opacity >= 1)
-  const studio = useUi((s) => s.studio)
   const onClick = (e: { stopPropagation: () => void }) => {
     if (useUi.getState().calib.active) return
     e.stopPropagation()
@@ -104,7 +99,7 @@ export function Floor() {
         w={floor.size[0]}
         d={floor.size[1]}
         position={[floor.center[0], 0, floor.center[1]]}
-        resolution={studio ? 1024 : 512}
+        resolution={512}
         onClick={onClick}
       />
     )
@@ -131,7 +126,6 @@ function ZoneView({ zone, index }: { zone: FloorZone; index: number }) {
   const geo = useMetricFloor(zone.size[0], zone.size[1])
   // 玄關磁磚也做微反射（浴室 / 陽台維持霧面）
   const reflect = useReflectiveFloor(zone.id === 'z-foyer')
-  const studio = useUi((s) => s.studio)
   if (reflect)
     return (
       <ReflectiveSurface
@@ -139,7 +133,7 @@ function ZoneView({ zone, index }: { zone: FloorZone; index: number }) {
         w={zone.size[0]}
         d={zone.size[1]}
         position={[zone.center[0], 0.002 + index * 0.001, zone.center[1]]}
-        resolution={studio ? 512 : 256}
+        resolution={256}
         onClick={(e) => {
           if (useUi.getState().calib.active) return
           e.stopPropagation()
@@ -171,12 +165,11 @@ export function FloorZones() {
 
 /** 房間以外的地面（淡色），讓地板透明時不至於露出背景 */
 export function Ground() {
-  const id = useLayout((s) => s.settings.lightScene ?? 'all')
   const proof = useLayout((s) => !!s.settings.colorProof)
   return (
     <mesh rotation-x={-Math.PI / 2} position={[0, -0.03, 0]}>
       <circleGeometry args={[40, 48]} />
-      <meshBasicMaterial color={proof ? '#e3e8ee' : LIGHT_SCENES[id].ground} toneMapped={false} />
+      <meshBasicMaterial color={proof ? '#e3e8ee' : '#e3e8ee'} toneMapped={false} />
     </mesh>
   )
 }

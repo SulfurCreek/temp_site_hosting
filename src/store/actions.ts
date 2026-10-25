@@ -1,16 +1,13 @@
 import { downloadText } from '../lib/image'
-import type { CatalogItem, MaterialSpec, ViewPreset } from '../types'
+import type { CatalogItem, MaterialSpec } from '../types'
 import { viewTarget } from '../scene/CameraRig'
 import { findCatalogItem, useLayout } from './layoutStore'
 import { useUi } from './uiStore'
 
-export const VIEW_CYCLE: ViewPreset[] = ['SE', 'SW', 'NW', 'NE', 'TOP']
-
-export function cycleView() {
+/** 斜視（世紀帝國東南角） ⇄ 正上方平面圖 */
+export function togglePlanView() {
   const ui = useUi.getState()
-  // 以「上一次請求的視角」為基準，連按空白鍵時不會因為轉場尚未結束而重複
-  const cur = ui.viewRequest.preset
-  ui.requestView(VIEW_CYCLE[(VIEW_CYCLE.indexOf(cur) + 1) % VIEW_CYCLE.length])
+  ui.requestView(ui.viewRequest.preset === 'TOP' ? 'SE' : 'TOP')
 }
 
 export function selectedFurnitureId() {

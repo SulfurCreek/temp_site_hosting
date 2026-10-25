@@ -7,7 +7,6 @@ import { Hud, Toast } from './ui/Hud'
 import { useIsMobile } from './ui/hooks'
 import { BottomSheet, LeftDrawer, RightPanel } from './ui/Panels'
 import { MepInfo } from './ui/MepInfo'
-import { PathTraceOverlay, StudioBar } from './ui/PathTracePanel'
 import { ReferenceViewer } from './ui/ReferenceViewer'
 import { DesktopTopBar, MobileTopBar } from './ui/TopBar'
 import { useHotkeys } from './ui/useHotkeys'
@@ -20,7 +19,6 @@ export default function App() {
   const calibActive = useUi((s) => s.calib.active)
   const moving = useUi((s) => s.moving)
   const fp = useUi((s) => s.viewMode) === 'firstPerson'
-  const placing = useUi((s) => s.placing)
   useHotkeys()
 
   // 手機：選取物件 → 底部抽屜切到「屬性」並以精簡高度顯示；取消選取 → 收起
@@ -52,8 +50,6 @@ export default function App() {
           <Scene />
         </div>
         <ReferenceViewer />
-        {!mobile && <PathTraceOverlay />}
-        <StudioBar mobile={mobile} />
         {!fp && <Hud />}
         {fp && <FirstPersonBar />}
         <MepInfo />
@@ -61,11 +57,6 @@ export default function App() {
         {moving && (
           <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3 max-lg:top-[72px]">
             <div className="glass rounded-full px-4 py-1.5 text-xs text-amber-300">移動模式：拖拉選取的物件到新位置（Enter / Esc 結束）</div>
-          </div>
-        )}
-        {placing && (
-          <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3 max-lg:top-[72px]">
-            <div className="glass rounded-full px-4 py-1.5 text-xs text-sky-300">放置立足點：點地板決定位置，按住拖曳可指定視線方向（Esc 取消）</div>
           </div>
         )}
         {calibActive && (

@@ -1,9 +1,6 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { MEP_ITEMS } from '../data'
-import { useUi } from '../store/uiStore'
-import type { FxTier } from '../lib/fx'
-import type { LightSceneDef } from '../lib/lightScenes'
 import type { MepItem } from '../types'
 
 /**
@@ -52,14 +49,12 @@ function HeadSpot({
   k,
   color,
   shadow,
-  mapSize,
 }: {
   at: [number, number, number]
   aim: [number, number, number]
   k: number
   color: string
   shadow: boolean
-  mapSize: number
 }) {
   const g = useRef<THREE.Group>(null)
   const target = useMemo(() => new THREE.Object3D(), [])
@@ -89,7 +84,7 @@ function HeadSpot({
         distance={6}
         decay={2}
         castShadow={shadow}
-        shadow-mapSize={[mapSize, mapSize]}
+        shadow-mapSize={[1024, 1024]}
         shadow-bias={-0.0006}
         shadow-normalBias={0.02}
         shadow-radius={4}
@@ -98,8 +93,7 @@ function HeadSpot({
   )
 }
 
-function Track({ it, k, color, tier }: { it: MepItem; k: number; color: string; tier: FxTier }) {
-  const studio = useUi((s) => s.studio)
+function Track({ it, k, color }: { it: MepItem; k: number; color: string }) {
   const heads = it.heads ?? 0
   const len = it.length ?? 1
   const alongZ = it.dir === 'z'
@@ -119,17 +113,16 @@ function Track({ it, k, color, tier }: { it: MepItem; k: number; color: string; 
       </mesh>
       {pts.map((p, i) => (
         // 著色器取樣器上限（多數 GPU 16 個）：只讓每條軌道的偶數燈頭投影
-        <HeadSpot key={i} at={p.at} aim={p.aim} k={k} color={color} shadow={tier === 'high' && i % 2 === 0} mapSize={studio ? 2048 : 1024} />
+        <HeadSpot key={i} at={p.at} aim={p.aim} k={k} color={color} shadow={i % 2 === 0} />
       ))}
     </>
   )
 }
 
-function CeilingLamp({ it, k, color, tier }: { it: MepItem; k: number; color: string; tier: FxTier }) {
-  const studio = useUi((s) => s.studio)
+function CeilingLamp({ it, k, color }: { it: MepItem; k: number; color: string }) {
   const d = it.diameter ?? 0.4
   const fan = it.kind === 'fan'
-  const shadow = tier === 'high' && SHADOW_POINT_IDS.has(it.id)
+  const shadow = SHADOW_POINT_IDS.has(it.id)
   return (
     <group position={[it.at[0], it.h, it.at[1]]}>
       <mesh position={[0, -0.025, 0]}>
@@ -156,7 +149,7 @@ function CeilingLamp({ it, k, color, tier }: { it: MepItem; k: number; color: st
         distance={0}
         decay={1.8}
         castShadow={shadow}
-        shadow-mapSize={[studio ? 1024 : 512, studio ? 1024 : 512]}
+        shadow-mapSize={[512, 512]}
         shadow-bias={-0.0008}
         shadow-normalBias={0.03}
         shadow-radius={6}
@@ -218,22 +211,21 @@ function StripLight({ it, k }: { it: MepItem; k: number }) {
   )
 }
 
-export function Fixtures({ scene, color, tier }: { scene: LightSceneDef; color: string; tier: FxTier }) {
-  const items = MEP_ITEMS
-  const level = (it: MepItem, group: keyof LightSceneDef['on']) => scene.only?.[it.id] ?? scene.on[group]
+/** 全部迴路開啟（固定情境）。光源總數 19、其中 7 盞投影；陰影圖只在場景變動時重算（見 lib/frameloop.ts） */
+export function Fixtures({ color }: { color: string }) {
   return (
     <>
-      {items.map((it) => {
+      {MEP_ITEMS.map((it) => {
         switch (it.kind) {
           case 'track':
-            return <Track key={it.id} it={it} k={level(it, 'track')} color={color} tier={tier} />
+            return <Track key={it.id} it={it} k={1} color={color} />
           case 'ceiling':
           case 'fan':
-            return <CeilingLamp key={it.id} it={it} k={level(it, 'ceiling')} color={color} tier={tier} />
+            return <CeilingLamp key={it.id} it={it} k={1} color={color} />
           case 'downlight':
-            return <Downlight key={it.id} it={it} k={level(it, 'downlight')} color={color} />
+            return <Downlight key={it.id} it={it} k={1} color={color} />
           case 'strip':
-            return <StripLight key={it.id} it={it} k={level(it, 'strip')} />
+            return <StripLight key={it.id} it={it} k={1} />
           default:
             return null
         }

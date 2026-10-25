@@ -210,7 +210,6 @@ export type Selection =
 export type Projection = 'ortho' | 'persp'
 export type CutawayMode = 'lower' | 'ghost' | 'off'
 export type ToolMode = 'drag' | 'move' | 'rotate'
-export type Kelvin = 3000 | 4000 | 6000
 export type ViewPreset = 'SE' | 'SW' | 'NE' | 'NW' | 'TOP'
 export type ViewMode = 'isometric' | 'firstPerson'
 export type EyeMode = 'stand' | 'sit' | 'robot'
@@ -297,7 +296,6 @@ export interface Settings {
   showMep: boolean
   projection: Projection
   cutaway: CutawayMode
-  kelvin: Kelvin
   /** 吸附格距（公尺），0 = 關閉 */
   snap: number
   tool: ToolMode
@@ -305,12 +303,4 @@ export interface Settings {
   showHud: boolean
   /** 標準對色光：5500K 純白、無環境色偏，避免暖光造成色差誤判 */
   colorProof?: boolean
-  /** 燈光情境（迴路開關模擬），預設 all */
-  lightScene?: LightScene
-  /** 後期渲染品質；auto = 手機(<768px)用 low，其他用 high */
-  fxQuality?: FxQuality
 }
-
-/** all 全開 | track 僅開氛圍軌道燈 | night 夜燈模式 | day 白天自然光 */
-export type LightScene = 'all' | 'track' | 'night' | 'day'
-export type FxQuality = 'auto' | 'high' | 'medium' | 'low'

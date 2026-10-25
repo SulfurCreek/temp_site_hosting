@@ -1,293 +1,5 @@
 [
   {
-    "id": "sofa-3seat",
-    "name": "三人沙發",
-    "category": "living",
-    "mode": "parametric",
-    "size": [
-      2.2,
-      0.85,
-      0.95
-    ],
-    "parametric": {
-      "kind": "sofa",
-      "count": 3,
-      "materials": {
-        "main": {
-          "color": "#2f4126",
-          "roughness": 0.95,
-          "metalness": 0,
-          "map": "builtin:fabric",
-          "repeat": 3
-        },
-        "secondary": {
-          "color": "#ffffff",
-          "roughness": 0.5,
-          "metalness": 0,
-          "map": "builtin:walnut",
-          "repeat": 1,
-          "archetype": "laminate_wood",
-          "clearcoat": 0.15,
-          "clearcoatRoughness": 0.4,
-          "bumpScale": 0.8
-        },
-        "accent": {
-          "color": "#d8b98a",
-          "roughness": 0.95,
-          "metalness": 0,
-          "map": "builtin:fabric",
-          "repeat": 3
-        }
-      }
-    }
-  },
-  {
-    "id": "sofa-2seat",
-    "name": "雙人沙發",
-    "category": "living",
-    "mode": "parametric",
-    "size": [
-      1.6,
-      0.85,
-      0.9
-    ],
-    "parametric": {
-      "kind": "sofa",
-      "count": 2,
-      "materials": {
-        "main": {
-          "color": "#b7a894",
-          "roughness": 0.95,
-          "metalness": 0,
-          "map": "builtin:fabric",
-          "repeat": 3
-        },
-        "secondary": {
-          "color": "#ffffff",
-          "roughness": 0.5,
-          "metalness": 0,
-          "map": "builtin:walnut",
-          "repeat": 1,
-          "archetype": "laminate_wood",
-          "clearcoat": 0.15,
-          "clearcoatRoughness": 0.4,
-          "bumpScale": 0.8
-        },
-        "accent": {
-          "color": "#6f8f7f",
-          "roughness": 0.95,
-          "metalness": 0,
-          "map": "builtin:fabric",
-          "repeat": 3
-        }
-      }
-    }
-  },
-  {
-    "id": "armchair",
-    "name": "單人沙發",
-    "category": "living",
-    "mode": "parametric",
-    "size": [
-      0.85,
-      0.85,
-      0.85
-    ],
-    "parametric": {
-      "kind": "sofa",
-      "count": 1,
-      "materials": {
-        "main": {
-          "color": "#c98f6b",
-          "roughness": 0.95,
-          "metalness": 0,
-          "map": "builtin:fabric",
-          "repeat": 3
-        },
-        "secondary": {
-          "color": "#ffffff",
-          "roughness": 0.5,
-          "metalness": 0,
-          "map": "builtin:walnut",
-          "repeat": 1,
-          "archetype": "laminate_wood",
-          "clearcoat": 0.15,
-          "clearcoatRoughness": 0.4,
-          "bumpScale": 0.8
-        },
-        "accent": {
-          "color": "#e9dcc6",
-          "roughness": 0.95,
-          "metalness": 0,
-          "map": "builtin:fabric",
-          "repeat": 3
-        }
-      }
-    }
-  },
-  {
-    "id": "coffee-table",
-    "name": "茶几",
-    "category": "living",
-    "mode": "parametric",
-    "size": [
-      1.0,
-      0.4,
-      0.55
-    ],
-    "parametric": {
-      "kind": "table",
-      "materials": {
-        "main": {
-          "color": "#ffffff",
-          "roughness": 0.5,
-          "metalness": 0,
-          "map": "builtin:walnut",
-          "repeat": 1,
-          "archetype": "laminate_wood",
-          "clearcoat": 0.15,
-          "clearcoatRoughness": 0.4,
-          "bumpScale": 0.8
-        },
-        "secondary": {
-          "color": "#222222",
-          "roughness": 0.4,
-          "metalness": 0.8
-        }
-      }
-    }
-  },
-  {
-    "id": "tv-cabinet",
-    "name": "電視櫃",
-    "category": "storage",
-    "mode": "parametric",
-    "size": [
-      1.8,
-      0.45,
-      0.4
-    ],
-    "parametric": {
-      "kind": "cabinet",
-      "count": 3,
-      "materials": {
-        "main": {
-          "color": "#f4f1ea",
-          "roughness": 0.45,
-          "metalness": 0
-        },
-        "secondary": {
-          "color": "#d8d2c4",
-          "roughness": 0.6,
-          "metalness": 0
-        },
-        "accent": {
-          "color": "#b08d57",
-          "roughness": 0.3,
-          "metalness": 0.9
-        }
-      }
-    }
-  },
-  {
-    "id": "system-cabinet",
-    "name": "系統收納櫃",
-    "category": "storage",
-    "mode": "parametric",
-    "size": [
-      1.6,
-      2.2,
-      0.45
-    ],
-    "parametric": {
-      "kind": "cabinet",
-      "count": 4,
-      "materials": {
-        "main": {
-          "color": "#f2efe8",
-          "roughness": 0.5,
-          "metalness": 0
-        },
-        "secondary": {
-          "color": "#dcd6c8",
-          "roughness": 0.55,
-          "metalness": 0
-        },
-        "accent": {
-          "color": "#8a8a8a",
-          "roughness": 0.25,
-          "metalness": 0.9
-        }
-      }
-    }
-  },
-  {
-    "id": "dining-table",
-    "name": "餐桌",
-    "category": "dining",
-    "mode": "parametric",
-    "size": [
-      1.4,
-      0.75,
-      0.8
-    ],
-    "parametric": {
-      "kind": "table",
-      "materials": {
-        "main": {
-          "color": "#ffffff",
-          "roughness": 0.5,
-          "metalness": 0,
-          "map": "builtin:oak",
-          "repeat": 1,
-          "archetype": "laminate_wood",
-          "clearcoat": 0.15,
-          "clearcoatRoughness": 0.4,
-          "bumpScale": 0.8
-        },
-        "secondary": {
-          "color": "#2b2b2b",
-          "roughness": 0.4,
-          "metalness": 0.7
-        }
-      }
-    }
-  },
-  {
-    "id": "dining-chair",
-    "name": "餐椅",
-    "category": "dining",
-    "mode": "parametric",
-    "size": [
-      0.45,
-      0.85,
-      0.5
-    ],
-    "parametric": {
-      "kind": "chair",
-      "materials": {
-        "main": {
-          "color": "#a9b6a1",
-          "roughness": 0.95,
-          "metalness": 0,
-          "map": "builtin:fabric",
-          "repeat": 3
-        },
-        "secondary": {
-          "color": "#ffffff",
-          "roughness": 0.5,
-          "metalness": 0,
-          "map": "builtin:oak",
-          "repeat": 1,
-          "archetype": "laminate_wood",
-          "clearcoat": 0.15,
-          "clearcoatRoughness": 0.4,
-          "bumpScale": 0.8
-        }
-      }
-    }
-  },
-  {
     "id": "bed-double",
     "name": "雙人床",
     "category": "bedroom",
@@ -329,80 +41,6 @@
     }
   },
   {
-    "id": "rug-wool",
-    "name": "羊毛地毯",
-    "category": "decor",
-    "mode": "parametric",
-    "size": [
-      2.4,
-      0.02,
-      1.7
-    ],
-    "parametric": {
-      "kind": "rug",
-      "materials": {
-        "main": {
-          "color": "#d6cdbd",
-          "roughness": 0.95,
-          "metalness": 0,
-          "map": "builtin:fabric",
-          "repeat": 3
-        }
-      }
-    }
-  },
-  {
-    "id": "box-generic",
-    "name": "積木方塊（自訂尺寸）",
-    "category": "custom",
-    "mode": "parametric",
-    "size": [
-      0.6,
-      0.6,
-      0.6
-    ],
-    "parametric": {
-      "kind": "box",
-      "materials": {
-        "main": {
-          "color": "#cbd5e1",
-          "roughness": 0.7,
-          "metalness": 0
-        }
-      }
-    }
-  },
-  {
-    "id": "stool-glb",
-    "name": "木凳（GLB 範例）",
-    "category": "decor",
-    "mode": "glb",
-    "size": [
-      0.4,
-      0.45,
-      0.4
-    ],
-    "glb": {
-      "url": "/inputs/products/sample-stool.glb",
-      "fit": "stretch"
-    }
-  },
-  {
-    "id": "plant-billboard",
-    "name": "盆栽（立牌範例）",
-    "category": "decor",
-    "mode": "billboard",
-    "size": [
-      0.6,
-      1.4,
-      0.4
-    ],
-    "billboard": {
-      "image": "/inputs/products/sample-plant.svg",
-      "thickness": 0.03
-    }
-  },
-  {
     "id": "structural-column",
     "name": "結構柱",
     "category": "custom",
@@ -422,51 +60,6 @@
         }
       }
     }
-  },
-  {
-    "id": "shoe-cabinet",
-    "name": "玄關鞋櫃（EGGER W1000 ST19）",
-    "category": "storage",
-    "mode": "parametric",
-    "size": [
-      1.0,
-      2.37,
-      0.35
-    ],
-    "parametric": {
-      "kind": "cabinet",
-      "materials": {
-        "main": {
-          "color": "#f1f0ec",
-          "roughness": 0.8,
-          "metalness": 0,
-          "archetype": "egger_st19",
-          "clearcoat": 0.08,
-          "clearcoatRoughness": 0.6,
-          "bumpScale": 0.4
-        },
-        "secondary": {
-          "color": "#c3c3c1",
-          "roughness": 0.85,
-          "metalness": 0,
-          "archetype": "egger_st9",
-          "reflectivity": 0.3,
-          "bumpScale": 0.2
-        },
-        "accent": {
-          "color": "#8a8a8a",
-          "roughness": 0.25,
-          "metalness": 0.9
-        }
-      },
-      "count": 2
-    },
-    "notes": [
-      "外觀板材：EGGER W1000 ST19 至尊消光白",
-      "內部層板：U708 ST9 淺灰（花崗岩灰）",
-      "8 層斜放/平放鞋架；透氣孔 + 穿線孔；側面插座開孔",
-      "接續下方牆面 100cm 段"
-    ]
   },
   {
     "id": "ewardrobe-room",
@@ -1209,5 +802,50 @@
         }
       }
     }
+  },
+  {
+    "id": "shoe-cabinet",
+    "name": "玄關鞋櫃（EGGER W1000 ST19）",
+    "category": "storage",
+    "mode": "parametric",
+    "size": [
+      1.0,
+      2.37,
+      0.35
+    ],
+    "parametric": {
+      "kind": "cabinet",
+      "materials": {
+        "main": {
+          "color": "#f1f0ec",
+          "roughness": 0.8,
+          "metalness": 0,
+          "archetype": "egger_st19",
+          "clearcoat": 0.08,
+          "clearcoatRoughness": 0.6,
+          "bumpScale": 0.4
+        },
+        "secondary": {
+          "color": "#c3c3c1",
+          "roughness": 0.85,
+          "metalness": 0,
+          "archetype": "egger_st9",
+          "reflectivity": 0.3,
+          "bumpScale": 0.2
+        },
+        "accent": {
+          "color": "#8a8a8a",
+          "roughness": 0.25,
+          "metalness": 0.9
+        }
+      },
+      "count": 2
+    },
+    "notes": [
+      "外觀板材：EGGER W1000 ST19 至尊消光白",
+      "內部層板：U708 ST9 淺灰（花崗岩灰）",
+      "8 層斜放/平放鞋架；透氣孔 + 穿線孔；側面插座開孔",
+      "接續下方牆面 100cm 段"
+    ]
   }
 ]

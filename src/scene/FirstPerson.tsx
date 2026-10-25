@@ -6,14 +6,14 @@ import { fpCam } from '../lib/fpClip'
 import { useResponsiveFOV } from '../lib/useResponsiveFOV'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
-import type { EyeMode, Vec2, VantageHotspot } from '../types'
+import type { EyeMode, Vec2 } from '../types'
 
 const D = Math.PI / 180
-const EYE_HEIGHT: Record<EyeMode, number> = { stand: 1.65, sit: 1.1, robot: 0.3 }
+const EYE_HEIGHT: Record<EyeMode, number> = { stand: 1.68, sit: 1.1, robot: 0.3 }
 
 /** 第一人稱相機的即時狀態（高頻更新，不進 React / zustand） */
 /** x,z = 立足點（人站的位置）；實際相機會沿視線反方向退後 backoffCm（見 fpCam） */
-export const fpLive = { x: 0, z: 0, yaw: 0, pitch: 0, eye: 1.65, ready: false }
+export const fpLive = { x: 0, z: 0, yaw: 0, pitch: 0, eye: 1.68, ready: false }
 if (import.meta.env.DEV) (window as unknown as { __fpLive: unknown }).__fpLive = fpLive
 
 /** 視線朝向（弧度）：yaw = 0 看向北（−Z），正值 = 俯視逆時針（轉向西） */
@@ -48,10 +48,6 @@ function useVantage() {
   }, [floor])
 }
 
-export function useHotspots(): VantageHotspot[] {
-  return useVantage().hotspots
-}
-
 function inPolygon(x: number, z: number, poly: Vec2[]) {
   let inside = false
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
@@ -84,10 +80,6 @@ export function enterFirstPerson() {
   else ui.goVantage(fc[0], fc[1], 0)
 }
 
-export function goHotspot(h: VantageHotspot) {
-  useUi.getState().goVantage(h.pos[0], h.pos[1], yawToward(h.pos, h.look), h.eye)
-}
-
 function isVisible(o: THREE.Object3D | null) {
   for (let p = o; p; p = p.parent) if (!p.visible) return false
   return true
@@ -118,137 +110,7 @@ function ndcOf(e: { clientX: number; clientY: number }, el: HTMLElement) {
   return new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1)
 }
 
-/** 站立點圓環 + 視線方向箭頭（朝 −Z，由外層 group 的 rotation-y 決定方向） */
-function Pin({ color, groupRef }: { color: string; groupRef: React.RefObject<THREE.Group | null> }) {
-  const mat = useMemo(
-    () => new THREE.MeshBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.95, toneMapped: false, side: THREE.DoubleSide }),
-    [color],
-  )
-  useEffect(() => () => mat.dispose(), [mat])
-  return (
-    <group ref={groupRef} visible={false} position={[0, 0.03, 0]} renderOrder={1000} userData={{ noPick: true }}>
-      <mesh rotation-x={-Math.PI / 2} material={mat} renderOrder={1000} userData={{ noPick: true }}>
-        <ringGeometry args={[0.24, 0.32, 40]} />
-      </mesh>
-      <mesh rotation-x={-Math.PI / 2} material={mat} renderOrder={1000} userData={{ noPick: true }}>
-        <circleGeometry args={[0.09, 20]} />
-      </mesh>
-      <mesh position={[0, 0, -0.62]} rotation-x={-Math.PI / 2} material={mat} renderOrder={1000} userData={{ noPick: true }}>
-        <coneGeometry args={[0.16, 0.32, 3]} />
-      </mesh>
-      <mesh position={[0, 0, -0.42]} rotation-x={-Math.PI / 2} material={mat} renderOrder={1000} userData={{ noPick: true }}>
-        <planeGeometry args={[0.06, 0.2]} />
-      </mesh>
-    </group>
-  )
-}
-
-/** 方式 A：俯視角「📍 放置立足點」。移動預覽、按下決定位置、拖曳決定視線方向、放開即以第一人稱站上去。 */
-export function PlacementLayer() {
-  const placing = useUi((s) => s.placing)
-  const viewMode = useUi((s) => s.viewMode)
-  const gl = useThree((s) => s.gl)
-  const get = useThree((s) => s.get)
-  const walkable = useWalkable()
-  const hover = useRef<THREE.Group>(null)
-  const here = useRef<THREE.Group>(null)
-
-  // 目前站的位置（回到俯視後仍顯示）
-  useFrame(() => {
-    const g = here.current
-    if (!g) return
-    const show = fpLive.ready && viewMode === 'isometric' && !useUi.getState().placing
-    g.visible = show
-    if (show) {
-      g.position.set(fpLive.x, 0.03, fpLive.z)
-      g.rotation.y = fpLive.yaw
-    }
-  })
-
-  useEffect(() => {
-    if (!placing || viewMode !== 'isometric') return
-    const el = gl.domElement
-    const ray = new THREE.Raycaster()
-    const fc = useLayout.getState().layout.floor.center
-    let anchor: THREE.Vector3 | null = null
-    let yaw = 0
-    const hit = (e: PointerEvent) => {
-      const s = get()
-      ray.setFromCamera(ndcOf(e, el), s.camera)
-      const r = pickFloor(ray, s.scene)
-      return r && !r.blocked && walkable(r.pt.x, r.pt.z) ? r.pt : null
-    }
-    const show = (pt: THREE.Vector3 | null) => {
-      const g = hover.current
-      if (!g) return
-      g.visible = !!pt
-      if (pt) {
-        g.position.set(pt.x, 0.03, pt.z)
-        g.rotation.y = yaw
-      }
-    }
-    const onMove = (e: PointerEvent) => {
-      if (anchor) {
-        const s = get()
-        ray.setFromCamera(ndcOf(e, el), s.camera)
-        const { origin, direction } = ray.ray
-        if (direction.y < -1e-4) {
-          const t = -origin.y / direction.y
-          const x = origin.x + direction.x * t
-          const z = origin.z + direction.z * t
-          if (Math.hypot(x - anchor.x, z - anchor.z) > 0.2) yaw = yawToward([anchor.x, anchor.z], [x, z])
-        }
-        show(anchor)
-      } else {
-        const pt = hit(e)
-        if (pt) yaw = yawToward([pt.x, pt.z], fc as Vec2)
-        show(pt)
-      }
-    }
-    const onDown = (e: PointerEvent) => {
-      if (e.pointerType === 'mouse' && e.button !== 0) return
-      const pt = hit(e)
-      if (!pt) return useUi.getState().showToast('這裡不是可站立的地面（被牆或家具擋住）')
-      anchor = pt.clone()
-      yaw = yawToward([pt.x, pt.z], fc as Vec2)
-      el.setPointerCapture?.(e.pointerId)
-      show(anchor)
-    }
-    const onUp = () => {
-      if (!anchor) return
-      const a = anchor
-      anchor = null
-      useUi.getState().goVantage(a.x, a.z, yaw)
-    }
-    const onCancel = () => {
-      anchor = null
-      show(null)
-    }
-    el.addEventListener('pointermove', onMove)
-    el.addEventListener('pointerdown', onDown)
-    el.addEventListener('pointerup', onUp)
-    el.addEventListener('pointercancel', onCancel)
-    const prevCursor = el.style.cursor
-    el.style.cursor = 'crosshair'
-    return () => {
-      el.removeEventListener('pointermove', onMove)
-      el.removeEventListener('pointerdown', onDown)
-      el.removeEventListener('pointerup', onUp)
-      el.removeEventListener('pointercancel', onCancel)
-      el.style.cursor = prevCursor
-      if (hover.current) hover.current.visible = false
-    }
-  }, [placing, viewMode, gl, get, walkable])
-
-  return (
-    <>
-      <Pin color="#38bdf8" groupRef={hover} />
-      <Pin color="#f59e0b" groupRef={here} />
-    </>
-  )
-}
-
-/** 第一人稱相機：原地轉頭、點地板走過去、預設點 / 人眼高度切換 */
+/** 第一人稱相機：原地轉頭、點地板走過去、人眼高度切換 */
 export function FirstPersonRig() {
   const set = useThree((s) => s.set)
   const gl = useThree((s) => s.gl)
