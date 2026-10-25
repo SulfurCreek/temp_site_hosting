@@ -29,6 +29,9 @@ interface ViewState {
   viewSize: number
 }
 
+/** 目前畫面中心對準的地面點（供「新增家具到畫面中央」使用） */
+export const viewTarget = new THREE.Vector3()
+
 function shortest(from: number, to: number) {
   return from + Math.atan2(Math.sin(to - from), Math.cos(to - from))
 }
@@ -161,6 +164,7 @@ export function CameraRig() {
     if (c) {
       if (c.target.y !== 0) c.target.y = 0
       v.target.copy(c.target)
+      viewTarget.copy(c.target)
       const off = cam.position.clone().sub(c.target)
       const r = off.length()
       if (r > 1e-6) {

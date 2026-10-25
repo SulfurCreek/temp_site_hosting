@@ -6,9 +6,11 @@
 export const BUILTIN_TEXTURES = [
   { id: 'builtin:oak', label: '橡木地板' },
   { id: 'builtin:oak-light', label: '淺橡木' },
+  { id: 'builtin:oak-ash', label: '灰褐橡木（實景）' },
   { id: 'builtin:walnut', label: '胡桃木' },
   { id: 'builtin:tile', label: '白色方磚' },
   { id: 'builtin:tile-gray', label: '灰階地磚' },
+  { id: 'builtin:tile-dark', label: '深灰磁磚' },
   { id: 'builtin:concrete', label: '清水模' },
   { id: 'builtin:fabric', label: '織布' },
   { id: 'builtin:marble', label: '大理石' },
@@ -94,18 +96,18 @@ function tile() {
   return cv
 }
 
-function tileGray() {
+function tileGray(grout = '#8f8f8c', base = '#b4b4b0', _edge = '') {
   const cv = document.createElement('canvas')
   cv.width = cv.height = SIZE
   const g = cv.getContext('2d')!
   const r = rng(17)
   const n = 2
   const s = SIZE / n
-  g.fillStyle = '#8f8f8c'
+  g.fillStyle = grout
   g.fillRect(0, 0, SIZE, SIZE)
   for (let i = 0; i < n; i++)
     for (let j = 0; j < n; j++) {
-      g.fillStyle = shade('#b4b4b0', 0.94 + r() * 0.1)
+      g.fillStyle = shade(base, 0.94 + r() * 0.1)
       g.fillRect(i * s + 3, j * s + 3, s - 6, s - 6)
       for (let k = 0; k < 400; k++) {
         g.fillStyle = `rgba(${r() > 0.5 ? '0,0,0' : '255,255,255'},${r() * 0.06})`
@@ -281,7 +283,10 @@ const makers: Record<string, () => HTMLCanvasElement> = {
   'builtin:oak': () => wood('#c9a171', 5, 3),
   'builtin:oak-light': () => wood('#dcc8a6', 5, 5),
   'builtin:walnut': () => wood('#6b4a33', 4, 9),
+  // 取自實景照地板（換算後 #aaa599）
+  'builtin:oak-ash': () => wood('#b3ada1', 5, 7),
   'builtin:tile-gray': () => tileGray(),
+  'builtin:tile-dark': () => tileGray('#5f666b', '#79828a', '#454b4f'),
   'builtin:tile': tile,
   'builtin:concrete': () => noise('#b4b4b0', 13, 9000, 60),
   'builtin:fabric': fabric,

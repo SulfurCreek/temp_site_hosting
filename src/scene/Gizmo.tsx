@@ -11,6 +11,7 @@ import { objectRegistry } from './registry'
  */
 export function Gizmo() {
   const sel = useUi((s) => s.selection)
+  const moving = useUi((s) => s.moving)
   const tool = useLayout((s) => s.settings.tool)
   const snap = useLayout((s) => s.settings.snap)
   const count = useLayout((s) => s.layout.furniture.length)
@@ -22,7 +23,7 @@ export function Gizmo() {
     setObj(id ? (objectRegistry.get(id) ?? null) : null)
   }, [id, count])
 
-  if (!id || !obj || tool === 'drag' || locked) return null
+  if (!id || !obj || !moving || tool === 'drag' || locked) return null
   const rotate = tool === 'rotate'
 
   const commit = () => {

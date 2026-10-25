@@ -4,12 +4,12 @@
     "name": "超耐磨木地板 ED-KS81555（溫潤淺橡）",
     "brand": "超耐磨",
     "code": "ED-KS81555",
-    "note": "全室木地板；圖面另有 ED-KS83555 為廚房檯面石材標示。實景照（往陽台看）地板呈偏灰淺木紋，比內建淺橡略冷，可在材質面板降低色彩飽和度微調",
+    "note": "全室木地板（使用者指定型號）。依實景照（玄關/往陽台）調整為偏灰褐的淺橡木；手繪圖以棕色表示『木地板』，未採用其棕色；實景照取樣地板 #919087（牆 #d3d6d4 對應百合白，換算後約 #aaa599）",
     "spec": {
       "color": "#ffffff",
       "roughness": 0.55,
       "metalness": 0,
-      "map": "builtin:oak-light",
+      "map": "builtin:oak-ash",
       "repeat": 1
     }
   },
@@ -36,18 +36,6 @@
       "roughness": 0.42,
       "metalness": 0,
       "map": "builtin:encaustic",
-      "repeat": 1
-    }
-  },
-  {
-    "id": "FOYER-BLUE",
-    "name": "玄關天藍/灰藍地磚（實景參考左版）",
-    "note": "取自早期實景照左版地磚取樣 #5c6c76，色溫偏暖已略微校正；方磚約 50cm 為估計",
-    "spec": {
-      "color": "#6f8497",
-      "roughness": 0.5,
-      "metalness": 0,
-      "map": "builtin:tile",
       "repeat": 1
     }
   },
@@ -97,6 +85,110 @@
       "color": "#a8a6a1",
       "roughness": 0.85,
       "metalness": 0
+    }
+  },
+  {
+    "id": "REF-CABINET-LEFT",
+    "name": "進門左側置物櫃外觀（實景 AI 圖）",
+    "note": "取自 AI 生成照：櫃門受陰影呈暖灰米，側板受光近白（#d2d3cd≈牆色）→ 還原為略暖的消光白；與 EGGER W1000 ST19 規格相近，可在材質庫切回 W1000",
+    "spec": {
+      "color": "#e2ddd0",
+      "roughness": 0.8,
+      "metalness": 0
+    }
+  },
+  {
+    "id": "REF-STYLER-GLASS",
+    "name": "LG 電子衣櫥 黑色玻璃面",
+    "note": "取自 AI 生成照，黑色鏡面玻璃 + 金屬邊",
+    "spec": {
+      "color": "#0d0e10",
+      "roughness": 0.08,
+      "metalness": 0.6
+    }
+  },
+  {
+    "id": "REF-BATH-TILE-DARK",
+    "name": "衛浴深灰磁磚（實景照）",
+    "note": "取自進門左側照片右後方衛浴：深灰藍大片磁磚（取樣約 #82888d，已扣除陰影）",
+    "spec": {
+      "color": "#ffffff",
+      "roughness": 0.35,
+      "metalness": 0,
+      "map": "builtin:tile-dark",
+      "repeat": 1
+    }
+  },
+  {
+    "id": "REF-SHOWER-MARBLE",
+    "name": "淋浴區灰白大理石（手繪參考）",
+    "note": "手繪圖淋浴區為灰白大理石紋",
+    "spec": {
+      "color": "#d6d4d0",
+      "roughness": 0.2,
+      "metalness": 0,
+      "map": "builtin:marble",
+      "repeat": 0.8
+    }
+  },
+  {
+    "id": "REF-DECK-WOOD",
+    "name": "陽台木地板（手繪參考）",
+    "note": "手繪圖陽台為深棕木條，取樣約 #75583e",
+    "spec": {
+      "color": "#ffffff",
+      "roughness": 0.7,
+      "metalness": 0,
+      "map": "builtin:walnut",
+      "repeat": 1
+    }
+  },
+  {
+    "id": "REF-KITCHEN-WOOD",
+    "name": "廚具檯面木色（手繪參考）",
+    "note": "手繪圖廚具為橘棕木色（取樣約 #ac713a），已以橡木貼圖染色",
+    "spec": {
+      "color": "#e2a566",
+      "roughness": 0.5,
+      "metalness": 0,
+      "map": "builtin:oak",
+      "repeat": 1
+    }
+  },
+  {
+    "id": "REF-BEDDING-PINK",
+    "name": "主臥寢具粉色（手繪參考）",
+    "note": "手繪圖床為粉色條紋，取樣約 #f493c1，調柔和",
+    "spec": {
+      "color": "#f2a0c4",
+      "roughness": 0.95,
+      "metalness": 0,
+      "map": "builtin:fabric",
+      "repeat": 3
+    }
+  },
+  {
+    "id": "REF-SOFA-GREEN",
+    "name": "深綠沙發布（手繪參考）",
+    "note": "手繪圖沙發深綠，取樣約 #28341c",
+    "spec": {
+      "color": "#2f4126",
+      "roughness": 0.95,
+      "metalness": 0,
+      "map": "builtin:fabric",
+      "repeat": 3
+    }
+  },
+  {
+    "id": "FOYER-BLUE",
+    "name": "玄關天藍/灰藍地磚（實景參考左版）",
+    "note": "取自早期實景照左版地磚取樣 #5c6c76，色溫偏暖已略微校正；方磚約 50cm 為估計",
+    "spec": {
+      "color": "#6f8497",
+      "roughness": 0.5,
+      "metalness": 0,
+      "map": "builtin:tile",
+      "repeat": 1
     }
   },
   {

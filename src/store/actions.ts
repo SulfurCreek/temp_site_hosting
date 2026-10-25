@@ -1,5 +1,6 @@
 import { downloadText } from '../lib/image'
 import type { CatalogItem, MaterialSpec, ViewPreset } from '../types'
+import { viewTarget } from '../scene/CameraRig'
 import { findCatalogItem, useLayout } from './layoutStore'
 import { useUi } from './uiStore'
 
@@ -17,14 +18,33 @@ export function selectedFurnitureId() {
   return s?.type === 'furniture' ? s.id : null
 }
 
+function lockedGuard(id: string) {
+  const f = useLayout.getState().layout.furniture.find((x) => x.id === id)
+  if (f?.locked) {
+    useUi.getState().showToast(`「${f.name}」已鎖定，請先在屬性面板解除鎖定`)
+    return true
+  }
+  return false
+}
+
 export function rotateSelected(deg: number) {
   const id = selectedFurnitureId()
-  if (id) useLayout.getState().rotateFurniture(id, deg)
+  if (id && !lockedGuard(id)) useLayout.getState().rotateFurniture(id, deg)
+}
+
+/** 進入 / 離開移動模式（鎖定的物件無法移動） */
+export function toggleMoving(force?: boolean) {
+  const ui = useUi.getState()
+  const id = selectedFurnitureId()
+  if (!id) return
+  const next = force ?? !ui.moving
+  if (next && lockedGuard(id)) return
+  ui.setMoving(next)
 }
 
 export function deleteSelected() {
   const id = selectedFurnitureId()
-  if (!id) return
+  if (!id || lockedGuard(id)) return
   useLayout.getState().removeFurniture(id)
   useUi.getState().select(null)
 }
@@ -37,7 +57,15 @@ export function duplicateSelected() {
 }
 
 export function addFromCatalog(item: CatalogItem) {
-  const id = useLayout.getState().addFurniture(item)
+  // 放在「目前畫面中央」對準的地面點；與既有家具重疊時往右下錯開
+  const fur = useLayout.getState().layout.furniture
+  let x = Math.round(viewTarget.x * 20) / 20
+  let z = Math.round(viewTarget.z * 20) / 20
+  while (fur.some((f) => Math.abs(f.position[0] - x) < 0.05 && Math.abs(f.position[2] - z) < 0.05)) {
+    x += 0.3
+    z += 0.3
+  }
+  const id = useLayout.getState().addFurniture(item, [x, 0, z])
   useUi.getState().select({ type: 'furniture', id })
   return id
 }

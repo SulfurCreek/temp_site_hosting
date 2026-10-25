@@ -13,7 +13,11 @@ allowed-tools: Read, Edit, Write, Bash, Glob, Grep
 ## 1. 掃描輸入源
 - `$ARGUMENTS` 有給路徑/檔名 → 只處理這些檔案（路徑不存在就先用 Glob 找 `public/inputs/**` 同名檔，找不到再詢問）。
 - `$ARGUMENTS` 為空 → 以 `ls -t public/inputs/{floorplans,references,products}` 找**最新加入**（mtime 最新、且 git 未追蹤或比 `src/data/*.json` 新）的圖片 / PDF / `.glb`，列出清單後處理。
-- 使用者直接貼在對話中的圖片也算輸入；若是 PDF，用 `Read` 的 `pages` 參數逐頁讀，並用 `pdftoppm -r 200 -png` 轉成圖存到 `public/inputs/floorplans/`（多頁 = 多張底圖圖層）。
+- 使用者直接貼在對話中的圖片也算輸入：**先存成檔案**到 `public/inputs/references/`（或 floorplans / products），之後才能程式取樣、裁切貼圖，也方便下次比對。若對話中的圖片在環境裡找不到檔案，要明確告訴使用者並請他把原檔放進 `public/inputs/`。
+- 若是 PDF，用 `Read` 的 `pages` 參數逐頁讀；轉成底圖時用 `pdftoppm -r 300 -png -hide-annotations`（**去掉 iPad/Markup 手寫標註層**），存到 `public/inputs/floorplans/`（多頁 = 多張底圖圖層，並對位成同一框）。
+
+> **使用者規則：輸入圖片上的手寫痕跡（手寫數字、批註、圈選、塗鴉文字）一律不要出現在專案的底圖 / 參考圖裡。**
+> 手寫內容只用來「讀資訊」，產出的圖檔要移除：PDF 用 `-hide-annotations`；點陣圖用中值濾波局部修補或裁掉邊緣，並把 App 介面（例如 Procreate 工具列）裁掉。
 
 ## 2. 依類型分流解析（每個檔案先判斷類型，可混合）
 
