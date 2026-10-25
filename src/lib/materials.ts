@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import type { MaterialSpec } from '../types'
 import { ARCHETYPES } from './archetypes'
 import { ROUGH_MEAN, getDerivedMicro, getStandaloneMicro } from './microTextures'
+import { ARCHETYPE_PBR, PBR_SETS, loadPbrSet, type LoadedPbr } from './pbrTextures'
 import { loadBaseTexture } from './textures'
 
 export const PAINT_FINISHES = [
@@ -26,6 +27,39 @@ interface MicroTex {
   perMeter: number | null
 }
 
+interface ScanTex {
+  set: LoadedPbr['set']
+  albedo?: THREE.Texture
+  normal?: THREE.Texture
+  rough?: THREE.Texture
+  ao?: THREE.Texture
+  roughMean: number
+  all: THREE.Texture[]
+}
+
+/** 每個材質各自 clone（repeat 不互相影響；底層 image 共用，GPU 只上傳一次） */
+function cloneScan(l: LoadedPbr): ScanTex {
+  const c = (t?: THREE.Texture) => {
+    if (!t) return undefined
+    const k = t.clone()
+    k.needsUpdate = true
+    return k
+  }
+  const albedo = c(l.albedo)
+  const normal = c(l.normal)
+  const rough = c(l.rough)
+  const ao = c(l.ao)
+  return {
+    set: l.set,
+    albedo,
+    normal,
+    rough,
+    ao,
+    roughMean: l.roughMean,
+    all: [albedo, normal, rough, ao].filter((t): t is THREE.Texture => !!t),
+  }
+}
+
 function microTexture(cv: HTMLCanvasElement, color: boolean) {
   const t = new THREE.CanvasTexture(cv)
   t.wrapS = t.wrapT = THREE.RepeatWrapping
@@ -43,8 +77,34 @@ export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
   const mat = useMemo(() => new THREE.MeshPhysicalMaterial(), [])
   const [tex, setTex] = useState<THREE.Texture | null>(null)
   const [micro, setMicro] = useState<MicroTex | null>(null)
+  const [scan, setScan] = useState<ScanTex | null>(null)
 
   useEffect(() => () => mat.dispose(), [mat])
+
+  // 真實 PBR 掃描貼圖（lazy）：載入前用內建/程序化貼圖，載入後取代
+  const pbrSlug = spec.pbr === false ? undefined : (spec.pbr ?? (spec.archetype ? ARCHETYPE_PBR[spec.archetype] : undefined))
+  useEffect(() => {
+    if (!pbrSlug || !PBR_SETS[pbrSlug]) {
+      setScan(null)
+      return
+    }
+    let alive = true
+    let made: ScanTex | null = null
+    loadPbrSet(pbrSlug)
+      .then((l) => {
+        if (!alive) return
+        made = cloneScan(l)
+        setScan(made)
+      })
+      .catch((e) => {
+        console.warn('[pbr]', e.message)
+        if (alive) setScan(null)
+      })
+    return () => {
+      alive = false
+      made?.all.forEach((t) => t.dispose())
+    }
+  }, [pbrSlug])
 
   useEffect(() => {
     if (!spec.map) {
@@ -73,7 +133,7 @@ export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
   // 程序化微紋理（依 archetype；laminate_wood / matte_tile 需等 albedo 載入後由其導出）
   useEffect(() => {
     const a = spec.archetype
-    if (!a || !ARCHETYPES[a] || spec.bumpScale === 0) {
+    if (!a || !ARCHETYPES[a] || spec.bumpScale === 0 || (scan?.normal && scan.rough)) {
       setMicro(null)
       return
     }
@@ -95,12 +155,12 @@ export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
       m.normal.dispose()
       m.rough.dispose()
     }
-  }, [spec.archetype, spec.bumpScale, spec.map, tex])
+  }, [spec.archetype, spec.bumpScale, spec.map, tex, scan])
 
   useEffect(() => {
     const def = spec.archetype ? ARCHETYPES[spec.archetype] : undefined
     mat.color.set(spec.color)
-    mat.roughness = Math.min(1, spec.roughness / (micro ? ROUGH_MEAN : 1))
+    mat.roughness = Math.min(1, spec.roughness / (scan?.rough ? scan.roughMean : micro ? ROUGH_MEAN : 1))
     mat.metalness = spec.metalness
     mat.clearcoat = spec.clearcoat ?? def?.clearcoat ?? 0
     mat.clearcoatRoughness = spec.clearcoatRoughness ?? def?.clearcoatRoughness ?? 0.5
@@ -111,8 +171,18 @@ export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
     mat.side = opts.side ?? THREE.FrontSide
     const r = spec.repeat ?? 1
     if (tex) tex.repeat.set(r, r)
-    mat.map = tex
-    if (micro) {
+    // 掃描貼圖：repeat 1 = 真實尺寸（每張涵蓋 set.meters 公尺）；有 albedo 時取代 spec.map
+    const sr = scan ? r / scan.set.meters : r
+    if (scan) for (const t of scan.all) t.repeat.set(sr, sr)
+    mat.map = scan?.albedo ?? tex
+    mat.aoMap = scan?.ao ?? null
+    mat.aoMapIntensity = 1
+    if (scan?.normal && scan.rough) {
+      const bs = spec.bumpScale ?? def?.bumpScale ?? 0.5
+      mat.normalMap = scan.normal
+      mat.normalScale.set(bs, bs)
+      mat.roughnessMap = scan.rough
+    } else if (micro) {
       const mr = micro.perMeter ?? r
       micro.normal.repeat.set(mr, mr)
       micro.rough.repeat.set(mr, mr)
@@ -132,7 +202,7 @@ export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
       mat.emissiveIntensity = 0
     }
     mat.needsUpdate = true
-  }, [mat, spec, tex, micro, opts.highlight, opts.side])
+  }, [mat, spec, tex, micro, scan, opts.highlight, opts.side])
 
   return mat
 }
