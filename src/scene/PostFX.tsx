@@ -37,14 +37,14 @@ export function PostFX({ children }: { children?: ReactNode }) {
     <EffectComposer multisampling={0} enableNormalPass={false}>
       <N8AO
         aoRadius={0.5}
-        intensity={2.5}
+        intensity={3.5}
         distanceFalloff={1.0}
         quality={high ? 'high' : 'low'}
         halfRes={!high}
         color="black"
       />
       {children}
-      <Bloom luminanceThreshold={1.2} luminanceSmoothing={0.025} intensity={0.35} mipmapBlur />
+      <Bloom luminanceThreshold={1.1} luminanceSmoothing={0.05} intensity={0.5} mipmapBlur />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <SMAA />
     </EffectComposer>
