@@ -215,6 +215,7 @@ src/
 各 `kind` 的幾何都以 `size` 參數化：改 `size` 會精準縮放各部件（椅腳粗細等有上限，不會被拉歪）。
 
 ### 其他資料檔
+- `src/data/brandMaterials.json`：**品牌建材字典**（Dulux、EGGER、超耐磨、磁磚），每項有 `hex` `archetype` `roughness` `bumpScale` `hexConfidence` `source`；UI 屬性面板的「品牌色卡」使用。MaterialSpec 新增 `archetype`（paint_eggshell / egger_st9 / egger_st19 / laminate_wood / matte_tile）、`clearcoat` `clearcoatRoughness` `reflectivity` `bumpScale`，由 `src/lib/materials.ts` 以 MeshPhysicalMaterial + 程序化 Normal/Roughness 微紋理渲染。指定品牌型號的流程見 `/update-room`。
 - `src/data/materials.json`：**材質庫**，`[{ id, name, brand?, code?, note?, spec: MaterialSpec }]`。建材型號（EGGER W1000 ST19、地磚、漆色…）註冊在這；UI 的「材質庫」下拉會套用 `spec`。新增型號時同時填 `code` 與 `note`（來源/估計）。
 - `src/data/mep.json`：**水電/燈具標記**，`[MepItem]`（型別見 `types.ts`）。`kind`: outlet | dedicated | weak | switch | water | track | ceiling | fan | downlight | strip；`at:[x,z]`；`h`＝離地/安裝高度（公尺）；`face`＝牆面朝向（從牆指向室內：N 朝北 -Z、S 朝南 +Z、E 朝東、W 朝西；天花板燈具省略）；`assumed:true` 表示圖面未標、為推估值；`src`＝圖面來源頁。頂部工具列 **MEP** 開關控制顯示，點標記看資訊。
 - `CatalogItem.notes?: string[]`：施工圖規格備註（板材型號、預留尺寸…），顯示在屬性面板。

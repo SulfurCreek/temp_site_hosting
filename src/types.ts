@@ -7,6 +7,8 @@ export type Vec2 = [number, number]
 export type Vec3 = [number, number, number]
 
 /** PBR 材質描述。顏色/粗糙度/金屬度必填，貼圖欄位選填。 */
+export type Archetype = 'paint_eggshell' | 'egger_st9' | 'egger_st19' | 'laminate_wood' | 'matte_tile'
+
 export interface MaterialSpec {
   /** Hex 色碼，例如 "#e8e2d6"。有貼圖時作為色彩乘數（tint）。 */
   color: string
@@ -20,6 +22,15 @@ export interface MaterialSpec {
   repeat?: number
   /** 0–1，預設 1 */
   opacity?: number
+  /** 建材物理基底：決定程序化微紋理（Normal/Roughness Map）與 clearcoat 等預設值 */
+  archetype?: Archetype
+  /** 0..1 透明塗層（耐磨層 / 漆膜） */
+  clearcoat?: number
+  clearcoatRoughness?: number
+  /** 0..1 菲涅爾反射率（MeshPhysicalMaterial.reflectivity） */
+  reflectivity?: number
+  /** 微紋理法線強度（normalScale），0 = 關閉 */
+  bumpScale?: number
 }
 
 export interface Opening {
@@ -245,6 +256,34 @@ export interface MaterialLibItem {
   spec: MaterialSpec
 }
 
+/** 品牌建材字典項目（src/data/brandMaterials.json） */
+export interface BrandMaterial {
+  id: string
+  brand: string
+  /** 型號 / 色號 */
+  code: string
+  name: string
+  /** 'paint' 牆漆 | 'board' 系統櫃板材 | 'floor' 地板 | 'tile' 磁磚 */
+  kind: 'paint' | 'board' | 'floor' | 'tile'
+  archetype: Archetype
+  hex: string
+  roughness: number
+  bumpScale: number
+  clearcoat?: number
+  clearcoatRoughness?: number
+  reflectivity?: number
+  metalness?: number
+  /** albedo 貼圖（builtin:* 或 URL），沒有就是純色 */
+  map?: string
+  repeat?: number
+  /** hex 可信度：official 官方給的 RGB/Hex；measured 專案內由圖面/照片取樣；reference 由官方 NCS/RAL 等參考色換算；estimate 目視估計 */
+  hexConfidence: 'official' | 'measured' | 'reference' | 'estimate'
+  /** hex 與特性的依據來源 */
+  source: string
+  /** 品牌說明（表面處理、用途） */
+  description: string
+}
+
 export interface Settings {
   showMep: boolean
   projection: Projection
@@ -255,4 +294,6 @@ export interface Settings {
   tool: ToolMode
   showGrid: boolean
   showHud: boolean
+  /** 標準對色光：5500K 純白、無環境色偏，避免暖光造成色差誤判 */
+  colorProof?: boolean
 }

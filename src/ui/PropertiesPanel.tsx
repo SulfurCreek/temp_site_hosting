@@ -132,6 +132,7 @@ function FurnitureProps({ f }: { f: FurnitureInstance }) {
               ]}
             />
             <MaterialEditor
+              brandKinds={['board', 'paint']}
               key={f.id + slot}
               spec={slotSpec}
               onChange={(p) => update(f.id, { materials: { ...f.materials, [slot]: { ...slotSpec, ...p } } }, k + 'mat' + slot)}
@@ -268,7 +269,7 @@ function WallProps({ w }: { w: Wall }) {
         </div>
       </Section>
       <Section title="牆面油漆 / 材質">
-        <MaterialEditor key={w.id} paint spec={w.material} onChange={(p) => update(w.id, { material: { ...w.material, ...p } }, k + 'mat')} />
+        <MaterialEditor key={w.id} paint brandKinds={['paint', 'board']} spec={w.material} onChange={(p) => update(w.id, { material: { ...w.material, ...p } }, k + 'mat')} />
       </Section>
     </>
   )
@@ -294,7 +295,7 @@ function FloorProps() {
         </Btn>
       </Section>
       <Section title="地板材質">
-        <MaterialEditor spec={floor.material} onChange={(p) => update({ material: { ...floor.material, ...p } }, 'floor-mat')} />
+        <MaterialEditor brandKinds={['floor', 'tile']} spec={floor.material} onChange={(p) => update({ material: { ...floor.material, ...p } }, 'floor-mat')} />
       </Section>
     </>
   )
@@ -315,7 +316,7 @@ function ZoneProps({ id }: { id: string }) {
       </div>
     </Section>
     <Section title={`${zone.name}材質（可選花磚 / 天藍磚）`}>
-      <MaterialEditor spec={zone.material} onChange={(p) => update(id, { material: { ...zone.material, ...p } }, 'zone-mat-' + id)} />
+      <MaterialEditor brandKinds={['floor', 'tile']} spec={zone.material} onChange={(p) => update(id, { material: { ...zone.material, ...p } }, 'zone-mat-' + id)} />
     </Section>
     </>
   )
