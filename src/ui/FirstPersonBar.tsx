@@ -1,5 +1,6 @@
 import { LogOut, SlidersHorizontal } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { hFovOf, responsiveVFov } from '../lib/useResponsiveFOV'
 import { enterFirstPerson, goHotspot, useHotspots } from '../scene/FirstPerson'
 import { useUi } from '../store/uiStore'
 import type { EyeMode } from '../types'
@@ -43,6 +44,19 @@ const EYES: { value: EyeMode; label: string; title: string }[] = [
   { value: 'robot', label: '掃地機 30', title: '掃地機 / 寵物視角 30 cm：檢查櫃體下方懸空與插座走線' },
 ]
 
+/** 目前視窗長寬比下實際使用的垂直 / 水平視角（與 useResponsiveFOV 同一公式） */
+function useViewportFov(base: number) {
+  const [wh, setWh] = useState(() => [window.innerWidth, window.innerHeight])
+  useEffect(() => {
+    const on = () => setWh([window.innerWidth, window.innerHeight])
+    window.addEventListener('resize', on)
+    return () => window.removeEventListener('resize', on)
+  }, [])
+  const aspect = wh[0] / Math.max(wh[1], 1)
+  const v = responsiveVFov(aspect, base)
+  return { auto: v > base + 0.5, v: Math.round(v), h: Math.round(hFovOf(v, aspect)) }
+}
+
 /** 第一人稱底部浮動列：預設立足點 + 人眼高度切換 + 視角 FOV */
 /** 單行可橫向滑動的立足點膠囊（手機：俯視 / 第一人稱共用；點選即進入該立足點的第一人稱） */
 export function VantageChips({ className }: { className?: string }) {
@@ -73,6 +87,9 @@ function MobileFirstPersonBar() {
   const setEye = useUi((s) => s.setEye)
   const setStandCm = useUi((s) => s.setStandCm)
   const setFov = useUi((s) => s.setFov)
+  const backoffCm = useUi((s) => s.backoffCm)
+  const setBackoffCm = useUi((s) => s.setBackoffCm)
+  const vfov = useViewportFov(fov)
   const setViewMode = useUi((s) => s.setViewMode)
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex flex-col pb-[max(0.5rem,env(safe-area-inset-bottom))]">
@@ -94,16 +111,21 @@ function MobileFirstPersonBar() {
           </button>
         </div>
         {adjust && (
-          <div className="flex items-center gap-3 px-1 text-[11px] text-slate-300">
-            <label className={cx('flex flex-1 items-center gap-1.5', eye !== 'stand' && 'opacity-40')}>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-[11px] text-slate-300">
+            <label className={cx('flex basis-[45%] flex-1 items-center gap-1.5', eye !== 'stand' && 'opacity-40')}>
               高
               <input type="range" min={150} max={185} value={standCm} disabled={eye !== 'stand'} onChange={(e) => setStandCm(+e.target.value)} className="min-w-0 flex-1" />
               <span className="w-7 tabular-nums">{standCm}</span>
             </label>
-            <label className="flex flex-1 items-center gap-1.5">
+            <label className="flex basis-[45%] flex-1 items-center gap-1.5">
               視角
               <input type="range" min={50} max={90} value={fov} onChange={(e) => setFov(+e.target.value)} className="min-w-0 flex-1" />
-              <span className="w-6 tabular-nums">{fov}°</span>
+              <span className="w-6 tabular-nums">{vfov.auto ? `H${vfov.h}` : `${fov}°`}</span>
+            </label>
+            <label className="flex basis-[45%] flex-1 items-center gap-1.5">
+              退後
+              <input type="range" min={0} max={60} step={5} value={backoffCm} onChange={(e) => setBackoffCm(+e.target.value)} className="min-w-0 flex-1" />
+              <span className="w-7 tabular-nums">{backoffCm}</span>
             </label>
           </div>
         )}
@@ -124,6 +146,9 @@ function DesktopFirstPersonBar() {
   const setEye = useUi((s) => s.setEye)
   const setStandCm = useUi((s) => s.setStandCm)
   const setFov = useUi((s) => s.setFov)
+  const backoffCm = useUi((s) => s.backoffCm)
+  const setBackoffCm = useUi((s) => s.setBackoffCm)
+  const vfov = useViewportFov(fov)
   const setViewMode = useUi((s) => s.setViewMode)
   const hotspots = useHotspots()
 
@@ -170,6 +195,16 @@ function DesktopFirstPersonBar() {
             視角
             <input type="range" min={50} max={90} step={1} value={fov} onChange={(e) => setFov(+e.target.value)} className="w-20 accent-sky-400" />
             <span className="w-8 tabular-nums text-slate-100">{fov}°</span>
+            {vfov.auto && (
+              <span className="text-[10px] text-sky-300" title="直向螢幕自動放大垂直視角，水平視角維持超廣角">
+                自動廣角 H{vfov.h}°
+              </span>
+            )}
+          </label>
+          <label className="flex items-center gap-2 text-[11px] text-slate-300" title="相機從立足點沿視線反方向退後，背後 80 cm 內的牆與櫃體會自動隱藏">
+            退後
+            <input type="range" min={0} max={60} step={5} value={backoffCm} onChange={(e) => setBackoffCm(+e.target.value)} className="w-20 accent-sky-400" />
+            <span className="w-10 tabular-nums text-slate-100">{backoffCm} cm</span>
           </label>
           <button
             onClick={() => setViewMode('isometric')}

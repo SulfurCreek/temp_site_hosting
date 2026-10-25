@@ -2,6 +2,8 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { MEP_ITEMS, VANTAGE } from '../data'
+import { fpCam } from '../lib/fpClip'
+import { useResponsiveFOV } from '../lib/useResponsiveFOV'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 import type { EyeMode, Vec2, VantageHotspot } from '../types'
@@ -10,6 +12,7 @@ const D = Math.PI / 180
 const EYE_HEIGHT: Record<EyeMode, number> = { stand: 1.65, sit: 1.1, robot: 0.3 }
 
 /** 第一人稱相機的即時狀態（高頻更新，不進 React / zustand） */
+/** x,z = 立足點（人站的位置）；實際相機會沿視線反方向退後 backoffCm（見 fpCam） */
 export const fpLive = { x: 0, z: 0, yaw: 0, pitch: 0, eye: 1.65, ready: false }
 if (import.meta.env.DEV) (window as unknown as { __fpLive: unknown }).__fpLive = fpLive
 
@@ -262,9 +265,18 @@ export function FirstPersonRig() {
   const target = useRef({ x: 0, z: 0, yaw: null as number | null })
   const sizeRef = useRef(size)
   sizeRef.current = size
+  const vfov = useResponsiveFOV()
+  const vfovRef = useRef(vfov)
+  vfovRef.current = vfov
 
   useLayoutEffect(() => {
     set({ camera: cam })
+    return () => {
+      fpCam.active = false
+    }
+  }, [])
+
+  useLayoutEffect(() => {
     const g = useUi.getState().fpGoto
     if (!fpLive.ready || g.nonce !== lastConsumed) {
       fpLive.x = g.x
@@ -381,11 +393,16 @@ export function FirstPersonRig() {
     }
     fpLive.eye = THREE.MathUtils.damp(fpLive.eye, eyeHeight(ui.eye, ui.standCm), 8, dt)
 
-    cam.position.set(fpLive.x, fpLive.eye, fpLive.z)
+    // 攝影師退後：相機沿水平視線反方向後退，立足點仍是「人站的位置」
+    const fx = -Math.sin(fpLive.yaw)
+    const fz = -Math.cos(fpLive.yaw)
+    const back = ui.backoffCm / 100
+    cam.position.set(fpLive.x - fx * back, fpLive.eye, fpLive.z - fz * back)
     cam.rotation.set(fpLive.pitch, fpLive.yaw, 0)
+    Object.assign(fpCam, { active: true, x: cam.position.x, z: cam.position.z, px: fpLive.x, pz: fpLive.z, fx, fz })
     const w = sizeRef.current
-    if (cam.fov !== ui.fov || Math.abs(cam.aspect - w.width / w.height) > 1e-4) {
-      cam.fov = ui.fov
+    if (cam.fov !== vfovRef.current || Math.abs(cam.aspect - w.width / w.height) > 1e-4) {
+      cam.fov = vfovRef.current
       cam.aspect = w.width / w.height
       cam.updateProjectionMatrix()
     }
