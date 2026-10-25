@@ -7,6 +7,7 @@ import { Hud, Toast } from './ui/Hud'
 import { useIsMobile } from './ui/hooks'
 import { BottomSheet, LeftDrawer, RightPanel } from './ui/Panels'
 import { MepInfo } from './ui/MepInfo'
+import { PathTraceOverlay, StudioBar } from './ui/PathTracePanel'
 import { ReferenceViewer } from './ui/ReferenceViewer'
 import { DesktopTopBar, MobileTopBar } from './ui/TopBar'
 import { useHotkeys } from './ui/useHotkeys'
@@ -51,6 +52,8 @@ export default function App() {
           <Scene />
         </div>
         <ReferenceViewer />
+        {!mobile && <PathTraceOverlay />}
+        <StudioBar mobile={mobile} />
         {!fp && <Hud />}
         {fp && <FirstPersonBar />}
         <MepInfo />

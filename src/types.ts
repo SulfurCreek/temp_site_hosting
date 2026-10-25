@@ -31,6 +31,11 @@ export interface MaterialSpec {
   reflectivity?: number
   /** 微紋理法線強度（normalScale），0 = 關閉 */
   bumpScale?: number
+  /**
+   * Poly Haven 掃描貼圖組 slug（public/textures/<slug>/，由 scripts/fetch-textures.mjs 下載，見 src/lib/pbrTextures.ts）。
+   * 載入後取代 map / 程序化微紋理；repeat = 1 為真實尺寸。省略時 egger_st9 / egger_st19 會自動套用預設組；false = 強制停用。
+   */
+  pbr?: string | false
 }
 
 export interface Opening {

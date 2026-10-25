@@ -44,11 +44,14 @@ function ReflectiveSurface({
   useFrame(() => {
     const m = ref.current
     if (!m) return
-    if (m.map !== mat.map || m.roughnessMap !== mat.roughnessMap) {
+    if (m.map !== mat.map || m.roughnessMap !== mat.roughnessMap || m.normalMap !== mat.normalMap || m.aoMap !== mat.aoMap) {
       m.map = mat.map
       m.roughnessMap = mat.roughnessMap
+      m.normalMap = mat.normalMap
+      m.aoMap = mat.aoMap
       m.needsUpdate = true
     }
+    m.normalScale.copy(mat.normalScale)
     m.color.copy(mat.color)
     m.roughness = mat.roughness
   })
@@ -87,6 +90,7 @@ export function Floor() {
   const mat = usePBRMaterial(spec, { highlight: selected })
   const geo = useMetricFloor(floor.size[0], floor.size[1])
   const reflect = useReflectiveFloor(spec.opacity === undefined || spec.opacity >= 1)
+  const studio = useUi((s) => s.studio)
   const onClick = (e: { stopPropagation: () => void }) => {
     if (useUi.getState().calib.active) return
     e.stopPropagation()
@@ -100,7 +104,7 @@ export function Floor() {
         w={floor.size[0]}
         d={floor.size[1]}
         position={[floor.center[0], 0, floor.center[1]]}
-        resolution={512}
+        resolution={studio ? 1024 : 512}
         onClick={onClick}
       />
     )
@@ -127,6 +131,7 @@ function ZoneView({ zone, index }: { zone: FloorZone; index: number }) {
   const geo = useMetricFloor(zone.size[0], zone.size[1])
   // 玄關磁磚也做微反射（浴室 / 陽台維持霧面）
   const reflect = useReflectiveFloor(zone.id === 'z-foyer')
+  const studio = useUi((s) => s.studio)
   if (reflect)
     return (
       <ReflectiveSurface
@@ -134,7 +139,7 @@ function ZoneView({ zone, index }: { zone: FloorZone; index: number }) {
         w={zone.size[0]}
         d={zone.size[1]}
         position={[zone.center[0], 0.002 + index * 0.001, zone.center[1]]}
-        resolution={256}
+        resolution={studio ? 512 : 256}
         onClick={(e) => {
           if (useUi.getState().calib.active) return
           e.stopPropagation()

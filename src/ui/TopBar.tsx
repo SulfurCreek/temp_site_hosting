@@ -11,6 +11,7 @@ import {
   RotateCcw,
   RotateCw,
   SlidersHorizontal,
+  Sparkles,
   Trash,
   Upload,
   X,
@@ -25,6 +26,7 @@ import type { Kelvin, ViewPreset } from '../types'
 import { IconBtn, Segmented, Toggle, cx } from './controls'
 import { VantageButtons } from './FirstPersonBar'
 import { FxQualityToggle, LightSceneToggle } from './LightingControls'
+import { StudioButton } from './PathTracePanel'
 import { enterFirstPerson } from '../scene/FirstPerson'
 
 const KELVINS: { k: Kelvin; label: string; dot: string }[] = [
@@ -257,6 +259,7 @@ export function DesktopTopBar() {
         <MepToggle />
       </div>
       <div className="flex items-center gap-0.5">
+        <StudioButton />
         <HistoryButtons />
         <span className="mx-1 h-6 w-px bg-white/10" />
         <FileButtons />
@@ -314,6 +317,8 @@ export function MobileTopBar() {
   const showMep = useLayout((s) => s.settings.showMep)
   const set = useLayout((s) => s.setSettings)
   const kelvin = useLayout((s) => s.settings.kelvin)
+  const studio = useUi((s) => s.studio)
+  const setStudio = useUi((s) => s.setStudio)
   const fp = viewMode === 'firstPerson'
   const nextKelvin = () => set({ kelvin: kelvin === 3000 ? 4000 : kelvin === 4000 ? 6000 : 3000 })
   const dot = KELVINS.find((x) => x.k === kelvin)!.dot
@@ -348,6 +353,13 @@ export function MobileTopBar() {
             icon={<span className="my-0.5 h-3.5 w-3.5 rounded-full border border-black/30" style={{ background: dot }} />}
             label={`${kelvin / 1000}K`}
             onClick={nextKelvin}
+          />
+          <PillBtn
+            title="相片級算圖模式（靜態高畫質，可匯出 PNG）"
+            icon={<Sparkles size={16} className="text-amber-300" />}
+            label="算圖"
+            active={studio}
+            onClick={() => setStudio(!studio)}
           />
           <PillBtn title="顯示水電 / 燈具" icon={<Zap size={16} className={showMep ? '' : 'text-amber-300'} />} label="水電" active={showMep} onClick={() => set({ showMep: !showMep })} />
           <PillBtn title="更多設定" icon={<SlidersHorizontal size={16} />} label="更多" onClick={() => setMore(true)} />

@@ -24,7 +24,8 @@
       "roughness": 0.45,
       "metalness": 0,
       "map": "builtin:tile-gray",
-      "repeat": 1
+      "repeat": 1,
+      "pbr": "large_grey_tiles"
     }
   },
   {

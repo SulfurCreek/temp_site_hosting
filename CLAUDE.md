@@ -305,6 +305,18 @@ src/
 - 品質分級 `useFxTier()`（`src/lib/fx.ts`，`settings.fxQuality`：auto/high/medium/low）：high=AO 高品質 + 地板微反射 + 燈具陰影；medium=半解析度 AO + Bloom；low（手機 <768px 預設）=不掛 composer、無反射/AO/燈具陰影，只用 renderer ACES。
 - 地板微反射（`MeshReflectorMaterial`，Floor.tsx）只在 high + **透視相機**時啟用（反射器的虛擬相機不支援正交），只作用在主地板與玄關花磚。著色器取樣器有上限（多數 GPU 16），所以投影的燈只有：軌道偶數燈頭 4 盞 + 三盞主燈（吊扇、主臥、次臥吸頂）。
 
+### 相片級算圖模式（`uiStore.studio`）
+- 頂部列「相片級算圖模式」/ 手機膠囊「算圖」切換。開啟時 `useFxTier()` 強制 high、Canvas `dpr=2`、EffectComposer 8x MSAA（取代 SMAA）、N8AO `ultra`、燈具陰影 2048、日光 4096、地板反射解析度加倍，並啟用 `SoftShadows`（`src/scene/Studio.tsx`，只在此模式開，避免拖慢即時模式）。
+- 一律啟用（非 low）：`ContactShadows`（地板上 1 mm）、Vignette、`WarmGradeEffect` 暖調白平衡（PostFX.tsx）。
+- 「匯出 4K 無損 PNG」＝暫時把 pixel ratio 拉到 3840 寬（手機 2560、受 GPU 上限限制）輸出畫布。
+- 進階「路徑追蹤」（`PathTraceRender.tsx`，three-gpu-pathtracer，lazy 載入，僅桌面）。`package.json` 以 `overrides` 把 three-mesh-bvh 升到 ^0.9.16。
+
+### 真實 PBR 掃描貼圖與 HDRI（Poly Haven, CC0）
+- `node scripts/fetch-textures.mjs`（需外網；環境 fetch 不走 proxy 時加 `NODE_USE_ENV_PROXY=1`）下載 1k/2k 貼圖到 `public/textures/<slug>/{diff,nor,rough,ao}_<1k|2k>.jpg`，HDRI 到 `public/hdri/interior(.|-1k.)hdr`（已 commit，不必每次重抓）。
+- `MaterialSpec.pbr = '<slug>'` 綁定掃描貼圖（`src/lib/pbrTextures.ts` 的 `PBR_SETS`，`meters` = 一張涵蓋的實際公尺數；此時 `repeat: 1` = 真實尺寸）。`pbr: false` 強制停用。`egger_st19` / `egger_st9` archetype 預設自動套用（只取 Normal + Roughness，顏色維持品牌色號；roughness 以貼圖平均值正規化，spec.roughness 仍是平均粗糙度）。
+- 對應：ED-KS81555 → `laminate_floor_02`（色調 `#c4ccd6` 抵銷暖光）；CW025501 → `large_grey_tiles`（預設玄關仍是使用者選的花磚）；EGGER ST19 → `white_oak_veneer`；ST9 → `grey_plaster_02`；HDRI → `small_empty_house`。⚠️ Poly Haven 沒有同型號貼圖，皆為最接近的替代。
+- Lazy load + 手機降級：材質用到才載入，載入前沿用內建/程序化貼圖；< 768px 載 1k、不載 AO、anisotropy 8；桌面 2k + AO + anisotropy 16。
+
 ## 資料檔注意事項
 
 - **瀏覽器會把使用者的格局自動存在 localStorage（key `interior-planner:v1`）**，所以改了 `defaultLayout.json` 預設不會影響已開啟過的瀏覽器。
