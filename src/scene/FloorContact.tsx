@@ -20,7 +20,7 @@ export function FloorContact() {
       blur={1.5}
       far={0.8}
       resolution={1024}
-      frames={2}
+      frames={1}
     />
   )
 }

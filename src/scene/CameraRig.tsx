@@ -151,7 +151,6 @@ export function CameraRig() {
         v.azimuth = a.azimuth
         v.polar = a.polar
         anim.current = null
-        useUi.getState().setCurrentView(a.preset)
       }
       const dist = cam.position.distanceTo(c.target)
       const sp = Math.sin(v.polar)
@@ -201,7 +200,6 @@ export function CameraRig() {
       zoomSpeed={0.9}
       onStart={() => {
         anim.current = null
-        useUi.getState().setCurrentView(null)
       }}
     />
   )

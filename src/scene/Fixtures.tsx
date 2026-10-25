@@ -28,8 +28,8 @@ const TRACK_AIM: Record<string, [number, number, number][]> = {
   ],
 }
 
-/** 倍率 0 = 光源 visible=false（不計入著色器光源數）；投影點光源也受取樣器上限限制，只給三盞主燈 */
-const SHADOW_POINT_IDS = new Set(['fan-liv', 'ce-master', 'ce-bed2'])
+/** 全場景只有 2 盞光源投影（客廳吊扇燈 + 主臥吸頂燈，1024）：其餘燈具保留完整光照與光斑，但不投影（省下每像素的陰影取樣） */
+const SHADOW_POINT_IDS = new Set(['fan-liv', 'ce-master'])
 
 function Emissive({ k, color = EMISSIVE }: { k: number; color?: string }) {
   return (
@@ -113,7 +113,7 @@ function Track({ it, k, color }: { it: MepItem; k: number; color: string }) {
       </mesh>
       {pts.map((p, i) => (
         // 著色器取樣器上限（多數 GPU 16 個）：只讓每條軌道的偶數燈頭投影
-        <HeadSpot key={i} at={p.at} aim={p.aim} k={k} color={color} shadow={i % 2 === 0} />
+        <HeadSpot key={i} at={p.at} aim={p.aim} k={k} color={color} shadow={false} />
       ))}
     </>
   )
@@ -149,7 +149,7 @@ function CeilingLamp({ it, k, color }: { it: MepItem; k: number; color: string }
         distance={0}
         decay={1.8}
         castShadow={shadow}
-        shadow-mapSize={[512, 512]}
+        shadow-mapSize={[1024, 1024]}
         shadow-bias={-0.0008}
         shadow-normalBias={0.03}
         shadow-radius={6}
@@ -211,7 +211,7 @@ function StripLight({ it, k }: { it: MepItem; k: number }) {
   )
 }
 
-/** 全部迴路開啟（固定情境）。光源總數 19、其中 7 盞投影；陰影圖只在場景變動時重算（見 lib/frameloop.ts） */
+/** 全部迴路開啟（固定情境）。光源總數 19、其中 2 盞投影；陰影圖只在場景變動時重算（見 lib/frameloop.ts） */
 export function Fixtures({ color }: { color: string }) {
   return (
     <>

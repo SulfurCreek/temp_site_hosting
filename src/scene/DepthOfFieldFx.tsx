@@ -4,6 +4,9 @@ import type { DepthOfFieldEffect } from 'postprocessing'
 import { useRef } from 'react'
 import * as THREE from 'three'
 
+/** 互動中景深被旁路（元件卸載），定格時要從上一次的對焦距離接續，不從預設值重新追焦 */
+const focusMemo = { focus: 3, wanted: 3 }
+
 function isVisible(o: THREE.Object3D | null) {
   for (let p = o; p; p = p.parent) if (!p.visible) return false
   return true
@@ -16,8 +19,8 @@ function isVisible(o: THREE.Object3D | null) {
 export function DepthOfFieldFx() {
   const fx = useRef<DepthOfFieldEffect>(null)
   const ray = useRef(new THREE.Raycaster())
-  const focus = useRef(3)
-  const wanted = useRef(3)
+  const focus = useRef(focusMemo.focus)
+  const wanted = useRef(focusMemo.wanted)
   const last = useRef(0)
   const center = useRef(new THREE.Vector2(0, 0))
   const scene = useThree((s) => s.scene)
@@ -41,6 +44,8 @@ export function DepthOfFieldFx() {
       wanted.current = THREE.MathUtils.clamp(d, 0.4, 12)
     }
     focus.current = THREE.MathUtils.damp(focus.current, wanted.current, 6, dt)
+    focusMemo.focus = focus.current
+    focusMemo.wanted = wanted.current
     const mat = e.circleOfConfusionMaterial
     mat.worldFocusDistance = focus.current
     // 對焦範圍隨距離放大，近處景深淺、遠處較深，避免整個房間都糊掉
