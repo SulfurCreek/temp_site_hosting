@@ -29,6 +29,9 @@ interface ViewState {
   viewSize: number
 }
 
+/** 目前畫面中心對準的地面點（供「新增家具到畫面中央」使用） */
+export const viewTarget = new THREE.Vector3()
+
 function shortest(from: number, to: number) {
   return from + Math.atan2(Math.sin(to - from), Math.cos(to - from))
 }
@@ -39,6 +42,9 @@ export function CameraRig() {
   const projection = useLayout((s) => s.settings.projection)
   const floorCenter = useLayout((s) => s.layout.floor.center)
   const viewRequest = useUi((s) => s.viewRequest)
+  const viewMode = useUi((s) => s.viewMode)
+  const placing = useUi((s) => s.placing)
+  const fp = viewMode === 'firstPerson'
   const controlsRef = useRef<OrbitControlsImpl>(null)
 
   const ortho = useMemo(() => new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 400), [])
@@ -87,6 +93,7 @@ export function CameraRig() {
 
   // 切換正交/透視：沿用同一個視角與視野大小
   useLayoutEffect(() => {
+    if (fp) return // 第一人稱：由 FirstPersonRig 接手相機
     const cam = projection === 'ortho' ? ortho : persp
     place(cam)
     set({ camera: cam })
@@ -97,7 +104,7 @@ export function CameraRig() {
       c.update()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projection])
+  }, [projection, fp])
 
   // 工具列 / 空白鍵請求的預設視角
   useEffect(() => {
@@ -111,6 +118,7 @@ export function CameraRig() {
   }, [viewRequest])
 
   useFrame((state, dt) => {
+    if (useUi.getState().viewMode === 'firstPerson') return
     const cam = state.camera
     const c = controlsRef.current
     const v = view.current
@@ -161,6 +169,7 @@ export function CameraRig() {
     if (c) {
       if (c.target.y !== 0) c.target.y = 0
       v.target.copy(c.target)
+      viewTarget.copy(c.target)
       const off = cam.position.clone().sub(c.target)
       const r = off.length()
       if (r > 1e-6) {
@@ -178,6 +187,7 @@ export function CameraRig() {
       key={projection}
       ref={controlsRef}
       makeDefault
+      enabled={!fp && !placing}
       camera={isOrtho ? ortho : persp}
       enableDamping
       dampingFactor={0.1}

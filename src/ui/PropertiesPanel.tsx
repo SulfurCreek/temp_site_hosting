@@ -1,8 +1,8 @@
-import { Copy, DoorOpen, Lock, LockOpen, MousePointer2, Plus, RotateCcw, RotateCw, Square, Trash2, X } from 'lucide-react'
+import { Check, Copy, DoorOpen, Lock, LockOpen, MousePointer2, Move, Plus, RotateCcw, RotateCw, Square, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { uid } from '../lib/ids'
 import { DEFAULT_MATERIAL } from '../lib/materials'
-import { deleteSelected, duplicateSelected, rotateSelected } from '../store/actions'
+import { deleteSelected, duplicateSelected, rotateSelected, toggleMoving } from '../store/actions'
 import { findCatalogItem, useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 import type { Decal, FaceName, FurnitureInstance, MaterialSpec, Opening, Wall } from '../types'
@@ -27,6 +27,7 @@ function FurnitureProps({ f }: { f: FurnitureInstance }) {
   const update = useLayout((s) => s.updateFurniture)
   const custom = useLayout((s) => s.layout.customCatalog)
   const item = findCatalogItem(f.catalogId, custom)
+  const moving = useUi((s) => s.moving)
   const [slot, setSlot] = useState<'main' | 'secondary' | 'accent'>('main')
   const [decalFace, setDecalFace] = useState<FaceName>('front')
   const k = 'f-' + f.id
@@ -50,6 +51,16 @@ function FurnitureProps({ f }: { f: FurnitureInstance }) {
         <p className="text-[11px] text-slate-500">
           類型：{item ? `${item.name}（${item.mode === 'glb' ? '.glb 模型' : item.mode === 'billboard' ? '2.5D 立牌' : '參數化 PBR 積木'}）` : '目錄中找不到此商品'}
         </p>
+        <Btn
+          variant={moving ? 'primary' : 'default'}
+          className="w-full py-2 text-sm"
+          disabled={f.locked}
+          title={f.locked ? '已鎖定，請先解除鎖定' : '進入移動模式後再拖拉（M 鍵）'}
+          onClick={() => toggleMoving()}
+        >
+          {moving ? <Check size={15} /> : <Move size={15} />}
+          {moving ? '完成移動（Enter）' : f.locked ? '已鎖定，無法移動' : '移動（M）'}
+        </Btn>
         <div className="flex flex-wrap gap-2">
           <Btn onClick={duplicateSelected}>
             <Copy size={14} /> 複製
@@ -58,7 +69,7 @@ function FurnitureProps({ f }: { f: FurnitureInstance }) {
             {f.locked ? <Lock size={14} /> : <LockOpen size={14} />}
             {f.locked ? '已鎖定' : '鎖定'}
           </Btn>
-          <Btn variant="danger" onClick={deleteSelected}>
+          <Btn variant="danger" onClick={deleteSelected} disabled={f.locked}>
             <Trash2 size={14} /> 刪除
           </Btn>
         </div>
@@ -121,6 +132,7 @@ function FurnitureProps({ f }: { f: FurnitureInstance }) {
               ]}
             />
             <MaterialEditor
+              brandKinds={['board', 'paint']}
               key={f.id + slot}
               spec={slotSpec}
               onChange={(p) => update(f.id, { materials: { ...f.materials, [slot]: { ...slotSpec, ...p } } }, k + 'mat' + slot)}
@@ -257,7 +269,7 @@ function WallProps({ w }: { w: Wall }) {
         </div>
       </Section>
       <Section title="牆面油漆 / 材質">
-        <MaterialEditor key={w.id} paint spec={w.material} onChange={(p) => update(w.id, { material: { ...w.material, ...p } }, k + 'mat')} />
+        <MaterialEditor key={w.id} paint brandKinds={['paint', 'board']} spec={w.material} onChange={(p) => update(w.id, { material: { ...w.material, ...p } }, k + 'mat')} />
       </Section>
     </>
   )
@@ -283,8 +295,29 @@ function FloorProps() {
         </Btn>
       </Section>
       <Section title="地板材質">
-        <MaterialEditor spec={floor.material} onChange={(p) => update({ material: { ...floor.material, ...p } }, 'floor-mat')} />
+        <MaterialEditor brandKinds={['floor', 'tile']} spec={floor.material} onChange={(p) => update({ material: { ...floor.material, ...p } }, 'floor-mat')} />
       </Section>
+    </>
+  )
+}
+
+function ZoneProps({ id }: { id: string }) {
+  const zone = useLayout((s) => s.layout.floorZones?.find((z) => z.id === id))
+  const update = useLayout((s) => s.updateZone)
+  if (!zone) return <Empty />
+  return (
+    <>
+    <Section title={`${zone.name}尺寸位置（公分）`}>
+      <div className="grid grid-cols-2 gap-2">
+        <NumberField label="寬 X" value={zone.size[0]} scale={100} min={10} unit="cm" onChange={(v) => update(id, { size: [v, zone.size[1]] }, 'zone-size-' + id)} />
+        <NumberField label="深 Z" value={zone.size[1]} scale={100} min={10} unit="cm" onChange={(v) => update(id, { size: [zone.size[0], v] }, 'zone-size-' + id)} />
+        <NumberField label="中心 X" value={zone.center[0]} scale={100} unit="cm" onChange={(v) => update(id, { center: [v, zone.center[1]] }, 'zone-c-' + id)} />
+        <NumberField label="中心 Z" value={zone.center[1]} scale={100} unit="cm" onChange={(v) => update(id, { center: [zone.center[0], v] }, 'zone-c-' + id)} />
+      </div>
+    </Section>
+    <Section title={`${zone.name}材質（可選花磚 / 天藍磚）`}>
+      <MaterialEditor brandKinds={['floor', 'tile']} spec={zone.material} onChange={(p) => update(id, { material: { ...zone.material, ...p } }, 'zone-mat-' + id)} />
+    </Section>
     </>
   )
 }
@@ -298,6 +331,7 @@ export function PropertiesPanel() {
   if (!sel) return <Empty />
   if (sel.type === 'furniture' && furniture) return <FurnitureProps f={furniture} />
   if (sel.type === 'wall' && wall) return <WallProps w={wall} />
+  if (sel.type === 'zone') return <ZoneProps id={sel.id} />
   if (sel.type === 'floor') return <FloorProps />
   return <Empty />
 }
@@ -306,6 +340,7 @@ export function useSelectionTitle(): string {
   const sel = useUi((s) => s.selection)
   return useLayout((l) => {
     if (!sel) return '屬性'
+    if (sel.type === 'zone') return l.layout.floorZones?.find((z) => z.id === sel.id)?.name ?? '地板分區'
     if (sel.type === 'floor') return '地板'
     if (sel.type === 'wall') return l.layout.walls.find((w) => w.id === sel.id)?.name ?? '牆壁'
     return l.layout.furniture.find((f) => f.id === sel.id)?.name ?? '家具'

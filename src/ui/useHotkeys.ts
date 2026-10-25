@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { cycleView, deleteSelected, duplicateSelected, exportLayout, rotateSelected } from '../store/actions'
+import { cycleView, deleteSelected, duplicateSelected, exportLayout, rotateSelected, toggleMoving } from '../store/actions'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 
@@ -10,7 +10,7 @@ function isTyping(t: EventTarget | null) {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable
 }
 
-/** R 旋轉 90°（Shift+R 反向）、Backspace/Delete 刪除、Space 切換視角、Ctrl+Z/Y 復原、Ctrl+D 複製、Ctrl+S 匯出、Esc 取消選取 */
+/** M 進入/離開移動模式、R 旋轉 90°（Shift+R 反向）、Backspace/Delete 刪除、Space 切換視角、Ctrl+Z/Y 復原、Ctrl+D 複製、Ctrl+S 匯出、Esc 取消選取 */
 export function useHotkeys() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -33,18 +33,26 @@ export function useHotkeys() {
         exportLayout()
       } else if (mod || e.altKey) {
         return
+      } else if (k === 'm') {
+        toggleMoving()
+      } else if (e.key === 'Enter' && useUi.getState().moving) {
+        toggleMoving(false)
       } else if (k === 'r') {
         rotateSelected(e.shiftKey ? -90 : 90)
       } else if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault()
         deleteSelected()
       } else if (e.key === ' ') {
+        if (useUi.getState().viewMode === 'firstPerson') return
         if ((e.target as HTMLElement | null)?.tagName === 'BUTTON') return
         e.preventDefault()
         cycleView()
       } else if (e.key === 'Escape') {
         const ui = useUi.getState()
-        if (ui.calib.active) ui.endCalib()
+        if (ui.viewMode === 'firstPerson') ui.setViewMode('isometric')
+        else if (ui.placing) ui.setPlacing(false)
+        else if (ui.calib.active) ui.endCalib()
+        else if (ui.moving) ui.setMoving(false)
         else ui.select(null)
       }
     }

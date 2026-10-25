@@ -20,6 +20,7 @@ import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 import type { Kelvin, ViewPreset } from '../types'
 import { IconBtn, Segmented, Toggle, cx } from './controls'
+import { MobileVantageButtons, VantageButtons } from './FirstPersonBar'
 
 const KELVINS: { k: Kelvin; label: string; dot: string }[] = [
   { k: 3000, label: '3000K 黃光', dot: '#ffb46b' },
@@ -211,6 +212,7 @@ export function DesktopTopBar() {
   const setLeftOpen = useUi((s) => s.setLeftOpen)
   const hud = useLayout((s) => s.settings.showHud)
   const set = useLayout((s) => s.setSettings)
+  const fp = useUi((s) => s.viewMode) === 'firstPerson'
 
   return (
     <header className="glass relative z-40 flex h-14 shrink-0 items-center gap-2 border-x-0 border-t-0 px-3 text-slate-100">
@@ -227,15 +229,25 @@ export function DesktopTopBar() {
         />
       </div>
       <div className="scroll-thin flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1">
-        <ViewButtons />
-        <ProjectionToggle />
+        <VantageButtons />
         <Divider />
-        <CutawayToggle />
+        {!fp && (
+          <>
+            <ViewButtons />
+            <ProjectionToggle />
+            <Divider />
+            <CutawayToggle />
+          </>
+        )}
         <LightToggle />
         <Divider />
-        <ToolToggle />
-        <SnapSelect />
-        <Divider />
+        {!fp && (
+          <>
+            <ToolToggle />
+            <SnapSelect />
+            <Divider />
+          </>
+        )}
         <MepToggle />
       </div>
       <div className="flex items-center gap-0.5">
@@ -265,6 +277,7 @@ export function MobileTopBar() {
     <>
       <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between gap-2 p-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
         <div className="glass pointer-events-auto flex items-center gap-0.5 rounded-full p-1 text-slate-100">
+          <MobileVantageButtons />
           <button onClick={cycleView} className="flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-semibold active:bg-white/15" title="切換視角">
             <Eye size={15} className="text-sky-300" />
             {current ? VIEW_PRESETS[current].label : '自由'}

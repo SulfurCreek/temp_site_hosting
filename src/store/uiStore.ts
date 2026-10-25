@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Selection, Vec2, ViewPreset } from '../types'
+import type { EyeMode, Selection, Vec2, ViewMode, ViewPreset } from '../types'
 
 export type MobileTab = 'catalog' | 'blueprint' | 'reference' | 'props'
 export type SheetState = 'closed' | 'peek' | 'half' | 'full'
@@ -8,6 +8,25 @@ export type PipMode = 'pip' | 'onion' | 'split'
 interface UiState {
   selection: Selection
   select: (s: Selection) => void
+
+  /** 世紀帝國俯視 / 第一人稱立足點 */
+  viewMode: ViewMode
+  setViewMode: (m: ViewMode) => void
+  /** 俯視角「📍 放置立足點」模式 */
+  placing: boolean
+  setPlacing: (v: boolean) => void
+  /** 第一人稱前往指定立足點（nonce 讓同一點可重複觸發；yaw 為弧度，null = 保持目前朝向） */
+  fpGoto: { x: number; z: number; yaw: number | null; nonce: number }
+  goVantage: (x: number, z: number, yaw?: number | null, eye?: EyeMode) => void
+  eye: EyeMode
+  standCm: number
+  fov: number
+  setEye: (e: EyeMode) => void
+  setStandCm: (cm: number) => void
+  setFov: (deg: number) => void
+  /** 移動模式：選取後需明確進入才會拖拉/顯示位移軸 */
+  moving: boolean
+  setMoving: (v: boolean) => void
 
   /** 目前點選的水電/燈具標記 id */
   mepId: string | null
@@ -51,7 +70,33 @@ let toastTimer: ReturnType<typeof setTimeout> | undefined
 
 export const useUi = create<UiState>()((set) => ({
   selection: null,
-  select: (selection) => set({ selection }),
+  // 換選取對象時自動離開移動模式
+  // 第一人稱 / 放置立足點時不開啟選取（點地板是移動，不是選地板）
+  select: (selection) =>
+    set((st) => (selection && (st.viewMode === 'firstPerson' || st.placing) ? {} : { selection, moving: false })),
+
+  viewMode: 'isometric',
+  setViewMode: (viewMode) => set(viewMode === 'firstPerson' ? { viewMode, placing: false, selection: null, moving: false } : { viewMode, placing: false }),
+  placing: false,
+  setPlacing: (placing) => set(placing ? { placing, viewMode: 'isometric', selection: null, moving: false } : { placing }),
+  fpGoto: { x: 0, z: 0, yaw: null, nonce: 0 },
+  goVantage: (x, z, yaw = null, eye) =>
+    set((st) => ({
+      viewMode: 'firstPerson',
+      placing: false,
+      selection: null,
+      moving: false,
+      eye: eye ?? st.eye,
+      fpGoto: { x, z, yaw, nonce: st.fpGoto.nonce + 1 },
+    })),
+  eye: 'stand',
+  standCm: 165,
+  fov: 70,
+  setEye: (eye) => set({ eye }),
+  setStandCm: (standCm) => set({ standCm: Math.min(185, Math.max(150, Math.round(standCm))) }),
+  setFov: (fov) => set({ fov: Math.min(90, Math.max(50, Math.round(fov))) }),
+  moving: false,
+  setMoving: (moving) => set({ moving }),
 
   mepId: null,
   selectMep: (mepId) => set({ mepId }),

@@ -7,6 +7,8 @@ export type Vec2 = [number, number]
 export type Vec3 = [number, number, number]
 
 /** PBR 材質描述。顏色/粗糙度/金屬度必填，貼圖欄位選填。 */
+export type Archetype = 'paint_eggshell' | 'egger_st9' | 'egger_st19' | 'laminate_wood' | 'matte_tile'
+
 export interface MaterialSpec {
   /** Hex 色碼，例如 "#e8e2d6"。有貼圖時作為色彩乘數（tint）。 */
   color: string
@@ -20,6 +22,15 @@ export interface MaterialSpec {
   repeat?: number
   /** 0–1，預設 1 */
   opacity?: number
+  /** 建材物理基底：決定程序化微紋理（Normal/Roughness Map）與 clearcoat 等預設值 */
+  archetype?: Archetype
+  /** 0..1 透明塗層（耐磨層 / 漆膜） */
+  clearcoat?: number
+  clearcoatRoughness?: number
+  /** 0..1 菲涅爾反射率（MeshPhysicalMaterial.reflectivity） */
+  reflectivity?: number
+  /** 微紋理法線強度（normalScale），0 = 關閉 */
+  bumpScale?: number
 }
 
 export interface Opening {
@@ -46,6 +57,8 @@ export interface Wall {
   exterior: boolean
   material: MaterialSpec
   openings: Opening[]
+  /** 'railing' = 直立柵欄欄杆（下有矮牆），material = 框架色；預設實心牆 */
+  style?: 'solid' | 'railing'
 }
 
 /** 地板分區（疊在主地板上方，例如玄關落塵區磁磚、浴室、陽台） */
@@ -100,7 +113,7 @@ export interface ReferenceImage {
 
 export type FurnitureMode = 'glb' | 'parametric' | 'billboard'
 export type FaceName = 'front' | 'back' | 'left' | 'right' | 'top'
-export type ParametricKind = 'box' | 'table' | 'sofa' | 'cabinet' | 'chair' | 'bed' | 'rug' | 'toilet' | 'sink' | 'hob'
+export type ParametricKind = 'box' | 'table' | 'sofa' | 'cabinet' | 'chair' | 'bed' | 'rug' | 'toilet' | 'sink' | 'hob' | 'roundtable' | 'shelf'
 
 /** 把商品照貼在家具指定表面（模式 B） */
 export interface Decal {
@@ -128,6 +141,8 @@ export interface CatalogItem {
     kind: ParametricKind
     /** 櫃體門片數（cabinet）或座位數（sofa）等 */
     count?: number
+    /** cabinet：正面留一個開放壁龕（放電子衣櫥/家電），w/h 為開口寬高（公尺），上方自動加一片上櫃門 */
+    niche?: { w: number; h: number }
     /** main = 主體；secondary = 次要（椅墊/桌腳…）；accent = 點綴（把手/抱枕…） */
     materials: { main: MaterialSpec; secondary?: MaterialSpec; accent?: MaterialSpec }
     decals?: Decal[]
@@ -179,6 +194,7 @@ export interface Layout {
 export type Selection =
   | { type: 'wall'; id: string }
   | { type: 'floor' }
+  | { type: 'zone'; id: string }
   | { type: 'furniture'; id: string }
   | null
 
@@ -187,6 +203,26 @@ export type CutawayMode = 'lower' | 'ghost' | 'off'
 export type ToolMode = 'drag' | 'move' | 'rotate'
 export type Kelvin = 3000 | 4000 | 6000
 export type ViewPreset = 'SE' | 'SW' | 'NE' | 'NW' | 'TOP'
+export type ViewMode = 'isometric' | 'firstPerson'
+export type EyeMode = 'stand' | 'sit' | 'robot'
+
+/** 第一人稱立足點預設點與天花板外框（src/data/vantage.json） */
+export interface VantageHotspot {
+  id: string
+  name: string
+  pos: Vec2
+  look: Vec2
+  eye: EyeMode
+  note?: string
+  estimated?: boolean
+}
+export interface VantageData {
+  floor: { center: Vec2; size: Vec2 }
+  ceilingHeight: number
+  ceiling: Vec2[]
+  extraWalk?: { id: string; center: Vec2; size: Vec2 }[]
+  hotspots: VantageHotspot[]
+}
 
 /** 水電 / 燈具標記點。座標 [x, z]，高度 h 皆為公尺。 */
 export type MepKind = 'outlet' | 'dedicated' | 'weak' | 'switch' | 'water' | 'track' | 'ceiling' | 'fan' | 'downlight' | 'strip'
@@ -220,6 +256,34 @@ export interface MaterialLibItem {
   spec: MaterialSpec
 }
 
+/** 品牌建材字典項目（src/data/brandMaterials.json） */
+export interface BrandMaterial {
+  id: string
+  brand: string
+  /** 型號 / 色號 */
+  code: string
+  name: string
+  /** 'paint' 牆漆 | 'board' 系統櫃板材 | 'floor' 地板 | 'tile' 磁磚 */
+  kind: 'paint' | 'board' | 'floor' | 'tile'
+  archetype: Archetype
+  hex: string
+  roughness: number
+  bumpScale: number
+  clearcoat?: number
+  clearcoatRoughness?: number
+  reflectivity?: number
+  metalness?: number
+  /** albedo 貼圖（builtin:* 或 URL），沒有就是純色 */
+  map?: string
+  repeat?: number
+  /** hex 可信度：official 官方給的 RGB/Hex；measured 專案內由圖面/照片取樣；reference 由官方 NCS/RAL 等參考色換算；estimate 目視估計 */
+  hexConfidence: 'official' | 'measured' | 'reference' | 'estimate'
+  /** hex 與特性的依據來源 */
+  source: string
+  /** 品牌說明（表面處理、用途） */
+  description: string
+}
+
 export interface Settings {
   showMep: boolean
   projection: Projection
@@ -230,4 +294,6 @@ export interface Settings {
   tool: ToolMode
   showGrid: boolean
   showHud: boolean
+  /** 標準對色光：5500K 純白、無環境色偏，避免暖光造成色差誤判 */
+  colorProof?: boolean
 }

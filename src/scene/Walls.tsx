@@ -64,10 +64,17 @@ export function outwardNormal(wall: Wall, center: Vec2): Vec2 {
   return n
 }
 
-function WallView({ wall, center }: { wall: Wall; center: Vec2 }) {
+function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: number }) {
   const selected = useUi((s) => s.selection?.type === 'wall' && s.selection.id === wall.id)
   const select = useUi((s) => s.select)
   const mat = usePBRMaterial(wall.material, { highlight: selected })
+  // 牆與牆在轉角/T 字接合處會重疊，頂面與側面共平面 → z-fighting 閃爍。
+  // 每面牆給不同的 polygonOffset，讓重疊處的勝負固定，不再閃爍。
+  useLayoutEffect(() => {
+    mat.polygonOffset = true
+    mat.polygonOffsetFactor = 0
+    mat.polygonOffsetUnits = -(index % 24) - 1
+  }, [mat, index])
   const glassMat = useMemo(
     () =>
       new THREE.MeshPhysicalMaterial({
@@ -127,7 +134,8 @@ function WallView({ wall, center }: { wall: Wall; center: Vec2 }) {
   }, [pieces, wall.thickness, wall.height])
 
   useFrame(({ camera }, dt) => {
-    const mode = useLayout.getState().settings.cutaway
+    // 第一人稱：強制關閉破牆，所有牆 100% 完整高度與不透明
+    const mode = useUi.getState().viewMode === 'firstPerson' ? 'off' : useLayout.getState().settings.cutaway
     let target = 0
     if (wall.exterior && mode !== 'off') {
       // 相機相對房間中心的水平方向 v；牆外法線 n 與 v 內積大 → 該牆擋在鏡頭與房間之間
@@ -184,15 +192,60 @@ function WallView({ wall, center }: { wall: Wall; center: Vec2 }) {
   )
 }
 
+/** 陽台直立柵欄：底部磚矮牆 + 上下橫桿 + 直立細條，長度/朝向與一般牆相同（以中心線定義） */
+function RailingView({ wall }: { wall: Wall }) {
+  const selected = useUi((s) => s.selection?.type === 'wall' && s.selection.id === wall.id)
+  const frame = usePBRMaterial(wall.material, { highlight: selected })
+  const bar = usePBRMaterial({ color: '#8a7660', roughness: 0.55, metalness: 0.3 })
+  const curb = usePBRMaterial({ color: '#8d9095', roughness: 0.9, metalness: 0, map: 'builtin:brick-mix', repeat: 1 })
+  const dx = wall.end[0] - wall.start[0]
+  const dz = wall.end[1] - wall.start[1]
+  const len = Math.max(Math.hypot(dx, dz), 0.01)
+  const H = wall.height
+  const ch = 0.25
+  const n = Math.max(2, Math.round(len / 0.11))
+  const geo = useMemo(() => makeMetricBox(len, ch, 0.15), [len])
+  const barGeo = useMemo(() => new THREE.BoxGeometry(0.025, H - ch - 0.05, 0.025), [H])
+  const railGeo = useMemo(() => makeMetricBox(len, 0.05, 0.05), [len])
+  return (
+    <group
+      position={[(wall.start[0] + wall.end[0]) / 2, 0, (wall.start[1] + wall.end[1]) / 2]}
+      rotation-y={-Math.atan2(dz, dx)}
+      onClick={(e) => {
+        if (useUi.getState().calib.active) return
+        e.stopPropagation()
+        useUi.getState().select({ type: 'wall', id: wall.id })
+      }}
+    >
+      <mesh geometry={geo} material={curb} position={[0, ch / 2, 0]} castShadow receiveShadow />
+      <mesh geometry={railGeo} material={frame} position={[0, H - 0.025, 0]} castShadow />
+      <mesh geometry={railGeo} material={frame} position={[0, ch + 0.025, 0]} castShadow />
+      {Array.from({ length: n + 1 }, (_, i) => (
+        <mesh
+          key={i}
+          geometry={barGeo}
+          material={bar}
+          position={[-len / 2 + 0.03 + (i * (len - 0.06)) / n, ch + 0.05 + (H - ch - 0.05) / 2, 0]}
+          castShadow
+        />
+      ))}
+    </group>
+  )
+}
+
 export function Walls() {
   const walls = useLayout((s) => s.layout.walls)
   const fc = useLayout((s) => s.layout.floor.center)
   const center = useMemo<Vec2>(() => [fc[0], fc[1]], [fc])
   return (
     <>
-      {walls.map((w) => (
-        <WallView key={w.id} wall={w} center={center} />
-      ))}
+{walls.map((w, i) =>
+        w.style === 'railing' ? (
+          <RailingView key={w.id} wall={w} />
+        ) : (
+          <WallView key={w.id} wall={w} center={center} index={i} />
+        ),
+      )}
     </>
   )
 }

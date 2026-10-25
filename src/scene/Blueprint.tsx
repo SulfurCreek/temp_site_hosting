@@ -40,7 +40,7 @@ export function BlueprintPlane() {
   const y = bp.placement === 'under' ? -0.012 : 0.004
   return (
     <group position={[bp.offset[0], y, bp.offset[1]]} rotation-y={THREE.MathUtils.degToRad(bp.rotation)}>
-      <mesh rotation-x={-Math.PI / 2} renderOrder={-1}>
+      <mesh rotation-x={-Math.PI / 2} renderOrder={-2}>
         <planeGeometry args={[w, h]} />
         <meshBasicMaterial
           map={tex}

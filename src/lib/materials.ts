@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as THREE from 'three'
 import type { MaterialSpec } from '../types'
+import { ARCHETYPES } from './archetypes'
+import { ROUGH_MEAN, getDerivedMicro, getStandaloneMicro } from './microTextures'
 import { loadBaseTexture } from './textures'
 
 export const PAINT_FINISHES = [
@@ -17,13 +19,30 @@ interface Opts {
   side?: THREE.Side
 }
 
+interface MicroTex {
+  normal: THREE.Texture
+  rough: THREE.Texture
+  /** 每公尺重複幾次；null = 跟著 albedo 的 repeat */
+  perMeter: number | null
+}
+
+function microTexture(cv: HTMLCanvasElement, color: boolean) {
+  const t = new THREE.CanvasTexture(cv)
+  t.wrapS = t.wrapT = THREE.RepeatWrapping
+  t.colorSpace = color ? THREE.SRGBColorSpace : THREE.NoColorSpace
+  t.anisotropy = 8
+  return t
+}
+
 /**
- * 依 MaterialSpec 建立並同步一個 MeshStandardMaterial。
+ * 依 MaterialSpec 建立並同步一個 MeshPhysicalMaterial。
+ * 有 archetype 時：套用該基底的 clearcoat / reflectivity 預設，並生成程序化 Normal + Roughness 微紋理。
  * 貼圖非同步載入；失敗時退回純色。回傳的 material 可被呼叫端在 useFrame 中直接改 opacity（破牆用）。
  */
 export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
-  const mat = useMemo(() => new THREE.MeshStandardMaterial(), [])
+  const mat = useMemo(() => new THREE.MeshPhysicalMaterial(), [])
   const [tex, setTex] = useState<THREE.Texture | null>(null)
+  const [micro, setMicro] = useState<MicroTex | null>(null)
 
   useEffect(() => () => mat.dispose(), [mat])
 
@@ -51,19 +70,60 @@ export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
     }
   }, [spec.map])
 
+  // 程序化微紋理（依 archetype；laminate_wood / matte_tile 需等 albedo 載入後由其導出）
   useEffect(() => {
+    const a = spec.archetype
+    if (!a || !ARCHETYPES[a] || spec.bumpScale === 0) {
+      setMicro(null)
+      return
+    }
+    let maps: { normal: HTMLCanvasElement; rough: HTMLCanvasElement } | null = null
+    let perMeter: number | null = null
+    if (a === 'paint_eggshell' || a === 'egger_st9' || a === 'egger_st19') {
+      maps = getStandaloneMicro(a)
+      perMeter = 1 / (ARCHETYPES[a].tileMeters as number)
+    } else if (tex?.image) {
+      maps = getDerivedMicro(a, spec.map ?? '', tex.image as CanvasImageSource)
+    }
+    if (!maps) {
+      setMicro(null)
+      return
+    }
+    const m: MicroTex = { normal: microTexture(maps.normal, false), rough: microTexture(maps.rough, false), perMeter }
+    setMicro(m)
+    return () => {
+      m.normal.dispose()
+      m.rough.dispose()
+    }
+  }, [spec.archetype, spec.bumpScale, spec.map, tex])
+
+  useEffect(() => {
+    const def = spec.archetype ? ARCHETYPES[spec.archetype] : undefined
     mat.color.set(spec.color)
-    mat.roughness = spec.roughness
+    mat.roughness = Math.min(1, spec.roughness / (micro ? ROUGH_MEAN : 1))
     mat.metalness = spec.metalness
+    mat.clearcoat = spec.clearcoat ?? def?.clearcoat ?? 0
+    mat.clearcoatRoughness = spec.clearcoatRoughness ?? def?.clearcoatRoughness ?? 0.5
+    mat.reflectivity = spec.reflectivity ?? def?.reflectivity ?? 0.5
     const op = spec.opacity ?? 1
     mat.opacity = op
     mat.transparent = op < 1
     mat.side = opts.side ?? THREE.FrontSide
-    if (tex) {
-      const r = spec.repeat ?? 1
-      tex.repeat.set(r, r)
-    }
+    const r = spec.repeat ?? 1
+    if (tex) tex.repeat.set(r, r)
     mat.map = tex
+    if (micro) {
+      const mr = micro.perMeter ?? r
+      micro.normal.repeat.set(mr, mr)
+      micro.rough.repeat.set(mr, mr)
+      const bs = spec.bumpScale ?? def?.bumpScale ?? 0.5
+      mat.normalMap = micro.normal
+      mat.normalScale.set(bs, bs)
+      mat.roughnessMap = micro.rough
+    } else {
+      mat.normalMap = null
+      mat.roughnessMap = null
+    }
     if (opts.highlight) {
       mat.emissive.set('#3b82f6')
       mat.emissiveIntensity = 0.22
@@ -72,7 +132,7 @@ export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
       mat.emissiveIntensity = 0
     }
     mat.needsUpdate = true
-  }, [mat, spec, tex, opts.highlight, opts.side])
+  }, [mat, spec, tex, micro, opts.highlight, opts.side])
 
   return mat
 }

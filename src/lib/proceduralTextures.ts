@@ -6,13 +6,17 @@
 export const BUILTIN_TEXTURES = [
   { id: 'builtin:oak', label: '橡木地板' },
   { id: 'builtin:oak-light', label: '淺橡木' },
+  { id: 'builtin:oak-ash', label: '灰褐橡木（實景）' },
   { id: 'builtin:walnut', label: '胡桃木' },
   { id: 'builtin:tile', label: '白色方磚' },
   { id: 'builtin:tile-gray', label: '灰階地磚' },
+  { id: 'builtin:tile-dark', label: '深灰磁磚' },
   { id: 'builtin:concrete', label: '清水模' },
   { id: 'builtin:fabric', label: '織布' },
   { id: 'builtin:marble', label: '大理石' },
   { id: 'builtin:encaustic', label: '八角花磚' },
+  { id: 'builtin:tile-beige', label: '陽台米灰方磚（30cm）' },
+  { id: 'builtin:brick-mix', label: '陽台棕灰混色長條磚' },
 ] as const
 
 /** 可重現的偽亂數，讓每次生成的貼圖一致 */
@@ -92,18 +96,18 @@ function tile() {
   return cv
 }
 
-function tileGray() {
+function tileGray(grout = '#8f8f8c', base = '#b4b4b0', _edge = '') {
   const cv = document.createElement('canvas')
   cv.width = cv.height = SIZE
   const g = cv.getContext('2d')!
   const r = rng(17)
   const n = 2
   const s = SIZE / n
-  g.fillStyle = '#8f8f8c'
+  g.fillStyle = grout
   g.fillRect(0, 0, SIZE, SIZE)
   for (let i = 0; i < n; i++)
     for (let j = 0; j < n; j++) {
-      g.fillStyle = shade('#b4b4b0', 0.94 + r() * 0.1)
+      g.fillStyle = shade(base, 0.94 + r() * 0.1)
       g.fillRect(i * s + 3, j * s + 3, s - 6, s - 6)
       for (let k = 0; k < 400; k++) {
         g.fillStyle = `rgba(${r() > 0.5 ? '0,0,0' : '255,255,255'},${r() * 0.06})`
@@ -224,16 +228,72 @@ function encaustic() {
   return cv
 }
 
+/** 陽台地磚：30 cm 米灰方磚 + 白縫（每公尺 3×3，微幅色差） */
+function tileBeige() {
+  const cv = document.createElement('canvas')
+  cv.width = cv.height = SIZE
+  const g = cv.getContext('2d')!
+  const r = rng(31)
+  const n = 3
+  const s = SIZE / n
+  g.fillStyle = '#e9e6df'
+  g.fillRect(0, 0, SIZE, SIZE)
+  for (let i = 0; i < n; i++)
+    for (let j = 0; j < n; j++) {
+      g.fillStyle = shade('#c3b4a2', 0.95 + r() * 0.1)
+      g.fillRect(i * s + 2, j * s + 2, s - 4, s - 4)
+    }
+  for (let k = 0; k < 2500; k++) {
+    g.fillStyle = `rgba(${r() > 0.5 ? '255,255,255' : '90,70,50'},${0.05 + r() * 0.08})`
+    g.fillRect(r() * SIZE, r() * SIZE, 2, 2)
+  }
+  return cv
+}
+
+/** 陽台外牆：棕灰混色粗面長條磚，約 25×8 cm（每公尺 4 欄 × 12 列），半塊錯縫 */
+function brickMix() {
+  const cv = document.createElement('canvas')
+  cv.width = cv.height = SIZE
+  const g = cv.getContext('2d')!
+  const r = rng(53)
+  const cols = 4
+  const rows = 12
+  const bw = SIZE / cols
+  const bh = SIZE / rows
+  const tones = ['#8d7459', '#7a6350', '#6a5a4b', '#54483e', '#9a8268']
+  g.fillStyle = '#8c8173'
+  g.fillRect(0, 0, SIZE, SIZE)
+  for (let j = 0; j < rows; j++) {
+    const off = j % 2 ? bw / 2 : 0
+    for (let i = -1; i < cols; i++) {
+      g.fillStyle = shade(tones[Math.floor(r() * tones.length)], 0.94 + r() * 0.12)
+      const x = i * bw + off
+      g.fillRect(x + 1.5, j * bh + 1.5, bw - 3, bh - 3)
+      if (x + bw > SIZE) g.fillRect(x - SIZE + 1.5, j * bh + 1.5, bw - 3, bh - 3)
+    }
+  }
+  for (let k = 0; k < 6000; k++) {
+    g.fillStyle = `rgba(${r() > 0.5 ? '255,240,220' : '20,15,10'},${0.05 + r() * 0.1})`
+    g.fillRect(r() * SIZE, r() * SIZE, 2, 2)
+  }
+  return cv
+}
+
 const makers: Record<string, () => HTMLCanvasElement> = {
   'builtin:oak': () => wood('#c9a171', 5, 3),
   'builtin:oak-light': () => wood('#dcc8a6', 5, 5),
   'builtin:walnut': () => wood('#6b4a33', 4, 9),
+  // 取自實景照地板（換算後 #aaa599）
+  'builtin:oak-ash': () => wood('#b3ada1', 5, 7),
   'builtin:tile-gray': () => tileGray(),
+  'builtin:tile-dark': () => tileGray('#5f666b', '#79828a', '#454b4f'),
   'builtin:tile': tile,
   'builtin:concrete': () => noise('#b4b4b0', 13, 9000, 60),
   'builtin:fabric': fabric,
   'builtin:marble': marble,
   'builtin:encaustic': encaustic,
+  'builtin:tile-beige': tileBeige,
+  'builtin:brick-mix': brickMix,
 }
 
 const cache = new Map<string, HTMLCanvasElement>()
