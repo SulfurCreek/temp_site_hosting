@@ -1,6 +1,7 @@
 import { PanelLeftOpen } from 'lucide-react'
 import { useEffect } from 'react'
 import { Scene } from './scene/Scene'
+import { useLayout } from './store/layoutStore'
 import { useUi } from './store/uiStore'
 import { FirstPersonBar } from './ui/FirstPersonBar'
 import { Hud, Toast } from './ui/Hud'
@@ -19,6 +20,8 @@ export default function App() {
   const calibActive = useUi((s) => s.calib.active)
   const moving = useUi((s) => s.moving)
   const fp = useUi((s) => s.viewMode) === 'firstPerson'
+  const colorProof = useLayout((s) => !!s.settings.colorProof)
+  const setSettings = useLayout((s) => s.setSettings)
   useHotkeys()
 
   // 手機：選取物件 → 底部抽屜切到「屬性」並以精簡高度顯示；取消選取 → 收起
@@ -54,6 +57,16 @@ export default function App() {
         {fp && <FirstPersonBar />}
         <MepInfo />
         <Toast />
+        {colorProof && (
+          <div className="absolute inset-x-0 bottom-20 z-30 flex justify-center px-3">
+            <button
+              onClick={() => setSettings({ colorProof: false })}
+              className="glass rounded-full px-4 py-2 text-xs text-amber-300 active:bg-white/10"
+            >
+              標準對色光開啟中（無燈具光源 / AO / 景深）· 點此關閉
+            </button>
+          </div>
+        )}
         {moving && (
           <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3 max-lg:top-[72px]">
             <div className="glass rounded-full px-4 py-1.5 text-xs text-amber-300">移動模式：拖拉選取的物件到新位置（Enter / Esc 結束）</div>
