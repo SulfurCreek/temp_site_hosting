@@ -40,8 +40,6 @@ interface UiState {
   /** 工具列請求切換視角（nonce 讓同一個預設可重複觸發） */
   viewRequest: { preset: ViewPreset; nonce: number }
   requestView: (p: ViewPreset) => void
-  currentView: ViewPreset | null
-  setCurrentView: (p: ViewPreset | null) => void
 
   /** 兩點比例尺校準 */
   calib: { active: boolean; points: Vec2[] }
@@ -104,8 +102,6 @@ export const useUi = create<UiState>()((set) => ({
 
   viewRequest: { preset: 'SE', nonce: 0 },
   requestView: (preset) => set((s) => ({ viewRequest: { preset, nonce: s.viewRequest.nonce + 1 } })),
-  currentView: 'SE',
-  setCurrentView: (currentView) => set({ currentView }),
 
   calib: { active: false, points: [] },
   startCalib: () => set({ calib: { active: true, points: [] } }),

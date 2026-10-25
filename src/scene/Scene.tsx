@@ -56,8 +56,8 @@ export function Scene() {
     <Canvas
       shadows="percentage"
       frameloop="demand"
-      dpr={[1, 2]}
-      gl={{ antialias: true, powerPreference: 'high-performance' }}
+      dpr={[1.5, 2]}
+      gl={{ powerPreference: 'high-performance', antialias: false, stencil: false, depth: true }}
       // 色調映射由 <PostFX /> 管理：預設 ACES Filmic（電影級層次），標準對色光時維持 Khronos Neutral（保留色票原色）
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping

@@ -297,16 +297,18 @@ src/
 
 ---
 
-### v2 渲染原則：畫質不降，靠「少做事」換效能（目標 iPhone 15/17 Pro、iPad、MacBook Pro M1 Pro / Chrome）
-- **不分裝置等級**：沒有 `useFxTier` / 手機降級 / 相片級算圖 / 路徑追蹤 / 4K 匯出。所有裝置同一組畫質（N8AO 半解析度 AO、Bloom、ACES、暖調白平衡、暗角、SMAA、地板微反射、第一人稱景深、接觸陰影）。
-- **按需出幀**（`src/lib/frameloop.ts`，`<Canvas frameloop="demand">`）：只在操作/資料變動/資源載入後 2.5 s 內連續出幀，閒置時 GPU 0 負載。新增動畫若超過 2.5 s，要呼叫 `wake(ms)`。
-- **陰影圖手動更新**：`gl.shadowMap.autoUpdate = false`，家具/牆資料變動、切換俯視/第一人稱、資源載入、拖拉中才重算（`dirtyShadows()`）。新增會「自己動」的投影物件時要呼叫它。
-- 接觸陰影 `frames=2`，資料變動時換 key 重烘；不是每幀重畫。
-- 燈具：`src/scene/Fixtures.tsx` 位置全取自 `mep.json`，固定 4000K、全迴路開啟（沒有色溫 / 情境切換）。光源 19 盞，其中 7 盞投影（軌道偶數燈頭 4 + 吊扇/主臥/次臥吸頂 3）；取樣器上限 16，**不要再增加投影光源**。軌道燈頭瞄準點寫在該檔 `TRACK_AIM`。
-- `PostFX.tsx` 順序 N8AO → **children** → Bloom → WarmGrade → ToneMapping(ACES) → Vignette → SMAA；要加特效用 `<PostFX><Xxx /></PostFX>`。標準對色光（`colorProof`）不掛 composer，用 Khronos Neutral。
-- 地板微反射（`MeshReflectorMaterial`，Floor.tsx）只在透視相機（第一人稱 / 透視）啟用，只作用主地板與玄關花磚。
+### v2 渲染原則：動靜分離雙態渲染（目標 iPhone 15/17 Pro、iPad、MacBook Pro M1 Pro / Chrome）
+- **互動中 vs 定格**（`src/lib/frameloop.ts`）：拖曳 / 縮放 / 按鍵 / 動畫 / 載入時連續出幀，dpr [1, 1.25]、N8AO 半解析度 performance、旁路景深；停下 180 ms 後 dpr [1.5, 2]、全解析度 N8AO high + Bloom + 光學景深，補 3 幀定格後 `frameloop = demand`（GPU 閒置）。**靜止畫面是相片級品質，降級只發生在互動中。** 狀態由 DOM 事件與計時器切換，不在 `useFrame` 內 setState。
+- 互動中 FPS 監看（rAF，只量互動期間）：平均 > 26 ms 連續一窗 → level 1（dpr 降到 1），再掉 → level 2（互動中關 AO）；恢復後逐級回升。不影響定格畫質。
+- 新增動畫若超過 1.2 s，要呼叫 `wake(ms)`。
+- **陰影圖手動更新**：`gl.shadowMap.autoUpdate = false`，只在 layout 資料 commit（拖拉 / 位移軸放開）、切換視角、資源載入後重算（`dirtyShadows()`）。**全場景只有 2 盞燈投影**（客廳吊扇 `fan-liv`、主臥吸頂 `ce-master`，1024），其餘燈具只有光照；不要再增加投影光源。
+- 接觸陰影 `frames=1`，資料變動時換 key 重烘。
+- 地板光澤：`MeshPhysicalMaterial` + 場景 HDRI（`Floor.tsx` 的 `FLOOR_ENV_INTENSITY`，目前 0.3；1.2 會讓地板偏粉偏亮）+ clearcoat 0.15；已移除 `MeshReflectorMaterial`。
+- 燈具：`src/scene/Fixtures.tsx` 位置全取自 `mep.json`，固定 4000K、全迴路開啟。軌道燈頭瞄準點寫在該檔 `TRACK_AIM`。
+- `PostFX.tsx` 順序 N8AO → **children（景深，只在定格時掛）** → Bloom → WarmGrade → ToneMapping(ACES) → Vignette → SMAA；Canvas 原生 `antialias:false, stencil:false`。標準對色光（`colorProof`，不沿用存檔）只有 Neutral 色調映射 + SMAA。
 
 ### PBR 掃描貼圖與 HDRI（Poly Haven, CC0）
+- `scripts/optimize-textures.mjs`（`--max 1024`，`--dry` 先看結果）壓縮 / 縮小貼圖；地板與磁磚組預設維持 2048。
 - `node scripts/fetch-textures.mjs` 會下載原始檔；**提交進 repo 的是瘦身後的版本**：地板 / 磁磚 2k（diffuse / normal / 單通道 roughness，約 2.6 MB 一組），板材微紋理 1k，無 AO 圖（AO 由 N8AO 即時算），HDRI 只留 `public/hdri/interior-1k.hdr`。總量約 8 MB。
 - `MaterialSpec.pbr = '<slug>'` 綁定（`src/lib/pbrTextures.ts` 的 `PBR_SETS`，`meters` = 一張涵蓋的公尺數、`size` = 檔案解析度）。`pbr: false` 強制停用。`egger_st19` / `egger_st9` archetype 預設自動套用（只取 Normal + Roughness）。
 - 對應：ED-KS81555 → `laminate_floor_02`；CW025501 → `large_grey_tiles`；EGGER ST19 → `white_oak_veneer`；ST9 → `grey_plaster_02`。⚠️ 皆為最接近的替代品，非同型號。

@@ -47,6 +47,9 @@ function loadTex(url: string, color: boolean, aniso: number) {
       (t) => {
         t.colorSpace = color ? THREE.SRGBColorSpace : THREE.NoColorSpace
         t.wrapS = t.wrapT = THREE.RepeatWrapping
+        t.generateMipmaps = true
+        t.minFilter = THREE.LinearMipmapLinearFilter
+        t.magFilter = THREE.LinearFilter
         t.anisotropy = aniso
         t.needsUpdate = true
         resolve(t)
