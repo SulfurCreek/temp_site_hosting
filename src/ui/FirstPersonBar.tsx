@@ -5,7 +5,7 @@ import { Segmented } from './controls'
 import { useIsMobile } from './hooks'
 
 const EYES: { value: EyeMode; label: string; title: string }[] = [
-  { value: 'stand', label: '站立', title: '站立視角 165 cm' },
+  { value: 'stand', label: '站立', title: '站立視角 168 cm' },
   { value: 'sit', label: '坐姿', title: '坐姿視角 110 cm：坐沙發看電視牆、坐床上看電視' },
   { value: 'robot', label: '低視角', title: '掃地機 / 寵物視角 30 cm：檢查櫃體下方懸空與插座走線' },
 ]

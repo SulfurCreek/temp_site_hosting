@@ -802,5 +802,50 @@
         }
       }
     }
+  },
+  {
+    "id": "shoe-cabinet",
+    "name": "玄關鞋櫃（EGGER W1000 ST19）",
+    "category": "storage",
+    "mode": "parametric",
+    "size": [
+      1.0,
+      2.37,
+      0.35
+    ],
+    "parametric": {
+      "kind": "cabinet",
+      "materials": {
+        "main": {
+          "color": "#f1f0ec",
+          "roughness": 0.8,
+          "metalness": 0,
+          "archetype": "egger_st19",
+          "clearcoat": 0.08,
+          "clearcoatRoughness": 0.6,
+          "bumpScale": 0.4
+        },
+        "secondary": {
+          "color": "#c3c3c1",
+          "roughness": 0.85,
+          "metalness": 0,
+          "archetype": "egger_st9",
+          "reflectivity": 0.3,
+          "bumpScale": 0.2
+        },
+        "accent": {
+          "color": "#8a8a8a",
+          "roughness": 0.25,
+          "metalness": 0.9
+        }
+      },
+      "count": 2
+    },
+    "notes": [
+      "外觀板材：EGGER W1000 ST19 至尊消光白",
+      "內部層板：U708 ST9 淺灰（花崗岩灰）",
+      "8 層斜放/平放鞋架；透氣孔 + 穿線孔；側面插座開孔",
+      "接續下方牆面 100cm 段"
+    ]
   }
 ]

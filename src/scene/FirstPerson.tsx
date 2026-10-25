@@ -9,11 +9,11 @@ import { useUi } from '../store/uiStore'
 import type { EyeMode, Vec2 } from '../types'
 
 const D = Math.PI / 180
-const EYE_HEIGHT: Record<EyeMode, number> = { stand: 1.65, sit: 1.1, robot: 0.3 }
+const EYE_HEIGHT: Record<EyeMode, number> = { stand: 1.68, sit: 1.1, robot: 0.3 }
 
 /** 第一人稱相機的即時狀態（高頻更新，不進 React / zustand） */
 /** x,z = 立足點（人站的位置）；實際相機會沿視線反方向退後 backoffCm（見 fpCam） */
-export const fpLive = { x: 0, z: 0, yaw: 0, pitch: 0, eye: 1.65, ready: false }
+export const fpLive = { x: 0, z: 0, yaw: 0, pitch: 0, eye: 1.68, ready: false }
 if (import.meta.env.DEV) (window as unknown as { __fpLive: unknown }).__fpLive = fpLive
 
 /** 視線朝向（弧度）：yaw = 0 看向北（−Z），正值 = 俯視逆時針（轉向西） */

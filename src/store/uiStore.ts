@@ -84,7 +84,7 @@ export const useUi = create<UiState>()((set) => ({
       fpGoto: { x, z, yaw, nonce: st.fpGoto.nonce + 1 },
     })),
   eye: 'stand',
-  standCm: 165,
+  standCm: 168,
   fov: 75,
   backoffCm: 50,
   setEye: (eye) => set({ eye }),
