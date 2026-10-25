@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 2,
+  "rev": 3,
   "name": "鴻築麗苑（柏毅 2026/10/19 施工圖）",
   "floor": {
     "center": [
@@ -865,6 +865,17 @@
     "visible": true,
     "placement": "under"
   },
-  "references": [],
+  "references": [
+    {
+      "id": "ref-foyer",
+      "name": "玄關（左：灰藍磚 / 右：花磚，預設用右）",
+      "url": "/inputs/references/foyer-before-after.png"
+    },
+    {
+      "id": "ref-balcony",
+      "name": "往陽台方向",
+      "url": "/inputs/references/balcony-view.png"
+    }
+  ],
   "customCatalog": []
 }

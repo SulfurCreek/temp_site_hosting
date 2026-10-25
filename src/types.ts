@@ -179,6 +179,7 @@ export interface Layout {
 export type Selection =
   | { type: 'wall'; id: string }
   | { type: 'floor' }
+  | { type: 'zone'; id: string }
   | { type: 'furniture'; id: string }
   | null
 

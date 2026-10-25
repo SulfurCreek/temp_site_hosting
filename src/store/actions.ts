@@ -77,6 +77,9 @@ export function applyColorToSelection(hex: string) {
   if (sel.type === 'wall') {
     const w = st.layout.walls.find((x) => x.id === sel.id)
     if (w) st.updateWall(w.id, { material: patch(w.material) })
+  } else if (sel.type === 'zone') {
+    const z = st.layout.floorZones?.find((x) => x.id === sel.id)
+    if (z) st.updateZone(z.id, { material: patch(z.material) })
   } else if (sel.type === 'floor') {
     st.updateFloor({ material: patch(st.layout.floor.material) })
   } else {

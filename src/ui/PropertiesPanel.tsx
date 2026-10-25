@@ -289,6 +289,27 @@ function FloorProps() {
   )
 }
 
+function ZoneProps({ id }: { id: string }) {
+  const zone = useLayout((s) => s.layout.floorZones?.find((z) => z.id === id))
+  const update = useLayout((s) => s.updateZone)
+  if (!zone) return <Empty />
+  return (
+    <>
+    <Section title={`${zone.name}尺寸位置（公分）`}>
+      <div className="grid grid-cols-2 gap-2">
+        <NumberField label="寬 X" value={zone.size[0]} scale={100} min={10} unit="cm" onChange={(v) => update(id, { size: [v, zone.size[1]] }, 'zone-size-' + id)} />
+        <NumberField label="深 Z" value={zone.size[1]} scale={100} min={10} unit="cm" onChange={(v) => update(id, { size: [zone.size[0], v] }, 'zone-size-' + id)} />
+        <NumberField label="中心 X" value={zone.center[0]} scale={100} unit="cm" onChange={(v) => update(id, { center: [v, zone.center[1]] }, 'zone-c-' + id)} />
+        <NumberField label="中心 Z" value={zone.center[1]} scale={100} unit="cm" onChange={(v) => update(id, { center: [zone.center[0], v] }, 'zone-c-' + id)} />
+      </div>
+    </Section>
+    <Section title={`${zone.name}材質（可選花磚 / 天藍磚）`}>
+      <MaterialEditor spec={zone.material} onChange={(p) => update(id, { material: { ...zone.material, ...p } }, 'zone-mat-' + id)} />
+    </Section>
+    </>
+  )
+}
+
 /* ------------------------------ 入口 ------------------------------ */
 
 export function PropertiesPanel() {
@@ -298,6 +319,7 @@ export function PropertiesPanel() {
   if (!sel) return <Empty />
   if (sel.type === 'furniture' && furniture) return <FurnitureProps f={furniture} />
   if (sel.type === 'wall' && wall) return <WallProps w={wall} />
+  if (sel.type === 'zone') return <ZoneProps id={sel.id} />
   if (sel.type === 'floor') return <FloorProps />
   return <Empty />
 }
@@ -306,6 +328,7 @@ export function useSelectionTitle(): string {
   const sel = useUi((s) => s.selection)
   return useLayout((l) => {
     if (!sel) return '屬性'
+    if (sel.type === 'zone') return l.layout.floorZones?.find((z) => z.id === sel.id)?.name ?? '地板分區'
     if (sel.type === 'floor') return '地板'
     if (sel.type === 'wall') return l.layout.walls.find((w) => w.id === sel.id)?.name ?? '牆壁'
     return l.layout.furniture.find((f) => f.id === sel.id)?.name ?? '家具'

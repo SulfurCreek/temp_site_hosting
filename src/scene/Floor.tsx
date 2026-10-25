@@ -48,7 +48,7 @@ function ZoneView({ zone }: { zone: FloorZone }) {
       onClick={(e) => {
         if (useUi.getState().calib.active) return
         e.stopPropagation()
-        useUi.getState().select({ type: 'floor' })
+        useUi.getState().select({ type: 'zone', id: zone.id })
       }}
     />
   )

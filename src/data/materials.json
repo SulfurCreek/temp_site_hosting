@@ -40,6 +40,18 @@
     }
   },
   {
+    "id": "FOYER-BLUE",
+    "name": "玄關天藍/灰藍地磚（實景參考左版）",
+    "note": "取自早期實景照左版地磚取樣 #5c6c76，色溫偏暖已略微校正；方磚約 50cm 為估計",
+    "spec": {
+      "color": "#6f8497",
+      "roughness": 0.5,
+      "metalness": 0,
+      "map": "builtin:tile",
+      "repeat": 1
+    }
+  },
+  {
     "id": "DULUX-LILY",
     "name": "得利乳膠漆「百合白」",
     "brand": "Dulux 得利",

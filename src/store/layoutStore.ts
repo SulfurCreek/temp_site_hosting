@@ -7,6 +7,7 @@ import type {
   Blueprint,
   CatalogItem,
   Floor,
+  FloorZone,
   FurnitureInstance,
   Layout,
   ReferenceImage,
@@ -63,6 +64,7 @@ interface LayoutState {
   setName: (name: string) => void
 
   updateFloor: (p: Partial<Floor>, key?: string) => void
+  updateZone: (id: string, p: Partial<FloorZone>, key?: string) => void
   updateWall: (id: string, p: Partial<Wall>, key?: string) => void
   fitFloorToWalls: () => void
 
@@ -112,6 +114,8 @@ export const useLayout = create<LayoutState>()(
         setName: (name) => mutate((l) => ({ ...l, name }), 'name'),
 
         updateFloor: (p, key) => mutate((l) => ({ ...l, floor: { ...l.floor, ...p } }), key),
+        updateZone: (id, p, key) =>
+          mutate((l) => ({ ...l, floorZones: (l.floorZones ?? []).map((z) => (z.id === id ? { ...z, ...p } : z)) }), key),
         updateWall: (id, p, key) =>
           mutate((l) => ({ ...l, walls: l.walls.map((w) => (w.id === id ? { ...w, ...p } : w)) }), key),
         fitFloorToWalls: () =>
