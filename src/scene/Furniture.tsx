@@ -2,6 +2,7 @@ import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Suspense, memo, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { boxBlocksCamera } from '../lib/fpClip'
 import { DEFAULT_MATERIAL, usePBRMaterial } from '../lib/materials'
 import { useMetricBox } from '../lib/geometry'
 import { loadBaseTexture } from '../lib/textures'
@@ -673,6 +674,20 @@ const FurnitureView = memo(function FurnitureView({ inst }: { inst: FurnitureIns
   const groupRef = useRef<THREE.Group>(null)
   // 只在事件當下讀取 R3F 狀態，避免訂閱整個 store 造成每次 resize 都重繪所有家具
   const get = useThree((s) => s.get)
+
+  // 第一人稱：相機背後 < 0.8 m（或退後後被家具包住）的家具先隱藏，避免擋住視線
+  const clipped = useRef(false)
+  useFrame(() => {
+    const g = groupRef.current
+    if (!g) return
+    const next =
+      useUi.getState().viewMode === 'firstPerson' &&
+      boxBlocksCamera(inst.position[0], inst.position[2], inst.size[0], inst.size[2], inst.rotationY * D, clipped.current)
+    if (next !== clipped.current) {
+      clipped.current = next
+      g.visible = !next
+    }
+  })
 
   useEffect(() => {
     const g = groupRef.current
