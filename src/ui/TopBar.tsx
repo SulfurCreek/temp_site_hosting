@@ -2,6 +2,9 @@ import {
   Box,
   Download,
   Eye,
+  Footprints,
+  Lightbulb,
+  MapPin,
   HelpCircle,
   Move3d,
   PanelLeft,
@@ -20,8 +23,9 @@ import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 import type { Kelvin, ViewPreset } from '../types'
 import { IconBtn, Segmented, Toggle, cx } from './controls'
-import { MobileVantageButtons, VantageButtons } from './FirstPersonBar'
+import { VantageButtons } from './FirstPersonBar'
 import { FxQualityToggle, LightSceneToggle } from './LightingControls'
+import { enterFirstPerson } from '../scene/FirstPerson'
 
 const KELVINS: { k: Kelvin; label: string; dot: string }[] = [
   { k: 3000, label: '3000K 黃光', dot: '#ffb46b' },
@@ -266,41 +270,87 @@ export function DesktopTopBar() {
 
 /* -------------------------------- 手機 / 平板 -------------------------------- */
 
+/** 手機頂部膠囊列的單顆按鈕：圖示 + 10px 標籤 */
+function PillBtn({
+  icon,
+  label,
+  active,
+  disabled,
+  onClick,
+  title,
+}: {
+  icon: React.ReactNode
+  label: string
+  active?: boolean
+  disabled?: boolean
+  onClick: () => void
+  title: string
+}) {
+  return (
+    <button
+      title={title}
+      aria-label={title}
+      disabled={disabled}
+      onClick={onClick}
+      className={cx(
+        'flex h-10 min-w-[46px] shrink-0 flex-col items-center justify-center gap-px rounded-full px-1.5 transition-colors',
+        active ? 'bg-sky-500 text-white' : 'text-slate-200 active:bg-white/15',
+        disabled && 'opacity-35',
+      )}
+    >
+      {icon}
+      <span className="text-[10px] leading-3 whitespace-nowrap">{label}</span>
+    </button>
+  )
+}
+
 export function MobileTopBar() {
   const [more, setMore] = useState(false)
   const current = useUi((s) => s.currentView)
-  const proj = useLayout((s) => s.settings.projection)
+  const viewMode = useUi((s) => s.viewMode)
+  const placing = useUi((s) => s.placing)
+  const setViewMode = useUi((s) => s.setViewMode)
+  const setPlacing = useUi((s) => s.setPlacing)
+  const showMep = useLayout((s) => s.settings.showMep)
   const set = useLayout((s) => s.setSettings)
   const kelvin = useLayout((s) => s.settings.kelvin)
+  const fp = viewMode === 'firstPerson'
   const nextKelvin = () => set({ kelvin: kelvin === 3000 ? 4000 : kelvin === 4000 ? 6000 : 3000 })
   const dot = KELVINS.find((x) => x.k === kelvin)!.dot
 
   return (
     <>
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between gap-2 p-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
-        <div className="glass pointer-events-auto flex items-center gap-0.5 rounded-full p-1 text-slate-100">
-          <MobileVantageButtons />
-          <button onClick={cycleView} className="flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-semibold active:bg-white/15" title="切換視角">
-            <Eye size={15} className="text-sky-300" />
-            {current ? VIEW_PRESETS[current].label : '自由'}
-          </button>
-          <button
-            onClick={() => set({ projection: proj === 'ortho' ? 'persp' : 'ortho' })}
-            className="flex h-9 items-center rounded-full px-3 text-xs font-semibold active:bg-white/15"
-          >
-            {proj === 'ortho' ? '正交' : '透視'}
-          </button>
-        </div>
-        <div className="glass pointer-events-auto flex items-center gap-0.5 rounded-full p-1 text-slate-100">
-          <button onClick={nextKelvin} className="flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-semibold active:bg-white/15" title="色溫">
-            <span className="h-3 w-3 rounded-full border border-black/20" style={{ background: dot }} />
-            {kelvin / 1000}K
-          </button>
-          <MepToggle label={false} />
-          <HistoryButtons />
-          <IconBtn title="更多設定" onClick={() => setMore(true)} className="rounded-full">
-            <SlidersHorizontal size={17} />
-          </IconBtn>
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex justify-center px-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
+        <div className="pointer-events-auto flex max-w-full items-center gap-0.5 rounded-full border border-white/10 bg-black/60 px-2 py-1 text-slate-100 backdrop-blur-md">
+          <PillBtn
+            title={fp ? '回到俯視' : '第一人稱'}
+            icon={fp ? <Box size={16} /> : <Footprints size={16} className="text-sky-300" />}
+            label={fp ? '俯視' : '第一人稱'}
+            active={fp}
+            onClick={() => (fp ? setViewMode('isometric') : enterFirstPerson())}
+          />
+          <PillBtn
+            title="放置立足點"
+            icon={<MapPin size={16} className={placing ? '' : 'text-sky-300'} />}
+            label="立足點"
+            active={placing}
+            onClick={() => (fp ? setViewMode('isometric') : setPlacing(!placing))}
+          />
+          <PillBtn
+            title="切換俯視方位"
+            icon={<Eye size={16} className="text-sky-300" />}
+            label={fp ? '方位' : current ? VIEW_PRESETS[current].label : '自由'}
+            disabled={fp}
+            onClick={cycleView}
+          />
+          <PillBtn
+            title={`燈光色溫 ${kelvin}K`}
+            icon={<span className="my-0.5 h-3.5 w-3.5 rounded-full border border-black/30" style={{ background: dot }} />}
+            label={`${kelvin / 1000}K`}
+            onClick={nextKelvin}
+          />
+          <PillBtn title="顯示水電 / 燈具" icon={<Zap size={16} className={showMep ? '' : 'text-amber-300'} />} label="水電" active={showMep} onClick={() => set({ showMep: !showMep })} />
+          <PillBtn title="更多設定" icon={<SlidersHorizontal size={16} />} label="更多" onClick={() => setMore(true)} />
         </div>
       </div>
       {more && <MoreSheet onClose={() => setMore(false)} />}
@@ -314,7 +364,7 @@ function MoreSheet({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/50 backdrop-blur-[2px]" onClick={onClose}>
       <div
-        className="glass scroll-thin absolute inset-x-2 top-2 max-h-[85vh] space-y-4 overflow-y-auto rounded-2xl p-4 text-slate-100"
+        className="glass sheet-compact scroll-thin absolute inset-x-2 top-[max(0.5rem,env(safe-area-inset-top))] max-h-[85dvh] space-y-4 overflow-y-auto rounded-2xl p-4 text-slate-100"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -325,6 +375,11 @@ function MoreSheet({ onClose }: { onClose: () => void }) {
             <X size={18} />
           </IconBtn>
         </div>
+        <Row label="復原 / 重做">
+          <div className="flex gap-1">
+            <HistoryButtons />
+          </div>
+        </Row>
         <Row label="視角">
           <ViewButtons compact />
         </Row>
@@ -349,6 +404,17 @@ function MoreSheet({ onClose }: { onClose: () => void }) {
         <Row label="吸附格距">
           <SnapSelect />
         </Row>
+        <Row label="燈光情境（等燈光系統合入後啟用）">
+          <div className="flex gap-1">
+            {['全開', '氛圍軌道燈', '夜燈', '白天'].map((x) => (
+              <button key={x} disabled className="shrink-0 whitespace-nowrap rounded-lg border border-white/10 bg-slate-800/60 px-3 py-1.5 text-xs opacity-40">
+                <Lightbulb size={12} className="mr-1 inline" />
+                {x}
+              </button>
+            ))}
+          </div>
+        </Row>
+        <Toggle label="景深 DoF（等相機串合入後啟用）" checked={false} disabled onChange={() => {}} />
         <Toggle label="顯示水電 / 燈具（MEP）" checked={s.showMep} onChange={(v) => set({ showMep: v })} />
         <Toggle label="顯示格線" checked={s.showGrid} onChange={(v) => set({ showGrid: v })} />
         <Toggle label="顯示操作提示" checked={s.showHud} onChange={(v) => set({ showHud: v })} />

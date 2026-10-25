@@ -271,14 +271,15 @@ export function IconBtn({
   )
 }
 
-export function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+export function Toggle({ label, checked, onChange, disabled }: { label: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 text-sm text-slate-200">
+    <label className={cx('flex items-center justify-between gap-3 text-sm text-slate-200', disabled ? 'opacity-40' : 'cursor-pointer')}>
       <span>{label}</span>
       <button
         type="button"
         role="switch"
         aria-checked={checked}
+        disabled={disabled}
         onClick={() => onChange(!checked)}
         className={cx('relative h-5 w-9 rounded-full transition-colors', checked ? 'bg-sky-500' : 'bg-slate-600')}
       >
