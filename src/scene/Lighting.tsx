@@ -1,4 +1,5 @@
 import { Environment } from "@react-three/drei";
+import { HDRI_URL } from "../lib/pbrTextures";
 import { Suspense, useMemo } from "react";
 import * as THREE from "three";
 import { kelvinToHex } from "../lib/color";
@@ -64,7 +65,7 @@ function FixtureRig() {
       <Fixtures scene={def} color={color} tier={tier} />
       <ErrorBoundary fallback={null}>
         <Suspense fallback={null}>
-          <Environment preset="apartment" environmentIntensity={def.env} />
+          <Environment files={HDRI_URL()} background={false} environmentIntensity={def.env} />
         </Suspense>
       </ErrorBoundary>
     </>
@@ -121,7 +122,8 @@ function ProofRig() {
         <ErrorBoundary fallback={null}>
           <Suspense fallback={null}>
             <Environment
-              preset="apartment"
+              files={HDRI_URL()}
+              background={false}
               environmentIntensity={warm ? 0.4 : 0.32}
             />
           </Suspense>

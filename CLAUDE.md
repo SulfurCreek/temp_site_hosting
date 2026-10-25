@@ -311,6 +311,12 @@ src/
 - 「匯出 4K 無損 PNG」＝暫時把 pixel ratio 拉到 3840 寬（手機 2560、受 GPU 上限限制）輸出畫布。
 - 進階「路徑追蹤」（`PathTraceRender.tsx`，three-gpu-pathtracer，lazy 載入，僅桌面）。`package.json` 以 `overrides` 把 three-mesh-bvh 升到 ^0.9.16。
 
+### 真實 PBR 掃描貼圖與 HDRI（Poly Haven, CC0）
+- `node scripts/fetch-textures.mjs`（需外網；環境 fetch 不走 proxy 時加 `NODE_USE_ENV_PROXY=1`）下載 1k/2k 貼圖到 `public/textures/<slug>/{diff,nor,rough,ao}_<1k|2k>.jpg`，HDRI 到 `public/hdri/interior(.|-1k.)hdr`（已 commit，不必每次重抓）。
+- `MaterialSpec.pbr = '<slug>'` 綁定掃描貼圖（`src/lib/pbrTextures.ts` 的 `PBR_SETS`，`meters` = 一張涵蓋的實際公尺數；此時 `repeat: 1` = 真實尺寸）。`pbr: false` 強制停用。`egger_st19` / `egger_st9` archetype 預設自動套用（只取 Normal + Roughness，顏色維持品牌色號；roughness 以貼圖平均值正規化，spec.roughness 仍是平均粗糙度）。
+- 對應：ED-KS81555 → `laminate_floor_02`（色調 `#c4ccd6` 抵銷暖光）；CW025501 → `large_grey_tiles`（預設玄關仍是使用者選的花磚）；EGGER ST19 → `white_oak_veneer`；ST9 → `grey_plaster_02`；HDRI → `small_empty_house`。⚠️ Poly Haven 沒有同型號貼圖，皆為最接近的替代。
+- Lazy load + 手機降級：材質用到才載入，載入前沿用內建/程序化貼圖；< 768px 載 1k、不載 AO、anisotropy 8；桌面 2k + AO + anisotropy 16。
+
 ## 資料檔注意事項
 
 - **瀏覽器會把使用者的格局自動存在 localStorage（key `interior-planner:v1`）**，所以改了 `defaultLayout.json` 預設不會影響已開啟過的瀏覽器。

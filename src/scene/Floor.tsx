@@ -44,11 +44,14 @@ function ReflectiveSurface({
   useFrame(() => {
     const m = ref.current
     if (!m) return
-    if (m.map !== mat.map || m.roughnessMap !== mat.roughnessMap) {
+    if (m.map !== mat.map || m.roughnessMap !== mat.roughnessMap || m.normalMap !== mat.normalMap || m.aoMap !== mat.aoMap) {
       m.map = mat.map
       m.roughnessMap = mat.roughnessMap
+      m.normalMap = mat.normalMap
+      m.aoMap = mat.aoMap
       m.needsUpdate = true
     }
+    m.normalScale.copy(mat.normalScale)
     m.color.copy(mat.color)
     m.roughness = mat.roughness
   })
