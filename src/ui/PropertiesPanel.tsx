@@ -1,8 +1,8 @@
-import { Copy, DoorOpen, Lock, LockOpen, MousePointer2, Plus, RotateCcw, RotateCw, Square, Trash2, X } from 'lucide-react'
+import { Check, Copy, DoorOpen, Lock, LockOpen, MousePointer2, Move, Plus, RotateCcw, RotateCw, Square, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { uid } from '../lib/ids'
 import { DEFAULT_MATERIAL } from '../lib/materials'
-import { deleteSelected, duplicateSelected, rotateSelected } from '../store/actions'
+import { deleteSelected, duplicateSelected, rotateSelected, toggleMoving } from '../store/actions'
 import { findCatalogItem, useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 import type { Decal, FaceName, FurnitureInstance, MaterialSpec, Opening, Wall } from '../types'
@@ -27,6 +27,7 @@ function FurnitureProps({ f }: { f: FurnitureInstance }) {
   const update = useLayout((s) => s.updateFurniture)
   const custom = useLayout((s) => s.layout.customCatalog)
   const item = findCatalogItem(f.catalogId, custom)
+  const moving = useUi((s) => s.moving)
   const [slot, setSlot] = useState<'main' | 'secondary' | 'accent'>('main')
   const [decalFace, setDecalFace] = useState<FaceName>('front')
   const k = 'f-' + f.id
@@ -50,6 +51,16 @@ function FurnitureProps({ f }: { f: FurnitureInstance }) {
         <p className="text-[11px] text-slate-500">
           類型：{item ? `${item.name}（${item.mode === 'glb' ? '.glb 模型' : item.mode === 'billboard' ? '2.5D 立牌' : '參數化 PBR 積木'}）` : '目錄中找不到此商品'}
         </p>
+        <Btn
+          variant={moving ? 'primary' : 'default'}
+          className="w-full py-2 text-sm"
+          disabled={f.locked}
+          title={f.locked ? '已鎖定，請先解除鎖定' : '進入移動模式後再拖拉（M 鍵）'}
+          onClick={() => toggleMoving()}
+        >
+          {moving ? <Check size={15} /> : <Move size={15} />}
+          {moving ? '完成移動（Enter）' : f.locked ? '已鎖定，無法移動' : '移動（M）'}
+        </Btn>
         <div className="flex flex-wrap gap-2">
           <Btn onClick={duplicateSelected}>
             <Copy size={14} /> 複製
@@ -58,7 +69,7 @@ function FurnitureProps({ f }: { f: FurnitureInstance }) {
             {f.locked ? <Lock size={14} /> : <LockOpen size={14} />}
             {f.locked ? '已鎖定' : '鎖定'}
           </Btn>
-          <Btn variant="danger" onClick={deleteSelected}>
+          <Btn variant="danger" onClick={deleteSelected} disabled={f.locked}>
             <Trash2 size={14} /> 刪除
           </Btn>
         </div>

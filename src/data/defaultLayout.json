@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 3,
+  "rev": 4,
   "name": "鴻築麗苑（柏毅 2026/10/19 施工圖）",
   "floor": {
     "center": [
@@ -71,9 +71,9 @@
       ],
       "material": {
         "color": "#ffffff",
-        "roughness": 0.7,
+        "roughness": 0.55,
         "metalness": 0,
-        "map": "builtin:walnut",
+        "map": "builtin:oak-ash",
         "repeat": 1
       }
     },
@@ -98,12 +98,12 @@
       "id": "z-shower",
       "name": "淋浴區（大理石）",
       "center": [
-        0.1525,
-        -1.3295
+        -0.2075,
+        -2.0425
       ],
       "size": [
-        0.705,
-        2.411
+        1.425,
+        0.985
       ],
       "material": {
         "color": "#d6d4d0",
@@ -400,7 +400,7 @@
     },
     {
       "id": "part-south",
-      "name": "衛浴/主臥南隔間",
+      "name": "衛浴/主臥南隔間（主臥入口）",
       "start": [
         -1.17,
         -0.074
@@ -419,14 +419,6 @@
       },
       "openings": [
         {
-          "id": "door-bath",
-          "type": "door",
-          "at": 0.62,
-          "width": 0.75,
-          "height": 2.1,
-          "sill": 0
-        },
-        {
           "id": "door-master",
           "type": "door",
           "at": 2.23,
@@ -438,7 +430,7 @@
     },
     {
       "id": "part-bath-master",
-      "name": "衛浴/主臥隔間",
+      "name": "衛浴/主臥隔間（浴室門，從主臥進入）",
       "start": [
         0.555,
         -2.617
@@ -455,18 +447,27 @@
         "roughness": 0.65,
         "metalness": 0
       },
-      "openings": []
+      "openings": [
+        {
+          "id": "door-bath",
+          "type": "door",
+          "at": 1.512,
+          "width": 0.75,
+          "height": 2.1,
+          "sill": 0
+        }
+      ]
     },
     {
       "id": "part-wet",
-      "name": "乾濕分離玻璃（估計位置）",
+      "name": "乾濕分離玻璃（北側淋浴區，估計位置）",
       "start": [
-        -0.2,
-        -2.535
+        -0.92,
+        -1.55
       ],
       "end": [
-        -0.2,
-        -0.124
+        0.505,
+        -1.55
       ],
       "height": 2.0,
       "thickness": 0.02,
@@ -534,9 +535,9 @@
       ],
       "rotationY": 0,
       "size": [
-        0.82,
-        2.6,
-        0.8
+        0.84,
+        2.62,
+        0.82
       ],
       "locked": true
     },
@@ -551,9 +552,9 @@
       ],
       "rotationY": 0,
       "size": [
-        0.8,
-        2.6,
-        0.7
+        0.82,
+        2.62,
+        0.72
       ],
       "locked": true
     },
@@ -568,9 +569,9 @@
       ],
       "rotationY": 0,
       "size": [
-        0.82,
-        2.6,
-        0.8
+        0.84,
+        2.62,
+        0.82
       ],
       "locked": true
     },
@@ -585,9 +586,9 @@
       ],
       "rotationY": 0,
       "size": [
-        0.7,
-        2.6,
-        0.8
+        0.72,
+        2.62,
+        0.82
       ],
       "locked": true
     },
@@ -646,11 +647,11 @@
       "position": [
         1.01,
         0,
-        -2.185
+        -2.335
       ],
       "rotationY": 90,
       "size": [
-        2.0,
+        1.7,
         2.4,
         0.7
       ]
@@ -906,7 +907,7 @@
       0
     ],
     "rotation": 0,
-    "visible": true,
+    "visible": false,
     "placement": "under"
   },
   "references": [

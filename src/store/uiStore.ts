@@ -8,6 +8,9 @@ export type PipMode = 'pip' | 'onion' | 'split'
 interface UiState {
   selection: Selection
   select: (s: Selection) => void
+  /** 移動模式：選取後需明確進入才會拖拉/顯示位移軸 */
+  moving: boolean
+  setMoving: (v: boolean) => void
 
   /** 目前點選的水電/燈具標記 id */
   mepId: string | null
@@ -51,7 +54,10 @@ let toastTimer: ReturnType<typeof setTimeout> | undefined
 
 export const useUi = create<UiState>()((set) => ({
   selection: null,
-  select: (selection) => set({ selection }),
+  // 換選取對象時自動離開移動模式
+  select: (selection) => set({ selection, moving: false }),
+  moving: false,
+  setMoving: (moving) => set({ moving }),
 
   mepId: null,
   selectMep: (mepId) => set({ mepId }),

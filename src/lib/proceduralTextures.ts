@@ -230,7 +230,8 @@ const makers: Record<string, () => HTMLCanvasElement> = {
   'builtin:oak': () => wood('#c9a171', 5, 3),
   'builtin:oak-light': () => wood('#dcc8a6', 5, 5),
   'builtin:walnut': () => wood('#6b4a33', 4, 9),
-  'builtin:oak-ash': () => wood('#bdb8ac', 5, 7),
+  // 取自實景照地板（換算後 #aaa599）
+  'builtin:oak-ash': () => wood('#b3ada1', 5, 7),
   'builtin:tile-gray': () => tileGray(),
   'builtin:tile-dark': () => tileGray('#5f666b', '#79828a', '#454b4f'),
   'builtin:tile': tile,

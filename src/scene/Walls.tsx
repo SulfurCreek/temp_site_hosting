@@ -64,10 +64,17 @@ export function outwardNormal(wall: Wall, center: Vec2): Vec2 {
   return n
 }
 
-function WallView({ wall, center }: { wall: Wall; center: Vec2 }) {
+function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: number }) {
   const selected = useUi((s) => s.selection?.type === 'wall' && s.selection.id === wall.id)
   const select = useUi((s) => s.select)
   const mat = usePBRMaterial(wall.material, { highlight: selected })
+  // 牆與牆在轉角/T 字接合處會重疊，頂面與側面共平面 → z-fighting 閃爍。
+  // 每面牆給不同的 polygonOffset，讓重疊處的勝負固定，不再閃爍。
+  useLayoutEffect(() => {
+    mat.polygonOffset = true
+    mat.polygonOffsetFactor = 0
+    mat.polygonOffsetUnits = -(index % 24) - 1
+  }, [mat, index])
   const glassMat = useMemo(
     () =>
       new THREE.MeshPhysicalMaterial({
@@ -190,8 +197,8 @@ export function Walls() {
   const center = useMemo<Vec2>(() => [fc[0], fc[1]], [fc])
   return (
     <>
-      {walls.map((w) => (
-        <WallView key={w.id} wall={w} center={center} />
+      {walls.map((w, i) => (
+        <WallView key={w.id} wall={w} center={center} index={i} />
       ))}
     </>
   )

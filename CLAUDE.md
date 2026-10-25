@@ -8,6 +8,8 @@ Vite + React 19 + TypeScript + Tailwind v4 + Three.js（`@react-three/fiber` / `
 > **當使用者提供平面施工圖、實景照片或商品照片時，Claude 必須自動使用視覺能力讀取圖片，計算比例或提取色彩/材質特徵，並直接更新 `src/data/defaultLayout.json` 或 `src/data/catalog.json`。**
 > 不要只回覆文字描述，也不要請使用者手動輸入數字——先讀圖、算出數值、改檔，再告訴使用者改了什麼、哪些是估計值。
 
+> **使用者規則：輸入圖片上的手寫痕跡一律不要**——手寫只用來讀資訊，存進專案的底圖/參考圖都要移除（PDF 用 `pdftoppm -hide-annotations`，點陣圖局部修補或裁掉）。
+
 **快速入口：`/update-room [檔案路徑...]`**（`.claude/commands/update-room.md`）會自動掃描輸入、依類型解析、做 Diff 式更新、跑 build 並回報；使用者丟新圖時優先用它的流程。
 
 使用者通常會把圖片丟到 `public/inputs/` 下，或直接貼在對話裡。處理流程見下方〈視覺輸入處理手冊〉。
@@ -228,6 +230,7 @@ src/
 - 圖面手寫藍字：「有管道 / 一樣的話保留」→ 管道間 `part-shaft` 保留；「改乾濕分離滑門」；「改推門」。
 - **估計項目**（圖面未明示）：乾濕分離玻璃位置、衛浴門位置、各插座中未標高度者（`assumed:true`）、開關高度（預設 120，主臥入口 100 為圖面值）、窗尺寸高度（台 37.5 / H194.9 取自圖面標註）。
 - 材質：地板 ED-KS81555（內建淺橡貼圖）、百合白 `#F7F5F0` 蛋殼光 0.65、EGGER W1000 ST19 / U708 ST9 / U727 ST9；玄關落塵區依使用者選的實景參考右版使用 `builtin:encaustic` 花磚（原圖面 CW025501 灰磚仍在材質庫）。
+- **rev 4（使用者回饋修正）**：浴室門改到「衛浴/主臥隔間」（從主臥進入，圖面 75 開口 z −1.50~−0.71）；主臥衣櫃依 p2 縮為 170（p5 立面標 200，若要 200 會擋到浴室門）；乾濕分離改為北側淋浴區；地板除玄關花磚外皆為木地板（陽台也改木地板；**浴室仍為磁磚，待使用者確認**）；結構柱外凸 1cm 避免共平面閃爍；底圖預設隱藏；施工圖圖層改用去除手寫標註的版本；手繪參考圖已去除 Procreate 介面與手寫數字。
 - **rev 3（材質對照更新）**：依實景 AI 圖與手繪材質圖調整——地板改為灰褐橡木 `builtin:oak-ash`（手繪的棕色僅代表「木地板」，未採用）、衛浴深灰磁磚、淋浴區大理石、陽台木地板、廚具橘棕木色、床粉色寢具；進門左側儲藏櫃改 3 門 + 72cm 電子衣櫥壁龕（`niche`）並放入 `lg-styler`（LG 電子衣櫥 5 件式 60×196.5）。玄關仍為花磚，非手繪的藍色。參考圖在 `public/inputs/references/`（已加入 `layout.references`）。
 - 初版資料由 `scripts/gen-hongzhu-data.py` 產生（rev 2；之後以 JSON 直接 Diff 修改，勿重跑覆蓋）（可讀作座標來源紀錄；之後的微調直接改 JSON，並依 `/update-room` 的 Diff 原則，不要重跑覆蓋使用者的調整）。
 
@@ -305,4 +308,6 @@ src/
 - 場景高頻更新（拖拉、破牆）一律**直接改 Three 物件**，只在結束時 commit 進 store，避免每幀重繪 React 與觸發 localStorage 寫入（儲存另有 400 ms debounce）。
 - 會連續觸發的編輯（滑桿、數字輸入）呼叫 store 時帶 `key`，900 ms 內同 key 合併為一筆復原紀錄。
 - 手機/平板（< 1024px）改用底部抽屜；桌面是左右浮動面板。新增面板內容請放進 `CatalogPanel / BlueprintPanel / ReferencePanel / PropertiesPanel` 以兩邊共用。
-- 鍵盤：`R` 旋轉 90°（Shift+R 反向）、`Backspace/Delete` 刪除、`Space` 切換視角、`Ctrl+Z/Shift+Z` 復原/重做、`Ctrl+D` 複製、`Ctrl+S` 匯出、`Esc` 取消選取/結束校準。
+- **點選 ≠ 移動**：點擊只選取；要移動需按屬性面板「移動」或 `M` 進入移動模式（`uiStore.moving`），拖拉放開後自動結束（位移軸/旋轉環則按「完成移動」/ Enter / Esc）。鎖定（`locked`）的物件不能移動、旋轉、刪除。
+- 色彩：使用 `THREE.NeutralToneMapping`（保留色票原色），4000K 為中性白、3000K 偏暖、6000K 偏冷；apartment HDR 偏暖，已用略冷的天光抵銷。新增共平面的幾何（重疊的牆、疊放的地板分區）會 z-fighting 閃爍——牆已有逐面 polygonOffset、地板分區逐層墊高 1mm，新增物件請避免與牆面完全共平面。
+- 鍵盤：`M` 移動模式、`R` 旋轉 90°（Shift+R 反向）、`Backspace/Delete` 刪除、`Space` 切換視角、`Ctrl+Z/Shift+Z` 復原/重做、`Ctrl+D` 複製、`Ctrl+S` 匯出、`Esc` 取消選取/結束校準。

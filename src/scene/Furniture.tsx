@@ -113,7 +113,8 @@ function SofaGen({ w, h, d, count, m }: GenProps) {
         <Box key={i} pos={[sx * (w / 2 - 0.07), lh / 2, sz * (d / 2 - 0.07)]} dims={[lw, lh, lw]} mat={m.secondary} />
       ))}
       {/* 底座、靠背、扶手 */}
-      <Box pos={[0, lh + (baseTop - lh) / 2, 0]} dims={[w, baseTop - lh, d]} mat={m.main} />
+      {/* 底座內縮 3mm，避免與扶手/靠背共平面閃爍 */}
+      <Box pos={[0, lh + (baseTop - lh) / 2, 0.003]} dims={[w - 0.006, baseTop - lh, d - 0.006]} mat={m.main} />
       <Box pos={[0, lh + (h - lh) / 2, -d / 2 + backT / 2]} dims={[w, h - lh, backT]} mat={m.main} />
       {[-1, 1].map((s) => (
         <Box
@@ -213,7 +214,7 @@ function BedGen({ w, h, d, m }: GenProps) {
     <>
       <Box pos={[0, fh / 2, 0]} dims={[w, fh, d]} mat={m.secondary} />
       <Box pos={[0, fh + 0.11, 0.02]} dims={[w - 0.06, 0.22, d - 0.1]} mat={m.main} />
-      <Box pos={[0, h / 2, -d / 2 + 0.04]} dims={[w + 0.04, h, 0.08]} mat={m.secondary} />
+      <Box pos={[0, h / 2, -d / 2 + 0.035]} dims={[w + 0.04, h, 0.08]} mat={m.secondary} />
       <Box pos={[0, fh + 0.24, d * 0.18]} dims={[w - 0.04, 0.04, d * 0.6]} mat={m.accent} />
       {[-1, 1].map((s) => (
         <Box key={s} pos={[s * w * 0.22, fh + 0.27, -d / 2 + 0.3]} dims={[w * 0.38, 0.1, 0.4]} mat={m.main} />
@@ -566,9 +567,11 @@ const FurnitureView = memo(function FurnitureView({ inst }: { inst: FurnitureIns
   const custom = useLayout((s) => s.layout.customCatalog)
   const item = useMemo(() => findCatalogItem(inst.catalogId, custom) ?? FALLBACK_ITEM(inst), [inst, custom])
   const selected = useUi((s) => s.selection?.type === 'furniture' && s.selection.id === inst.id)
+  const moving = useUi((s) => s.moving && s.selection?.type === 'furniture' && s.selection.id === inst.id)
   const select = useUi((s) => s.select)
   const groupRef = useRef<THREE.Group>(null)
-  const { camera, gl, raycaster, controls } = useThree()
+  // 只在事件當下讀取 R3F 狀態，避免訂閱整個 store 造成每次 resize 都重繪所有家具
+  const get = useThree((s) => s.get)
 
   useEffect(() => {
     const g = groupRef.current
@@ -582,13 +585,20 @@ const FurnitureView = memo(function FurnitureView({ inst }: { inst: FurnitureIns
   const edges = useMemo(() => new THREE.EdgesGeometry(new THREE.BoxGeometry(w, h, d)), [w, h, d])
   useEffect(() => () => edges.dispose(), [edges])
 
+  /**
+   * 點選 ≠ 移動：只有在「移動模式」（屬性面板的「移動」按鈕 / M 鍵）下，按住這件家具拖拉才會移動。
+   * 平常按住家具拖曳仍是轉動鏡頭，不會誤移家具。
+   */
   const onPointerDown = (e: { stopPropagation: () => void; nativeEvent: PointerEvent; ray: THREE.Ray }) => {
-    if (useUi.getState().calib.active) return
+    const ui = useUi.getState()
+    if (ui.calib.active) return
+    const isSel = ui.selection?.type === 'furniture' && ui.selection.id === inst.id
+    if (!ui.moving || !isSel) return
     e.stopPropagation()
-    select({ type: 'furniture', id: inst.id })
     const { tool, snap } = useLayout.getState().settings
     const g = groupRef.current
     if (tool !== 'drag' || inst.locked || !g) return
+    const { camera, gl, raycaster, controls } = get()
 
     // 拖拉期間暫停軌道控制，避免手指/滑鼠同時轉動背景
     const oc = controls as unknown as { enabled: boolean } | null
@@ -634,6 +644,8 @@ const FurnitureView = memo(function FurnitureView({ inst }: { inst: FurnitureIns
       if (moved) {
         const r = (v: number) => Math.round(v * 1000) / 1000
         useLayout.getState().updateFurniture(inst.id, { position: [r(g.position.x), inst.position[1], r(g.position.z)] })
+        // 拖拉放開即完成這次移動，避免之後誤觸
+        useUi.getState().setMoving(false)
       }
     }
     window.addEventListener('pointermove', onMove)
@@ -647,9 +659,15 @@ const FurnitureView = memo(function FurnitureView({ inst }: { inst: FurnitureIns
       position={inst.position}
       rotation-y={inst.rotationY * D}
       onPointerDown={onPointerDown}
-      onClick={(e) => e.stopPropagation()} // 選取已在 pointerdown 完成；避免 click 穿透到後方的地板/牆
+      onClick={(e) => {
+        // click（R3F 已排除拖曳鏡頭的情況）才選取；同時阻止穿透到後方的地板/牆
+        if (useUi.getState().calib.active) return
+        e.stopPropagation()
+        if (!selected) select({ type: 'furniture', id: inst.id })
+      }}
       onPointerOver={() => {
-        if (!useUi.getState().dragging) document.body.style.cursor = inst.locked ? 'not-allowed' : 'grab'
+        if (useUi.getState().dragging) return
+        document.body.style.cursor = moving ? (inst.locked ? 'not-allowed' : 'grab') : 'pointer'
       }}
       onPointerOut={() => {
         document.body.style.cursor = ''
@@ -658,7 +676,7 @@ const FurnitureView = memo(function FurnitureView({ inst }: { inst: FurnitureIns
       <HybridModel item={item} inst={inst} />
       {selected && (
         <lineSegments geometry={edges} position={[0, h / 2, 0]} renderOrder={999}>
-          <lineBasicMaterial color="#38bdf8" depthTest={false} transparent />
+          <lineBasicMaterial color={moving ? '#f59e0b' : '#38bdf8'} depthTest={false} transparent />
         </lineSegments>
       )}
     </group>

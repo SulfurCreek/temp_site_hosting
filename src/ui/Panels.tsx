@@ -1,6 +1,6 @@
-import { ChevronDown, ChevronUp, Copy, Frame, Image as ImageIcon, Layers, RotateCw, Sofa, Trash2, X } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, Copy, Frame, Image as ImageIcon, Layers, Move, RotateCw, Sofa, Trash2, X } from 'lucide-react'
 import { useRef } from 'react'
-import { deleteSelected, duplicateSelected, rotateSelected } from '../store/actions'
+import { deleteSelected, duplicateSelected, rotateSelected, toggleMoving } from '../store/actions'
 import { useLayout } from '../store/layoutStore'
 import { useUi, type MobileTab, type SheetState } from '../store/uiStore'
 import { cx, IconBtn, Section } from './controls'
@@ -89,6 +89,7 @@ export function BottomSheet() {
   const setSheet = useUi((s) => s.setSheet)
   const title = useSelectionTitle()
   const drag = useRef<{ y: number; start: SheetState } | null>(null)
+  const moving = useUi((s) => s.moving)
   const hasFurniture = useLayout((s) => !!sel && sel.type === 'furniture' && s.layout.furniture.some((f) => f.id === sel.id))
 
   const shift = (dir: 1 | -1, from = sheet) => setSheet(ORDER[Math.min(ORDER.length - 1, Math.max(1, ORDER.indexOf(from) + dir))])
@@ -134,6 +135,13 @@ export function BottomSheet() {
       {/* 快速動作列：選取家具時顯示 */}
       {hasFurniture && sheet !== 'full' && (
         <div className="pointer-events-auto glass mx-1 flex items-center justify-around border-t border-white/10 py-1 text-slate-100">
+          <button
+            onClick={() => toggleMoving()}
+            className={cx('flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold', moving ? 'bg-amber-400 text-slate-900' : 'active:bg-white/10')}
+          >
+            {moving ? <Check size={16} /> : <Move size={16} />}
+            {moving ? '完成' : '移動'}
+          </button>
           <IconBtn title="旋轉 90°" onClick={() => rotateSelected(90)}>
             <RotateCw size={18} />
           </IconBtn>

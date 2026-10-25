@@ -20,7 +20,7 @@ export function Hud() {
     return (
       <div className="pointer-events-none absolute inset-x-0 top-[62px] z-20 flex justify-center px-3">
         <div className="glass pointer-events-auto flex items-center gap-2 rounded-full py-1.5 pl-3.5 pr-2 text-[11px] text-slate-200">
-          單指旋轉 · 雙指縮放平移 · 點選家具後拖拉移動
+          單指旋轉 · 雙指縮放平移 · 點選家具 →「移動」後拖拉
           <button aria-label="關閉提示" onClick={() => (setDismissed(true), set({ showHud: false }))} className="rounded-full p-1 text-slate-400 active:bg-white/10">
             <X size={13} />
           </button>
@@ -31,7 +31,9 @@ export function Hud() {
   return (
     <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2">
       <div className="glass pointer-events-auto flex items-center gap-x-4 gap-y-1 rounded-full px-4 py-2 text-[11px] text-slate-300">
-        <span>點擊物件拖拉移動</span>
+        <span>
+          點選物件 → <Key>M</Key> 移動
+        </span>
         <span>
           <Key>R</Key> 旋轉 90°
         </span>

@@ -1,5 +1,6 @@
 import { Canvas, useThree } from '@react-three/fiber'
 import { Suspense, useEffect } from 'react'
+import * as THREE from 'three'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 import { BlueprintPlane, CalibrationLayer } from './Blueprint'
@@ -23,6 +24,7 @@ function GridLines() {
       material-transparent
       material-opacity={0.22}
       material-depthWrite={false}
+      renderOrder={1}
     />
   )
 }
@@ -42,6 +44,11 @@ export function Scene() {
       shadows="percentage"
       dpr={[1, 2]}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
+      // Khronos PBR Neutral tone mapping：保留材質原本的色相/明度（ACES 會讓白牆偏黃、色碼失真）
+      onCreated={({ gl }) => {
+        gl.toneMapping = THREE.NeutralToneMapping
+        gl.toneMappingExposure = 1.08
+      }}
       onPointerMissed={() => {
         if (useUi.getState().calib.active) return
         useUi.getState().select(null)

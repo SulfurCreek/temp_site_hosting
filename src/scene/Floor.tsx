@@ -26,6 +26,8 @@ export function Floor() {
       geometry={geo}
       material={mat}
       position={[floor.center[0], 0, floor.center[1]]}
+      // 地板半透明時固定在其他透明物件（格線、玻璃）之前繪製，避免排序跳動造成閃爍
+      renderOrder={-1}
       receiveShadow
       onClick={(e) => {
         if (useUi.getState().calib.active) return
@@ -36,14 +38,15 @@ export function Floor() {
   )
 }
 
-function ZoneView({ zone }: { zone: FloorZone }) {
+function ZoneView({ zone, index }: { zone: FloorZone; index: number }) {
   const mat = usePBRMaterial(zone.material)
   const geo = useMetricFloor(zone.size[0], zone.size[1])
   return (
     <mesh
       geometry={geo}
       material={mat}
-      position={[zone.center[0], 0.002, zone.center[1]]}
+      // 分區彼此可能重疊（例如淋浴區疊在浴室上）：每層高 1mm，避免共平面閃爍
+      position={[zone.center[0], 0.002 + index * 0.001, zone.center[1]]}
       receiveShadow
       onClick={(e) => {
         if (useUi.getState().calib.active) return
@@ -57,7 +60,7 @@ function ZoneView({ zone }: { zone: FloorZone }) {
 /** 玄關落塵區、浴室、陽台等分區地板 */
 export function FloorZones() {
   const zones = useLayout((s) => s.layout.floorZones)
-  return <>{zones?.map((z) => <ZoneView key={z.id} zone={z} />)}</>
+  return <>{zones?.map((z, i) => <ZoneView key={z.id} zone={z} index={i} />)}</>
 }
 
 /** 房間以外的地面（淡色），讓地板透明時不至於露出背景 */

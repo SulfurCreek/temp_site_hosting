@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { MEP_ITEMS } from '../data'
 import { useLayout } from '../store/layoutStore'
@@ -67,6 +67,7 @@ function CeilingMarker({ it, active }: { it: MepItem; active: boolean }) {
   const len = it.length ?? 1
   const along = it.dir === 'z' ? ([0, 0, 1] as const) : ([1, 0, 0] as const)
   const stripGeo = useMemo(() => new THREE.BoxGeometry(it.dir === 'z' ? 0.04 : len, 0.03, it.dir === 'z' ? len : 0.04), [it.dir, len])
+  useEffect(() => () => stripGeo.dispose(), [stripGeo])
   const pad = (v: number) => v
   if (it.kind === 'track' || it.kind === 'strip')
     return (
