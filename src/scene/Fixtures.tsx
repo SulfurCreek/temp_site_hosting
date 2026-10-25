@@ -11,6 +11,8 @@ import type { MepItem } from '../types'
  * 每盞燈 = 發光燈具外觀（emissive，供 Bloom 擷取）+ 對應物理光源。
  */
 
+/** 物理強度 → 畫面上看得出來的強度。正交俯視距離遠，需放大；原始規格 spot 25 / point 14 */
+const GAIN = 1.8
 const EMISSIVE = '#fff5e0'
 const STRIP_COLOR = '#ffb46b' // 3000K 暖白
 
@@ -37,7 +39,7 @@ function Emissive({ k, color = EMISSIVE }: { k: number; color?: string }) {
     <meshStandardMaterial
       color="#ffffff"
       emissive={color}
-      emissiveIntensity={3 * k}
+      emissiveIntensity={6 * k}
       roughness={0.4}
       toneMapped
     />
@@ -83,7 +85,7 @@ function HeadSpot({
         color={color}
         angle={0.65}
         penumbra={0.8}
-        intensity={25 * k}
+        intensity={25 * GAIN * k}
         distance={6}
         decay={2}
         castShadow={shadow}
@@ -150,7 +152,7 @@ function CeilingLamp({ it, k, color, tier }: { it: MepItem; k: number; color: st
         visible={k > 0.001}
         position={[0, -0.15, 0]}
         color={color}
-        intensity={(fan ? 14 : it.id === 'ce-bath' ? 8 : 14) * k}
+        intensity={(it.id === 'ce-bath' ? 5 : 9) * GAIN * k}
         distance={0}
         decay={1.8}
         castShadow={shadow}
@@ -183,7 +185,7 @@ function Downlight({ it, k, color }: { it: MepItem; k: number; color: string }) 
         color={color}
         angle={0.85}
         penumbra={0.9}
-        intensity={9 * k}
+        intensity={9 * GAIN * k}
         distance={5}
         decay={2}
       />
@@ -207,7 +209,7 @@ function StripLight({ it, k }: { it: MepItem; k: number }) {
           visible={k > 0.001}
           position={[alongZ ? 0 : s * off, -0.05, alongZ ? s * off : 0]}
           color={STRIP_COLOR}
-          intensity={5 * k}
+          intensity={5 * GAIN * k}
           distance={3.5}
           decay={2}
         />

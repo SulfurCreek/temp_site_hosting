@@ -58,14 +58,14 @@ export function PostFX({ children }: { children?: ReactNode }) {
     <EffectComposer multisampling={studio ? 8 : 0} enableNormalPass={false} key={studio ? 'studio' : 'live'}>
       <N8AO
         aoRadius={high ? 0.4 : 0.5}
-        intensity={high ? 3 : 2.5}
+        intensity={high ? 3.5 : 2.5}
         distanceFalloff={high ? 0.8 : 1.0}
         quality={studio ? 'ultra' : high ? 'high' : 'low'}
         halfRes={!high}
         color="black"
       />
       {children}
-      <Bloom luminanceThreshold={1.2} luminanceSmoothing={0.025} intensity={0.35} mipmapBlur />
+      <Bloom luminanceThreshold={1.1} luminanceSmoothing={0.05} intensity={0.5} mipmapBlur />
       <WarmGrade />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <Vignette eskil={false} offset={0.1} darkness={0.35} />
