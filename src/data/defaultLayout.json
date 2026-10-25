@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 5,
+  "rev": 6,
   "name": "鴻築麗苑（柏毅 2026/10/19 施工圖）",
   "floor": {
     "center": [
@@ -630,22 +630,6 @@
       "locked": true
     },
     {
-      "id": "shoe",
-      "catalogId": "shoe-cabinet",
-      "name": "玄關鞋櫃",
-      "position": [
-        -3.19,
-        0,
-        2.712
-      ],
-      "rotationY": 180,
-      "size": [
-        1.0,
-        2.37,
-        0.35
-      ]
-    },
-    {
       "id": "storage",
       "catalogId": "ewardrobe-room",
       "name": "儲藏室（電子衣櫥）",
@@ -979,6 +963,38 @@
         0.15,
         0.012,
         0.15
+      ]
+    },
+    {
+      "id": "f-shelf2",
+      "catalogId": "rareraw-system000-shelf",
+      "name": "rareraw 白色層架（第 2 格）",
+      "position": [
+        -3.63,
+        0.5,
+        2.735
+      ],
+      "rotationY": 180,
+      "size": [
+        0.6,
+        1.5,
+        0.3
+      ]
+    },
+    {
+      "id": "f-shelf3",
+      "catalogId": "rareraw-system000-shelf",
+      "name": "rareraw 白色層架（第 3 格）",
+      "position": [
+        -3.03,
+        0.5,
+        2.735
+      ],
+      "rotationY": 180,
+      "size": [
+        0.6,
+        1.5,
+        0.3
       ]
     }
   ],
