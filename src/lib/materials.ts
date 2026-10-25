@@ -32,7 +32,6 @@ interface ScanTex {
   albedo?: THREE.Texture
   normal?: THREE.Texture
   rough?: THREE.Texture
-  ao?: THREE.Texture
   roughMean: number
   all: THREE.Texture[]
 }
@@ -48,15 +47,13 @@ function cloneScan(l: LoadedPbr): ScanTex {
   const albedo = c(l.albedo)
   const normal = c(l.normal)
   const rough = c(l.rough)
-  const ao = c(l.ao)
   return {
     set: l.set,
     albedo,
     normal,
     rough,
-    ao,
     roughMean: l.roughMean,
-    all: [albedo, normal, rough, ao].filter((t): t is THREE.Texture => !!t),
+    all: [albedo, normal, rough].filter((t): t is THREE.Texture => !!t),
   }
 }
 
@@ -175,8 +172,6 @@ export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
     const sr = scan ? r / scan.set.meters : r
     if (scan) for (const t of scan.all) t.repeat.set(sr, sr)
     mat.map = scan?.albedo ?? tex
-    mat.aoMap = scan?.ao ?? null
-    mat.aoMapIntensity = 1
     if (scan?.normal && scan.rough) {
       const bs = spec.bumpScale ?? def?.bumpScale ?? 0.5
       mat.normalMap = scan.normal

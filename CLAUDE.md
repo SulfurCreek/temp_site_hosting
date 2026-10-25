@@ -61,7 +61,6 @@ public/
     products/                商品去背照（PNG）、.glb 模型 → 家具載入器
     manifest.json            （自動產生，勿手改）
   legacy/quote-estimator.html  原本放在根目錄的舊頁面，已搬到這裡
-scripts/make-sample-glb.mjs  產生 sample-stool.glb 範例
 src/
   data/
     defaultLayout.json       預設格局（第一次開啟 / 還原預設時載入）
@@ -75,7 +74,7 @@ src/
   lib/                       材質 hook、UV 幾何、程序化貼圖、色溫、影像工具、debounce 儲存
   scene/
     Scene.tsx                Canvas、陰影、組合所有場景元件
-    CameraRig.tsx            正交/透視雙相機、OrbitControls、四方位 + 平面視角轉場
+    CameraRig.tsx            正交/透視雙相機、OrbitControls、斜視 ⇄ 平面視角轉場（無四方位按鈕）
     Walls.tsx                牆（開口切塊）+ 智慧破牆
     Floor.tsx / Blueprint.tsx 地板、施工圖描圖層、兩點校準層
     Furniture.tsx            混合式家具載入器（GLB / 參數化 / 立牌）+ 直接拖拉
@@ -298,24 +297,20 @@ src/
 
 ---
 
-### 燈光與後期渲染（升級一 / 二）
-- `src/scene/Fixtures.tsx`：燈具位置**全部取自 `mep.json`**（track / ceiling / fan / downlight / strip），不要另外硬寫座標。軌道燈頭瞄準點寫在該檔 `TRACK_AIM`（以 mep id 對應）。燈具外觀有 emissive（供 Bloom），光源為 SpotLight（軌道、嵌燈）/ PointLight（吸頂、吊扇、條燈，圓心下 15 cm）。
-- `src/lib/lightScenes.ts`：四種情境（`settings.lightScene`：all / track / night / day）＝ ambient、Environment 強度、各迴路倍率、日光/月光。新增情境改這裡。標準對色光（`colorProof`）維持舊的 5500K 打光，不套用燈具情境與後期。
-- `src/scene/PostFX.tsx`：`<EffectComposer>` 順序 N8AO → **children** → Bloom → ToneMapping(ACES) → SMAA。要加特效（例如 DepthOfField）用 `<PostFX><Xxx /></PostFX>` 注入。
-- 品質分級 `useFxTier()`（`src/lib/fx.ts`，`settings.fxQuality`：auto/high/medium/low）：high=AO 高品質 + 地板微反射 + 燈具陰影；medium=半解析度 AO + Bloom；low（手機 <768px 預設）=不掛 composer、無反射/AO/燈具陰影，只用 renderer ACES。
-- 地板微反射（`MeshReflectorMaterial`，Floor.tsx）只在 high + **透視相機**時啟用（反射器的虛擬相機不支援正交），只作用在主地板與玄關花磚。著色器取樣器有上限（多數 GPU 16），所以投影的燈只有：軌道偶數燈頭 4 盞 + 三盞主燈（吊扇、主臥、次臥吸頂）。
+### v2 渲染原則：畫質不降，靠「少做事」換效能（目標 iPhone 15/17 Pro、iPad、MacBook Pro M1 Pro / Chrome）
+- **不分裝置等級**：沒有 `useFxTier` / 手機降級 / 相片級算圖 / 路徑追蹤 / 4K 匯出。所有裝置同一組畫質（N8AO 半解析度 AO、Bloom、ACES、暖調白平衡、暗角、SMAA、地板微反射、第一人稱景深、接觸陰影）。
+- **按需出幀**（`src/lib/frameloop.ts`，`<Canvas frameloop="demand">`）：只在操作/資料變動/資源載入後 2.5 s 內連續出幀，閒置時 GPU 0 負載。新增動畫若超過 2.5 s，要呼叫 `wake(ms)`。
+- **陰影圖手動更新**：`gl.shadowMap.autoUpdate = false`，家具/牆資料變動、切換俯視/第一人稱、資源載入、拖拉中才重算（`dirtyShadows()`）。新增會「自己動」的投影物件時要呼叫它。
+- 接觸陰影 `frames=2`，資料變動時換 key 重烘；不是每幀重畫。
+- 燈具：`src/scene/Fixtures.tsx` 位置全取自 `mep.json`，固定 4000K、全迴路開啟（沒有色溫 / 情境切換）。光源 19 盞，其中 7 盞投影（軌道偶數燈頭 4 + 吊扇/主臥/次臥吸頂 3）；取樣器上限 16，**不要再增加投影光源**。軌道燈頭瞄準點寫在該檔 `TRACK_AIM`。
+- `PostFX.tsx` 順序 N8AO → **children** → Bloom → WarmGrade → ToneMapping(ACES) → Vignette → SMAA；要加特效用 `<PostFX><Xxx /></PostFX>`。標準對色光（`colorProof`）不掛 composer，用 Khronos Neutral。
+- 地板微反射（`MeshReflectorMaterial`，Floor.tsx）只在透視相機（第一人稱 / 透視）啟用，只作用主地板與玄關花磚。
 
-### 相片級算圖模式（`uiStore.studio`）
-- 頂部列「相片級算圖模式」/ 手機膠囊「算圖」切換。開啟時 `useFxTier()` 強制 high、Canvas `dpr=2`、EffectComposer 8x MSAA（取代 SMAA）、N8AO `ultra`、燈具陰影 2048、日光 4096、地板反射解析度加倍，並啟用 `SoftShadows`（`src/scene/Studio.tsx`，只在此模式開，避免拖慢即時模式）。
-- 一律啟用（非 low）：`ContactShadows`（地板上 1 mm）、Vignette、`WarmGradeEffect` 暖調白平衡（PostFX.tsx）。
-- 「匯出 4K 無損 PNG」＝暫時把 pixel ratio 拉到 3840 寬（手機 2560、受 GPU 上限限制）輸出畫布。
-- 進階「路徑追蹤」（`PathTraceRender.tsx`，three-gpu-pathtracer，lazy 載入，僅桌面）。`package.json` 以 `overrides` 把 three-mesh-bvh 升到 ^0.9.16。
-
-### 真實 PBR 掃描貼圖與 HDRI（Poly Haven, CC0）
-- `node scripts/fetch-textures.mjs`（需外網；環境 fetch 不走 proxy 時加 `NODE_USE_ENV_PROXY=1`）下載 1k/2k 貼圖到 `public/textures/<slug>/{diff,nor,rough,ao}_<1k|2k>.jpg`，HDRI 到 `public/hdri/interior(.|-1k.)hdr`（已 commit，不必每次重抓）。
-- `MaterialSpec.pbr = '<slug>'` 綁定掃描貼圖（`src/lib/pbrTextures.ts` 的 `PBR_SETS`，`meters` = 一張涵蓋的實際公尺數；此時 `repeat: 1` = 真實尺寸）。`pbr: false` 強制停用。`egger_st19` / `egger_st9` archetype 預設自動套用（只取 Normal + Roughness，顏色維持品牌色號；roughness 以貼圖平均值正規化，spec.roughness 仍是平均粗糙度）。
-- 對應：ED-KS81555 → `laminate_floor_02`（色調 `#c4ccd6` 抵銷暖光）；CW025501 → `large_grey_tiles`（預設玄關仍是使用者選的花磚）；EGGER ST19 → `white_oak_veneer`；ST9 → `grey_plaster_02`；HDRI → `small_empty_house`。⚠️ Poly Haven 沒有同型號貼圖，皆為最接近的替代。
-- Lazy load + 手機降級：材質用到才載入，載入前沿用內建/程序化貼圖；< 768px 載 1k、不載 AO、anisotropy 8；桌面 2k + AO + anisotropy 16。
+### PBR 掃描貼圖與 HDRI（Poly Haven, CC0）
+- `node scripts/fetch-textures.mjs` 會下載原始檔；**提交進 repo 的是瘦身後的版本**：地板 / 磁磚 2k（diffuse / normal / 單通道 roughness，約 2.6 MB 一組），板材微紋理 1k，無 AO 圖（AO 由 N8AO 即時算），HDRI 只留 `public/hdri/interior-1k.hdr`。總量約 8 MB。
+- `MaterialSpec.pbr = '<slug>'` 綁定（`src/lib/pbrTextures.ts` 的 `PBR_SETS`，`meters` = 一張涵蓋的公尺數、`size` = 檔案解析度）。`pbr: false` 強制停用。`egger_st19` / `egger_st9` archetype 預設自動套用（只取 Normal + Roughness）。
+- 對應：ED-KS81555 → `laminate_floor_02`；CW025501 → `large_grey_tiles`；EGGER ST19 → `white_oak_veneer`；ST9 → `grey_plaster_02`。⚠️ 皆為最接近的替代品，非同型號。
+- 材質用到才載入；已載入的貼圖共用同一份 GPU 上傳。
 
 ## 資料檔注意事項
 
@@ -335,4 +330,9 @@ src/
 - 手機/平板（< 1024px）改用底部抽屜；桌面是左右浮動面板。新增面板內容請放進 `CatalogPanel / BlueprintPanel / ReferencePanel / PropertiesPanel` 以兩邊共用。
 - **點選 ≠ 移動**：點擊只選取；要移動需按屬性面板「移動」或 `M` 進入移動模式（`uiStore.moving`），拖拉放開後自動結束（位移軸/旋轉環則按「完成移動」/ Enter / Esc）。鎖定（`locked`）的物件不能移動、旋轉、刪除。
 - 色彩：使用 `THREE.NeutralToneMapping`（保留色票原色），4000K 為中性白、3000K 偏暖、6000K 偏冷；apartment HDR 偏暖，已用略冷的天光抵銷。新增共平面的幾何（重疊的牆、疊放的地板分區）會 z-fighting 閃爍——牆已有逐面 polygonOffset、地板分區逐層墊高 1mm，新增物件請避免與牆面完全共平面。
-- 鍵盤：`M` 移動模式、`R` 旋轉 90°（Shift+R 反向）、`Backspace/Delete` 刪除、`Space` 切換視角、`Ctrl+Z/Shift+Z` 復原/重做、`Ctrl+D` 複製、`Ctrl+S` 匯出、`Esc` 取消選取/結束校準。
+- 鍵盤：`M` 移動模式、`R` 旋轉 90°（Shift+R 反向）、`Backspace/Delete` 刪除、`Space` 平面圖 ⇄ 斜視、`Ctrl+Z/Shift+Z` 復原/重做、`Ctrl+D` 複製、`Ctrl+S` 匯出、`Esc` 取消選取/結束校準。
+
+## v2 介面精簡（2026-10-25）
+- 移除：四方位按鈕、燈光色溫與燈光情境、後期品質選項、相片級算圖 / 路徑追蹤 / 4K 匯出、放置立足點與預設立足點列、第一人稱的高度 / 視角 / 退後滑桿與景深開關（景深固定開、退後固定 50 cm、站高 165 cm）。
+- 第一人稱 = 工具列一鍵（從玄關進門開始，下次回到上次位置）；底部只留 站立 / 坐姿 / 低視角 與「俯視」。
+- 家具目錄只保留預設格局實際用到的 25 項（含綿羊沙發三件、圓桌、rareraw 層架、床、各櫃體與設備）。GLB / 立牌 載入模式仍支援（供使用者自訂商品）。

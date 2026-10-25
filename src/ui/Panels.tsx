@@ -5,7 +5,6 @@ import { useLayout } from '../store/layoutStore'
 import { useUi, type MobileTab, type SheetState } from '../store/uiStore'
 import { cx, IconBtn, Section } from './controls'
 import { BlueprintPanel, CatalogPanel, ReferencePanel } from './LeftPanels'
-import { VantageChips } from './FirstPersonBar'
 import { PropertiesPanel, useSelectionTitle } from './PropertiesPanel'
 
 /* ------------------------------ 桌面：左側可收合抽屜 ------------------------------ */
@@ -101,7 +100,6 @@ export function BottomSheet() {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex flex-col">
       {/* 快速立足點：單行橫向滑動膠囊（抽屜全展開時隱藏，讓出 3D 空間） */}
-      {sheet !== 'full' && <VantageChips />}
 
       {/* 面板 */}
       <div

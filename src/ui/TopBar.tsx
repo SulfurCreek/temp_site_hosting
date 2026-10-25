@@ -1,60 +1,57 @@
 import {
   Box,
   Download,
-  Eye,
   Footprints,
-  Lightbulb,
-  MapPin,
   HelpCircle,
+  Map as MapIcon,
   Move3d,
   PanelLeft,
   RotateCcw,
   RotateCw,
   SlidersHorizontal,
-  Sparkles,
   Trash,
   Upload,
   X,
   Zap,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { VIEW_PRESETS } from '../scene/CameraRig'
-import { cycleView, exportLayout, importLayoutFile, resetLayout } from '../store/actions'
+import { exportLayout, importLayoutFile, resetLayout, togglePlanView } from '../store/actions'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
-import type { Kelvin, ViewPreset } from '../types'
 import { IconBtn, Segmented, Toggle, cx } from './controls'
-import { VantageButtons } from './FirstPersonBar'
-import { FxQualityToggle, LightSceneToggle } from './LightingControls'
-import { StudioButton } from './PathTracePanel'
 import { enterFirstPerson } from '../scene/FirstPerson'
 
-const KELVINS: { k: Kelvin; label: string; dot: string }[] = [
-  { k: 3000, label: '3000K 黃光', dot: '#ffb46b' },
-  { k: 4000, label: '4000K 自然光', dot: '#fff1d9' },
-  { k: 6000, label: '6000K 白光', dot: '#dbe9ff' },
-]
-
-export function ViewButtons({ compact }: { compact?: boolean }) {
-  const current = useUi((s) => s.currentView)
-  const request = useUi((s) => s.requestView)
+/** 俯視 ⇄ 第一人稱（一鍵切換，沒有立足點設定） */
+export function ModeToggle() {
+  const viewMode = useUi((s) => s.viewMode)
+  const setViewMode = useUi((s) => s.setViewMode)
   return (
-    <div className="inline-flex shrink-0 gap-0.5 rounded-lg border border-white/10 bg-slate-800/60 p-0.5">
-      {(Object.keys(VIEW_PRESETS) as ViewPreset[]).map((v) => (
-        <button
-          key={v}
-          title={v === 'TOP' ? '正上方 2D 平面圖' : `${VIEW_PRESETS[v].label}角（世紀帝國視角）`}
-          onClick={() => request(v)}
-          className={cx(
-            'shrink-0 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium transition-colors',
-            compact && 'px-2',
-            current === v ? 'bg-sky-500 text-white' : 'text-slate-300 hover:bg-white/10',
-          )}
-        >
-          {VIEW_PRESETS[v].label}
-        </button>
-      ))}
-    </div>
+    <Segmented
+      value={viewMode}
+      onChange={(m) => (m === 'firstPerson' ? enterFirstPerson() : setViewMode('isometric'))}
+      options={[
+        { value: 'isometric', label: '俯視', title: '世紀帝國俯視模式（正交相機 + 智慧破牆）' },
+        { value: 'firstPerson', label: '第一人稱', title: '人眼視角：透視相機、完整牆面與天花板' },
+      ]}
+    />
+  )
+}
+
+/** 斜視 ⇄ 正上方平面圖 */
+export function PlanToggle() {
+  const plan = useUi((s) => s.viewRequest.preset === 'TOP')
+  return (
+    <button
+      title="正上方平面圖（Space）"
+      onClick={togglePlanView}
+      className={cx(
+        'flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-xs font-medium transition-colors',
+        plan ? 'bg-sky-500 text-white' : 'border border-white/10 bg-slate-800/60 text-slate-200 hover:bg-white/10',
+      )}
+    >
+      <MapIcon size={15} />
+      平面
+    </button>
   )
 }
 
@@ -86,29 +83,6 @@ export function CutawayToggle() {
         { value: 'off', label: '不破牆' },
       ]}
     />
-  )
-}
-
-export function LightToggle() {
-  const k = useLayout((s) => s.settings.kelvin)
-  const set = useLayout((s) => s.setSettings)
-  return (
-    <div className="inline-flex shrink-0 gap-0.5 rounded-lg border border-white/10 bg-slate-800/60 p-0.5">
-      {KELVINS.map((x) => (
-        <button
-          key={x.k}
-          title={x.label}
-          onClick={() => set({ kelvin: x.k })}
-          className={cx(
-            'flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium transition-colors',
-            k === x.k ? 'bg-sky-500 text-white' : 'text-slate-300 hover:bg-white/10',
-          )}
-        >
-          <span className="h-2.5 w-2.5 rounded-full border border-black/20" style={{ background: x.dot }} />
-          {x.k / 1000}K
-        </button>
-      ))}
-    </div>
   )
 }
 
@@ -236,19 +210,16 @@ export function DesktopTopBar() {
         />
       </div>
       <div className="scroll-thin flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1">
-        <VantageButtons />
+        <ModeToggle />
         <Divider />
         {!fp && (
           <>
-            <ViewButtons />
+            <PlanToggle />
             <ProjectionToggle />
-            <Divider />
             <CutawayToggle />
+            <Divider />
           </>
         )}
-        <LightToggle />
-        <LightSceneToggle />
-        <Divider />
         {!fp && (
           <>
             <ToolToggle />
@@ -259,7 +230,6 @@ export function DesktopTopBar() {
         <MepToggle />
       </div>
       <div className="flex items-center gap-0.5">
-        <StudioButton />
         <HistoryButtons />
         <span className="mx-1 h-6 w-px bg-white/10" />
         <FileButtons />
@@ -309,19 +279,12 @@ function PillBtn({
 
 export function MobileTopBar() {
   const [more, setMore] = useState(false)
-  const current = useUi((s) => s.currentView)
   const viewMode = useUi((s) => s.viewMode)
-  const placing = useUi((s) => s.placing)
   const setViewMode = useUi((s) => s.setViewMode)
-  const setPlacing = useUi((s) => s.setPlacing)
+  const plan = useUi((s) => s.viewRequest.preset === 'TOP')
   const showMep = useLayout((s) => s.settings.showMep)
   const set = useLayout((s) => s.setSettings)
-  const kelvin = useLayout((s) => s.settings.kelvin)
-  const studio = useUi((s) => s.studio)
-  const setStudio = useUi((s) => s.setStudio)
   const fp = viewMode === 'firstPerson'
-  const nextKelvin = () => set({ kelvin: kelvin === 3000 ? 4000 : kelvin === 4000 ? 6000 : 3000 })
-  const dot = KELVINS.find((x) => x.k === kelvin)!.dot
 
   return (
     <>
@@ -335,31 +298,12 @@ export function MobileTopBar() {
             onClick={() => (fp ? setViewMode('isometric') : enterFirstPerson())}
           />
           <PillBtn
-            title="放置立足點"
-            icon={<MapPin size={16} className={placing ? '' : 'text-sky-300'} />}
-            label="立足點"
-            active={placing}
-            onClick={() => (fp ? setViewMode('isometric') : setPlacing(!placing))}
-          />
-          <PillBtn
-            title="切換俯視方位"
-            icon={<Eye size={16} className="text-sky-300" />}
-            label={fp ? '方位' : current ? VIEW_PRESETS[current].label : '自由'}
+            title="正上方平面圖"
+            icon={<MapIcon size={16} className="text-sky-300" />}
+            label="平面"
+            active={plan && !fp}
             disabled={fp}
-            onClick={cycleView}
-          />
-          <PillBtn
-            title={`燈光色溫 ${kelvin}K`}
-            icon={<span className="my-0.5 h-3.5 w-3.5 rounded-full border border-black/30" style={{ background: dot }} />}
-            label={`${kelvin / 1000}K`}
-            onClick={nextKelvin}
-          />
-          <PillBtn
-            title="相片級算圖模式（靜態高畫質，可匯出 PNG）"
-            icon={<Sparkles size={16} className="text-amber-300" />}
-            label="算圖"
-            active={studio}
-            onClick={() => setStudio(!studio)}
+            onClick={togglePlanView}
           />
           <PillBtn title="顯示水電 / 燈具" icon={<Zap size={16} className={showMep ? '' : 'text-amber-300'} />} label="水電" active={showMep} onClick={() => set({ showMep: !showMep })} />
           <PillBtn title="更多設定" icon={<SlidersHorizontal size={16} />} label="更多" onClick={() => setMore(true)} />
@@ -392,23 +336,11 @@ function MoreSheet({ onClose }: { onClose: () => void }) {
             <HistoryButtons />
           </div>
         </Row>
-        <Row label="視角">
-          <ViewButtons compact />
-        </Row>
         <Row label="相機">
           <ProjectionToggle />
         </Row>
         <Row label="智慧破牆">
           <CutawayToggle />
-        </Row>
-        <Row label="燈光色溫">
-          <LightToggle />
-        </Row>
-        <Row label="燈光情境">
-          <LightSceneToggle />
-        </Row>
-        <Row label="後期渲染品質">
-          <FxQualityToggle />
         </Row>
         <Row label="家具操作">
           <ToolToggle />
@@ -416,17 +348,6 @@ function MoreSheet({ onClose }: { onClose: () => void }) {
         <Row label="吸附格距">
           <SnapSelect />
         </Row>
-        <Row label="燈光情境（等燈光系統合入後啟用）">
-          <div className="flex gap-1">
-            {['全開', '氛圍軌道燈', '夜燈', '白天'].map((x) => (
-              <button key={x} disabled className="shrink-0 whitespace-nowrap rounded-lg border border-white/10 bg-slate-800/60 px-3 py-1.5 text-xs opacity-40">
-                <Lightbulb size={12} className="mr-1 inline" />
-                {x}
-              </button>
-            ))}
-          </div>
-        </Row>
-        <Toggle label="景深 DoF（等相機串合入後啟用）" checked={false} disabled onChange={() => {}} />
         <Toggle label="顯示水電 / 燈具（MEP）" checked={s.showMep} onChange={(v) => set({ showMep: v })} />
         <Toggle label="顯示格線" checked={s.showGrid} onChange={(v) => set({ showGrid: v })} />
         <Toggle label="顯示操作提示" checked={s.showHud} onChange={(v) => set({ showHud: v })} />

@@ -43,7 +43,6 @@ export function CameraRig() {
   const floorCenter = useLayout((s) => s.layout.floor.center)
   const viewRequest = useUi((s) => s.viewRequest)
   const viewMode = useUi((s) => s.viewMode)
-  const placing = useUi((s) => s.placing)
   const fp = viewMode === 'firstPerson'
   const controlsRef = useRef<OrbitControlsImpl>(null)
 
@@ -187,7 +186,7 @@ export function CameraRig() {
       key={projection}
       ref={controlsRef}
       makeDefault
-      enabled={!fp && !placing}
+      enabled={!fp}
       camera={isOrtho ? ortho : persp}
       enableDamping
       dampingFactor={0.1}

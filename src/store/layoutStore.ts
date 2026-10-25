@@ -19,7 +19,6 @@ import type {
 export const DEFAULT_SETTINGS: Settings = {
   projection: 'ortho',
   cutaway: 'lower',
-  kelvin: 4000,
   snap: 0.05,
   tool: 'drag',
   showGrid: true,

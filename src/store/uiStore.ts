@@ -12,9 +12,6 @@ interface UiState {
   /** 世紀帝國俯視 / 第一人稱立足點 */
   viewMode: ViewMode
   setViewMode: (m: ViewMode) => void
-  /** 俯視角「📍 放置立足點」模式 */
-  placing: boolean
-  setPlacing: (v: boolean) => void
   /** 第一人稱前往指定立足點（nonce 讓同一點可重複觸發；yaw 為弧度，null = 保持目前朝向） */
   fpGoto: { x: number; z: number; yaw: number | null; nonce: number }
   goVantage: (x: number, z: number, yaw?: number | null, eye?: EyeMode) => void
@@ -23,13 +20,7 @@ interface UiState {
   fov: number
   /** 攝影師退後距離（cm，0 = 關閉） */
   backoffCm: number
-  /** 第一人稱景深（DepthOfField）開關 */
-  dof: boolean
-  setDof: (v: boolean) => void
-  setBackoffCm: (cm: number) => void
   setEye: (e: EyeMode) => void
-  setStandCm: (cm: number) => void
-  setFov: (deg: number) => void
   /** 移動模式：選取後需明確進入才會拖拉/顯示位移軸 */
   moving: boolean
   setMoving: (v: boolean) => void
@@ -67,33 +58,9 @@ interface UiState {
   toast: string | null
   showToast: (m: string) => void
 
-  /** 相片級算圖模式（靜態高畫質：dpr 2、MSAA、2048 陰影、柔陰影、可匯出 4K） */
-  studio: boolean
-  setStudio: (v: boolean) => void
-  /** 匯出 4K PNG 請求計數 */
-  exportNonce: number
-  requestExport: () => void
-  exporting: boolean
-  setExporting: (v: boolean) => void
-
-  /** 高品質渲染（路徑追蹤，進階） */
-  pt: PtState
-  setPt: (p: Partial<PtState>) => void
-
   /** 當前拖拉中（用來暫停破牆閃爍等） */
   dragging: boolean
   setDragging: (v: boolean) => void
-}
-
-export interface PtState {
-  active: boolean
-  samples: number
-  target: number
-  /** 1 = 全解析度；0.5 = 半解析度（較快） */
-  scale: number
-  status: 'idle' | 'building' | 'rendering' | 'done' | 'error'
-  /** 下載 PNG 的請求計數（Scene 內的渲染器收到後輸出） */
-  saveNonce: number
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined
@@ -103,17 +70,14 @@ export const useUi = create<UiState>()((set) => ({
   // 換選取對象時自動離開移動模式
   // 第一人稱 / 放置立足點時不開啟選取（點地板是移動，不是選地板）
   select: (selection) =>
-    set((st) => (selection && (st.viewMode === 'firstPerson' || st.placing) ? {} : { selection, moving: false })),
+    set((st) => (selection && st.viewMode === 'firstPerson' ? {} : { selection, moving: false })),
 
   viewMode: 'isometric',
-  setViewMode: (viewMode) => set(viewMode === 'firstPerson' ? { viewMode, placing: false, selection: null, moving: false } : { viewMode, placing: false }),
-  placing: false,
-  setPlacing: (placing) => set(placing ? { placing, viewMode: 'isometric', selection: null, moving: false } : { placing }),
+  setViewMode: (viewMode) => set(viewMode === 'firstPerson' ? { viewMode, selection: null, moving: false } : { viewMode }),
   fpGoto: { x: 0, z: 0, yaw: null, nonce: 0 },
   goVantage: (x, z, yaw = null, eye) =>
     set((st) => ({
       viewMode: 'firstPerson',
-      placing: false,
       selection: null,
       moving: false,
       eye: eye ?? st.eye,
@@ -123,12 +87,7 @@ export const useUi = create<UiState>()((set) => ({
   standCm: 165,
   fov: 75,
   backoffCm: 50,
-  dof: true,
-  setDof: (dof) => set({ dof }),
-  setBackoffCm: (cm) => set({ backoffCm: Math.min(60, Math.max(0, Math.round(cm))) }),
   setEye: (eye) => set({ eye }),
-  setStandCm: (standCm) => set({ standCm: Math.min(185, Math.max(150, Math.round(standCm))) }),
-  setFov: (fov) => set({ fov: Math.min(90, Math.max(50, Math.round(fov))) }),
   moving: false,
   setMoving: (moving) => set({ moving }),
 
@@ -158,15 +117,6 @@ export const useUi = create<UiState>()((set) => ({
   setPip: (p) => set((s) => ({ pip: { ...s.pip, ...p } })),
   pickedColor: null,
   setPickedColor: (pickedColor) => set({ pickedColor }),
-
-  studio: false,
-  setStudio: (studio) => set({ studio }),
-  exportNonce: 0,
-  requestExport: () => set((s) => ({ exportNonce: s.exportNonce + 1 })),
-  exporting: false,
-  setExporting: (exporting) => set({ exporting }),
-  pt: { active: false, samples: 0, target: 256, scale: 1, status: 'idle', saveNonce: 0 },
-  setPt: (p) => set((s) => ({ pt: { ...s.pt, ...p } })),
 
   toast: null,
   showToast: (toast) => {
