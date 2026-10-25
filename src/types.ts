@@ -300,4 +300,12 @@ export interface Settings {
   showHud: boolean
   /** 標準對色光：5500K 純白、無環境色偏，避免暖光造成色差誤判 */
   colorProof?: boolean
+  /** 燈光情境（迴路開關模擬），預設 all */
+  lightScene?: LightScene
+  /** 後期渲染品質；auto = 手機(<768px)用 low，其他用 high */
+  fxQuality?: FxQuality
 }
+
+/** all 全開 | track 僅開氛圍軌道燈 | night 夜燈模式 | day 白天自然光 */
+export type LightScene = 'all' | 'track' | 'night' | 'day'
+export type FxQuality = 'auto' | 'high' | 'medium' | 'low'
