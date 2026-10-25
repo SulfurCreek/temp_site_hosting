@@ -18,7 +18,7 @@ export function Hud() {
 
   if (mobile)
     return (
-      <div className="pointer-events-none absolute inset-x-0 top-[62px] z-20 flex justify-center px-3">
+      <div className="pointer-events-none absolute inset-x-0 top-[76px] z-20 flex justify-center px-3">
         <div className="glass pointer-events-auto flex items-center gap-2 rounded-full py-1.5 pl-3.5 pr-2 text-[11px] text-slate-200">
           單指旋轉 · 雙指縮放平移 · 點選家具 →「移動」後拖拉
           <button aria-label="關閉提示" onClick={() => (setDismissed(true), set({ showHud: false }))} className="rounded-full p-1 text-slate-400 active:bg-white/10">
@@ -57,7 +57,7 @@ export function Toast() {
   const mobile = useIsMobile()
   if (!t) return null
   return (
-    <div className={`pointer-events-none absolute inset-x-0 z-50 flex justify-center px-4 ${mobile ? 'bottom-[150px]' : 'top-16'}`}>
+    <div className={`pointer-events-none absolute inset-x-0 z-50 flex justify-center px-4 ${mobile ? 'bottom-[180px]' : 'top-16'}`}>
       <div className="glass rounded-full px-4 py-2 text-xs text-slate-100 shadow-lg">{t}</div>
     </div>
   )

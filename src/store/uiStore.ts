@@ -21,6 +21,12 @@ interface UiState {
   eye: EyeMode
   standCm: number
   fov: number
+  /** 攝影師退後距離（cm，0 = 關閉） */
+  backoffCm: number
+  /** 第一人稱景深（DepthOfField）開關 */
+  dof: boolean
+  setDof: (v: boolean) => void
+  setBackoffCm: (cm: number) => void
   setEye: (e: EyeMode) => void
   setStandCm: (cm: number) => void
   setFov: (deg: number) => void
@@ -91,7 +97,11 @@ export const useUi = create<UiState>()((set) => ({
     })),
   eye: 'stand',
   standCm: 165,
-  fov: 70,
+  fov: 75,
+  backoffCm: 50,
+  dof: true,
+  setDof: (dof) => set({ dof }),
+  setBackoffCm: (cm) => set({ backoffCm: Math.min(60, Math.max(0, Math.round(cm))) }),
   setEye: (eye) => set({ eye }),
   setStandCm: (standCm) => set({ standCm: Math.min(185, Math.max(150, Math.round(standCm))) }),
   setFov: (fov) => set({ fov: Math.min(90, Math.max(50, Math.round(fov))) }),

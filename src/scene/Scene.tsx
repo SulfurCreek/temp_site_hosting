@@ -11,6 +11,9 @@ import { FurnitureLayer } from './Furniture'
 import { Gizmo } from './Gizmo'
 import { MepLayer } from './Mep'
 import { Lighting } from './Lighting'
+import { DepthOfFieldFx } from './DepthOfFieldFx'
+import { PostFX } from './PostFX'
+import { LIGHT_SCENES } from '../lib/lightScenes'
 import { Walls } from './Walls'
 
 function GridLines() {
@@ -41,17 +44,25 @@ function DevProbe() {
   return null
 }
 
+/** 背景色隨燈光情境變化（夜燈模式轉暗） */
+function Backdrop() {
+  const id = useLayout((s) => s.settings.lightScene ?? 'all')
+  const proof = useLayout((s) => !!s.settings.colorProof)
+  return <color attach="background" args={[proof ? '#e8ecf1' : LIGHT_SCENES[id].bg]} />
+}
+
 export function Scene() {
   const fp = useUi((s) => s.viewMode) === 'firstPerson'
+  const dof = useUi((s) => s.dof)
   return (
     <Canvas
       shadows="percentage"
       dpr={[1, 2]}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
-      // Khronos PBR Neutral tone mapping：保留材質原本的色相/明度（ACES 會讓白牆偏黃、色碼失真）
+      // 色調映射由 <PostFX /> 管理：預設 ACES Filmic（電影級層次），標準對色光時維持 Khronos Neutral（保留色票原色）
       onCreated={({ gl }) => {
-        gl.toneMapping = THREE.NeutralToneMapping
-        gl.toneMappingExposure = 1.08
+        gl.toneMapping = THREE.ACESFilmicToneMapping
+        gl.toneMappingExposure = 1
       }}
       onPointerMissed={() => {
         if (useUi.getState().calib.active) return
@@ -59,7 +70,7 @@ export function Scene() {
       }}
       style={{ touchAction: 'none' }}
     >
-      <color attach="background" args={['#e8ecf1']} />
+      <Backdrop />
       <CameraRig />
       {fp && <FirstPersonRig />}
       {import.meta.env.DEV && <DevProbe />}
@@ -78,6 +89,7 @@ export function Scene() {
         <MepLayer />
         <CalibrationLayer />
       </Suspense>
+      <PostFX>{fp && dof && <DepthOfFieldFx />}</PostFX>
     </Canvas>
   )
 }

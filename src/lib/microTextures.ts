@@ -151,17 +151,43 @@ function st19Height(): Float32Array {
   return out
 }
 
+function scratchFabricHeight(): Float32Array {
+  // 貓抓布：高密度斜紋（2/1 twill），經緯紗起伏 + 細微絨毛雜訊；256px 涵蓋 8×8 組紗線，可無縫平鋪
+  const r = rng(53)
+  const cell = 8
+  const h = new Float32Array(N * N)
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const cx = Math.floor(x / cell)
+      const cy = Math.floor(y / cell)
+      const u = (x % cell) / cell
+      const v = (y % cell) / cell
+      const over = (cx + cy) % 3 !== 0 // 斜紋：經紗浮在 2/3 的位置
+      const warp = Math.sin(u * Math.PI)
+      const weft = Math.sin(v * Math.PI)
+      h[y * N + x] = over ? 0.55 + 0.45 * warp * (0.6 + 0.4 * weft) : 0.25 + 0.3 * weft * (0.6 + 0.4 * warp)
+    }
+  const fuzz = new Float32Array(N * N)
+  for (let i = 0; i < fuzz.length; i++) fuzz[i] = r()
+  const f = blur(fuzz, N, 1)
+  normalize01(f)
+  for (let i = 0; i < h.length; i++) h[i] = h[i] * 0.8 + f[i] * 0.2
+  normalize01(h)
+  return h
+}
+
 const cache = new Map<string, MicroMaps>()
 
 /** 獨立平鋪的微紋理（paint / st9 / st19） */
-export function getStandaloneMicro(a: 'paint_eggshell' | 'egger_st9' | 'egger_st19'): MicroMaps {
+export function getStandaloneMicro(a: 'paint_eggshell' | 'egger_st9' | 'egger_st19' | 'fabric_scratch'): MicroMaps {
   const hit = cache.get(a)
   if (hit) return hit
-  const h = a === 'paint_eggshell' ? paintHeight() : a === 'egger_st9' ? st9Height() : st19Height()
-  const strength = a === 'egger_st19' ? 5 : a === 'egger_st9' ? 2.2 : 3
+  const h =
+    a === 'paint_eggshell' ? paintHeight() : a === 'egger_st9' ? st9Height() : a === 'fabric_scratch' ? scratchFabricHeight() : st19Height()
+  const strength = a === 'egger_st19' ? 5 : a === 'egger_st9' ? 2.2 : a === 'fabric_scratch' ? 4 : 3
   const maps = {
     normal: heightToNormal(h, N, strength),
-    rough: heightToRoughness(h, N, a === 'egger_st19' ? 0.35 : 0.25),
+    rough: heightToRoughness(h, N, a === 'egger_st19' ? 0.35 : a === 'fabric_scratch' ? 0.3 : 0.25),
   }
   cache.set(a, maps)
   return maps

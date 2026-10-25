@@ -1,6 +1,7 @@
 import { useFrame } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { wallBlocksCamera } from '../lib/fpClip'
 import { makeMetricBox } from '../lib/geometry'
 import { usePBRMaterial } from '../lib/materials'
 import { useLayout } from '../store/layoutStore'
@@ -107,6 +108,9 @@ function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: nu
   const heightNow = useRef(wall.height)
   const applied = useRef(-1)
   const ghosted = useRef(false)
+  const root = useRef<THREE.Group>(null)
+  const fade = useRef(0) // 第一人稱：擋住相機的牆淡出（0 = 實體，1 = 隱藏）
+  const hidden = useRef(false)
 
   /** 依目前高度重建每塊方塊的幾何（UV 保持實際公尺比例） */
   const apply = (H: number) => {
@@ -158,7 +162,14 @@ function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: nu
       heightNow.current = H
       apply(H)
     }
-    const op = mode === 'ghost' ? THREE.MathUtils.lerp(1, GHOST_OPACITY, t) : 1
+    let op = mode === 'ghost' ? THREE.MathUtils.lerp(1, GHOST_OPACITY, t) : 1
+    // 攝影師退後 / 背後 < 0.8 m 的牆會擋住視線 → 淡出後整面隱藏
+    const fpOn = useUi.getState().viewMode === 'firstPerson'
+    hidden.current = fpOn && wallBlocksCamera(wall.start, wall.end, wall.thickness, hidden.current)
+    fade.current = THREE.MathUtils.damp(fade.current, hidden.current ? 1 : 0, 14, dt)
+    if (Math.abs(fade.current - (hidden.current ? 1 : 0)) < 0.01) fade.current = hidden.current ? 1 : 0
+    op *= 1 - fade.current
+    if (root.current) root.current.visible = fade.current < 0.99
     const base = wall.material.opacity ?? 1
     mat.opacity = base * op
     mat.transparent = mat.opacity < 0.999
@@ -169,6 +180,7 @@ function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: nu
 
   return (
     <group
+      ref={root}
       position={[geo.mid[0], 0, geo.mid[1]]}
       rotation-y={geo.angle}
       onClick={(e) => {
@@ -185,7 +197,8 @@ function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: nu
           }}
           material={p.glass ? glassMat : mat}
           receiveShadow={!p.glass}
-          castShadow={false}
+          // 牆要擋住燈具光線，否則軌道燈/吸頂燈會穿過隔間牆照進隔壁房間
+          castShadow={!p.glass}
         />
       ))}
     </group>

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 7,
+  "rev": 11,
   "name": "鴻築麗苑（柏毅 2026/10/19 施工圖）",
   "floor": {
     "center": [
@@ -28,11 +28,11 @@
       "id": "z-foyer",
       "name": "玄關落塵區（花磚）",
       "center": [
-        -3.645,
+        -3.8,
         2.11
       ],
       "size": [
-        1.91,
+        1.6,
         1.55
       ],
       "material": {
@@ -159,7 +159,7 @@
     },
     {
       "id": "wall-n1",
-      "name": "北牆（次臥窗）",
+      "name": "北牆（客廳窗）",
       "start": [
         -4.675,
         -2.62
@@ -951,9 +951,9 @@
       "catalogId": "round-table-90",
       "name": "90cm 圓桌",
       "position": [
-        1.0,
+        -0.3,
         0,
-        1.2
+        0.45
       ],
       "rotationY": 0,
       "size": [
@@ -1073,6 +1073,54 @@
         1.5,
         0.3
       ]
+    },
+    {
+      "id": "f-sheeper-a",
+      "catalogId": "sheeper-module-90-head",
+      "name": "組綿羊 90（橄欖綠＋頭靠）",
+      "position": [
+        -4.145,
+        0,
+        -0.82
+      ],
+      "rotationY": 90,
+      "size": [
+        0.9,
+        0.78,
+        0.9
+      ]
+    },
+    {
+      "id": "f-sheeper-b",
+      "catalogId": "sheeper-module-60",
+      "name": "組綿羊 60（黑）",
+      "position": [
+        -4.0,
+        0,
+        0.0
+      ],
+      "rotationY": 60,
+      "size": [
+        0.6,
+        0.78,
+        0.9
+      ]
+    },
+    {
+      "id": "f-sheeper-c",
+      "catalogId": "sheeper-module-90",
+      "name": "組綿羊 90（橄欖綠）",
+      "position": [
+        -4.145,
+        0,
+        -1.72
+      ],
+      "rotationY": 90,
+      "size": [
+        0.9,
+        0.78,
+        0.9
+      ]
     }
   ],
   "blueprint": {
@@ -1131,6 +1179,11 @@
       "id": "ref-balcony",
       "name": "往陽台方向",
       "url": "/inputs/references/balcony-view.png"
+    },
+    {
+      "id": "ref-sheeper",
+      "name": "沙發參考實景（橄欖綠燈芯絨模組）",
+      "url": "/inputs/references/sheeper-sofa-ref.jpg"
     }
   ],
   "customCatalog": []

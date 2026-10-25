@@ -2,6 +2,7 @@ import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Suspense, memo, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { boxBlocksCamera } from '../lib/fpClip'
 import { DEFAULT_MATERIAL, usePBRMaterial } from '../lib/materials'
 import { useMetricBox } from '../lib/geometry'
 import { loadBaseTexture } from '../lib/textures'
@@ -39,6 +40,8 @@ interface GenProps {
   d: number
   count: number
   niche?: { w: number; h: number }
+  modules?: { w: number; mat?: 'main' | 'secondary' | 'accent' }[]
+  headrest?: number
   m: Mats
 }
 
@@ -64,6 +67,56 @@ function TableGen({ w, h, d, m }: GenProps) {
       ].map(([x, z], i) => (
         <Box key={i} pos={[x, lh / 2, z]} dims={[lw, lh, lw]} mat={m.secondary} />
       ))}
+    </>
+  )
+}
+
+/**
+ * Sheeper 組綿羊型模組沙發：依 modules 並排（寬度按比例縮放到 w），每個模組可指定材質槽。
+ * 座面高 ≈ 0.55 h（官網椅凳 43 / 總高 78），靠背厚約 0.27 d，頭靠為第一個模組頂部的橫向圓柱。
+ */
+function ModSofaGen({ w, h, d, modules, headrest, m }: GenProps) {
+  const mods = modules?.length ? modules : [{ w }]
+  const total = mods.reduce((s, x) => s + x.w, 0)
+  const k = w / total
+  const lh = 0.06
+  const seatTop = h * 0.55
+  const baseTop = seatTop - 0.12
+  const backT = Math.min(0.26, d * 0.29)
+  const gap = 0.006
+  const hr = 0.085
+  let x0 = -w / 2
+  return (
+    <>
+      {mods.map((mod, i) => {
+        const mw = mod.w * k
+        const cx = x0 + mw / 2
+        x0 += mw
+        const mat = m[mod.mat ?? 'main']
+        return (
+          <group key={i} position={[cx, 0, 0]}>
+            {[-1, 1].map((sx) =>
+              [-1, 1].map((sz) => (
+                <Box key={`${sx}${sz}`} pos={[sx * (mw / 2 - 0.06), lh / 2, sz * (d / 2 - 0.06)]} dims={[0.05, lh, 0.05]} mat={m.secondary} />
+              )),
+            )}
+            <Box pos={[0, lh + (baseTop - lh) / 2, 0.002]} dims={[mw - gap, baseTop - lh, d - 0.004]} mat={mat} />
+            <Box pos={[0, seatTop - 0.06, backT / 2]} dims={[mw - gap - 0.01, 0.12, d - backT - 0.01]} mat={mat} />
+            <Box pos={[0, lh + (h - lh) / 2, -d / 2 + backT / 2]} dims={[mw - gap, h - lh, backT]} mat={mat} />
+          </group>
+        )
+      })}
+      {headrest ? (
+        <mesh
+          position={[-w / 2 + mods[0].w * k / 2, h + hr * 0.9, -d / 2 + backT / 2]}
+          rotation={[0, 0, Math.PI / 2]}
+          material={m[mods[0].mat ?? 'main']}
+          castShadow
+          receiveShadow
+        >
+          <capsuleGeometry args={[hr, Math.max(0.01, headrest - hr * 2), 6, 20]} />
+        </mesh>
+      ) : null}
     </>
   )
 }
@@ -321,7 +374,7 @@ function ParametricModel({
   const accent = usePBRMaterial(inst.materials?.accent ?? p.materials.accent ?? p.materials.main)
   const m = useMemo<Mats>(() => ({ main, secondary, accent }), [main, secondary, accent])
   const [w, h, d] = size
-  const props: GenProps = { w, h, d, count: p.count ?? 1, niche: p.niche, m }
+  const props: GenProps = { w, h, d, count: p.count ?? 1, niche: p.niche, modules: p.modules, headrest: p.headrest, m }
   const decals = inst.decals ?? p.decals
 
   let body
@@ -334,6 +387,9 @@ function ParametricModel({
       break
     case 'sofa':
       body = <SofaGen {...props} />
+      break
+    case 'modsofa':
+      body = <ModSofaGen {...props} />
       break
     case 'cabinet':
       body = <CabinetGen {...props} />
@@ -618,6 +674,20 @@ const FurnitureView = memo(function FurnitureView({ inst }: { inst: FurnitureIns
   const groupRef = useRef<THREE.Group>(null)
   // 只在事件當下讀取 R3F 狀態，避免訂閱整個 store 造成每次 resize 都重繪所有家具
   const get = useThree((s) => s.get)
+
+  // 第一人稱：相機背後 < 0.8 m（或退後後被家具包住）的家具先隱藏，避免擋住視線
+  const clipped = useRef(false)
+  useFrame(() => {
+    const g = groupRef.current
+    if (!g) return
+    const next =
+      useUi.getState().viewMode === 'firstPerson' &&
+      boxBlocksCamera(inst.position[0], inst.position[2], inst.size[0], inst.size[2], inst.rotationY * D, clipped.current)
+    if (next !== clipped.current) {
+      clipped.current = next
+      g.visible = !next
+    }
+  })
 
   useEffect(() => {
     const g = groupRef.current

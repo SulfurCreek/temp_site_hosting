@@ -32,6 +32,7 @@ function ItemIcon({ item }: { item: CatalogItem }) {
   if (item.mode === 'billboard') return <ImageIcon size={p} />
   if (item.mode === 'glb') return <Package size={p} />
   switch (item.parametric?.kind) {
+    case 'modsofa':
     case 'sofa':
       return item.parametric.count === 1 ? <Armchair size={p} /> : <Sofa size={p} />
     case 'bed':
@@ -79,7 +80,7 @@ export function CatalogPanel() {
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-1.5 lg:grid-cols-2 lg:gap-2">
         {items.map((it) => (
           <button
             key={it.id}
@@ -347,7 +348,7 @@ export function BlueprintPanel() {
               ]}
             />
           </Field>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-1.5 lg:grid-cols-2 lg:gap-2">
             <NumberField label="偏移 X" value={bp.offset[0]} scale={100} unit="cm" onChange={(v) => set({ offset: [v, bp.offset[1]] }, 'bp-off')} />
             <NumberField label="偏移 Z" value={bp.offset[1]} scale={100} unit="cm" onChange={(v) => set({ offset: [bp.offset[0], v] }, 'bp-off')} />
           </div>

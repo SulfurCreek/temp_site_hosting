@@ -5,6 +5,7 @@ import { useLayout } from '../store/layoutStore'
 import { useUi, type MobileTab, type SheetState } from '../store/uiStore'
 import { cx, IconBtn, Section } from './controls'
 import { BlueprintPanel, CatalogPanel, ReferencePanel } from './LeftPanels'
+import { VantageChips } from './FirstPersonBar'
 import { PropertiesPanel, useSelectionTitle } from './PropertiesPanel'
 
 /* ------------------------------ 桌面：左側可收合抽屜 ------------------------------ */
@@ -67,17 +68,19 @@ export function RightPanel() {
 /* ------------------------------ 手機 / 平板：底部抽屜 ------------------------------ */
 
 const TABS: { id: MobileTab; label: string; icon: React.ReactNode }[] = [
-  { id: 'catalog', label: '家具', icon: <Sofa size={19} /> },
-  { id: 'blueprint', label: '底圖', icon: <Frame size={19} /> },
-  { id: 'reference', label: '參考', icon: <ImageIcon size={19} /> },
-  { id: 'props', label: '屬性', icon: <Layers size={19} /> },
+  { id: 'catalog', label: '家具', icon: <Sofa size={17} /> },
+  { id: 'blueprint', label: '底圖', icon: <Frame size={17} /> },
+  { id: 'reference', label: '參考', icon: <ImageIcon size={17} /> },
+  { id: 'props', label: '屬性', icon: <Layers size={17} /> },
 ]
 
+const NAV_H = '44px'
+// 三段：peek = 細橫桿（含標題與快速動作）、half = 18dvh、full = 整疊（含分頁列）不超過 32dvh
 const SHEET_H: Record<SheetState, string> = {
   closed: '0px',
-  peek: '56px',
-  half: '46dvh',
-  full: '88dvh',
+  peek: '44px',
+  half: '18dvh',
+  full: `calc(32dvh - ${NAV_H} - env(safe-area-inset-bottom))`,
 }
 const ORDER: SheetState[] = ['closed', 'peek', 'half', 'full']
 
@@ -93,17 +96,22 @@ export function BottomSheet() {
   const hasFurniture = useLayout((s) => !!sel && sel.type === 'furniture' && s.layout.furniture.some((f) => f.id === sel.id))
 
   const shift = (dir: 1 | -1, from = sheet) => setSheet(ORDER[Math.min(ORDER.length - 1, Math.max(1, ORDER.indexOf(from) + dir))])
+  const heading = tab === 'props' ? title : TABS.find((t) => t.id === tab)?.label
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex flex-col">
+      {/* 快速立足點：單行橫向滑動膠囊（抽屜全展開時隱藏，讓出 3D 空間） */}
+      {sheet !== 'full' && <VantageChips />}
+
       {/* 面板 */}
       <div
-        className="glass pointer-events-auto mx-1 flex flex-col overflow-hidden rounded-t-2xl text-slate-100 shadow-[0_-8px_30px_rgba(0,0,0,0.35)] transition-[height] duration-200"
+        className="glass sheet-compact pointer-events-auto mx-1 flex flex-col overflow-hidden rounded-t-2xl text-slate-100 shadow-[0_-8px_30px_rgba(0,0,0,0.35)] transition-[height] duration-200"
         style={{ height: SHEET_H[sheet], visibility: sheet === 'closed' ? 'hidden' : 'visible' }}
       >
         <div
-          className="flex shrink-0 touch-none flex-col items-center pt-1.5"
+          className="flex shrink-0 touch-none flex-col items-center pt-1"
           onPointerDown={(e) => {
+            if ((e.target as Element).closest('button')) return
             ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
             drag.current = { y: e.clientY, start: sheet }
           }}
@@ -116,14 +124,34 @@ export function BottomSheet() {
             else shift(dy < 0 ? 1 : -1, d.start)
           }}
         >
-          <span className="h-1 w-10 rounded-full bg-slate-500" />
-          <div className="flex w-full items-center gap-2 px-4 py-2">
-            <h2 className="flex-1 truncate text-sm font-semibold">{tab === 'props' ? title : TABS.find((t) => t.id === tab)?.label}</h2>
-            {sheet === 'peek' ? <ChevronUp size={18} className="text-slate-400" /> : <ChevronDown size={18} className="text-slate-400" />}
+          <span className="h-1 w-9 rounded-full bg-slate-500" />
+          <div className="flex h-8 w-full items-center gap-1 px-2.5">
+            <h2 className="min-w-0 flex-1 truncate text-xs font-semibold">{heading}</h2>
+            {hasFurniture && (
+              <>
+                <button
+                  onClick={() => toggleMoving()}
+                  className={cx('flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-semibold', moving ? 'bg-amber-400 text-slate-900' : 'bg-white/10 active:bg-white/20')}
+                >
+                  {moving ? <Check size={13} /> : <Move size={13} />}
+                  {moving ? '完成' : '移動'}
+                </button>
+                <button aria-label="旋轉 90°" className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 active:bg-white/20" onClick={() => rotateSelected(90)}>
+                  <RotateCw size={14} />
+                </button>
+                <button aria-label="複製" className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 active:bg-white/20" onClick={duplicateSelected}>
+                  <Copy size={14} />
+                </button>
+                <button aria-label="刪除" className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-red-300 active:bg-white/20" onClick={deleteSelected}>
+                  <Trash2 size={14} />
+                </button>
+              </>
+            )}
+            {sheet === 'peek' ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
           </div>
         </div>
         {sheet !== 'peek' && (
-          <div className="scroll-thin min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4">
+          <div className="scroll-thin min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2">
             {tab === 'catalog' && <CatalogPanel />}
             {tab === 'blueprint' && <BlueprintPanel />}
             {tab === 'reference' && <ReferencePanel />}
@@ -131,31 +159,6 @@ export function BottomSheet() {
           </div>
         )}
       </div>
-
-      {/* 快速動作列：選取家具時顯示 */}
-      {hasFurniture && sheet !== 'full' && (
-        <div className="pointer-events-auto glass mx-1 flex items-center justify-around border-t border-white/10 py-1 text-slate-100">
-          <button
-            onClick={() => toggleMoving()}
-            className={cx('flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold', moving ? 'bg-amber-400 text-slate-900' : 'active:bg-white/10')}
-          >
-            {moving ? <Check size={16} /> : <Move size={16} />}
-            {moving ? '完成' : '移動'}
-          </button>
-          <IconBtn title="旋轉 90°" onClick={() => rotateSelected(90)}>
-            <RotateCw size={18} />
-          </IconBtn>
-          <button className="rounded-lg px-3 py-2 text-xs font-medium active:bg-white/10" onClick={() => rotateSelected(45)}>
-            45°
-          </button>
-          <IconBtn title="複製" onClick={duplicateSelected}>
-            <Copy size={18} />
-          </IconBtn>
-          <IconBtn title="刪除" onClick={deleteSelected} className="text-red-300">
-            <Trash2 size={18} />
-          </IconBtn>
-        </div>
-      )}
 
       {/* 分頁列 */}
       <nav className="glass safe-bottom pointer-events-auto flex border-x-0 border-b-0 text-slate-300">
@@ -168,7 +171,8 @@ export function BottomSheet() {
                 if (active) setSheet(sheet === 'peek' ? 'half' : 'closed')
                 else openSheet(t.id, sheet === 'closed' || sheet === 'peek' ? 'half' : sheet)
               }}
-              className={cx('flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium', active ? 'text-sky-300' : 'active:bg-white/10')}
+              style={{ height: NAV_H }}
+              className={cx('flex flex-1 flex-col items-center justify-center gap-px text-[10px] font-medium', active ? 'text-sky-300' : 'active:bg-white/10')}
             >
               {t.icon}
               {t.label}

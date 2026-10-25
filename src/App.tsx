@@ -44,7 +44,7 @@ export default function App() {
   }, [mobile, fp])
 
   return (
-    <div className="flex h-dvh w-screen flex-col overflow-hidden bg-slate-900 text-slate-100">
+    <div className="flex h-[100dvh] w-screen select-none flex-col overflow-hidden bg-slate-900 text-slate-100">
       {!mobile && <DesktopTopBar />}
       <main className="relative min-h-0 flex-1">
         <div className="absolute inset-0">
@@ -56,12 +56,12 @@ export default function App() {
         <MepInfo />
         <Toast />
         {moving && (
-          <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3 max-lg:top-[60px]">
+          <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3 max-lg:top-[72px]">
             <div className="glass rounded-full px-4 py-1.5 text-xs text-amber-300">移動模式：拖拉選取的物件到新位置（Enter / Esc 結束）</div>
           </div>
         )}
         {placing && (
-          <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3 max-lg:top-[60px]">
+          <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3 max-lg:top-[72px]">
             <div className="glass rounded-full px-4 py-1.5 text-xs text-sky-300">放置立足點：點地板決定位置，按住拖曳可指定視線方向（Esc 取消）</div>
           </div>
         )}

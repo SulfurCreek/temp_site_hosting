@@ -35,6 +35,20 @@ export function makeMetricFloor(w: number, d: number) {
   return g
 }
 
+/** 與 makeMetricFloor 相同 UV，但保持在 XY 平面（法線 +Z）：搭配 mesh rotation-x=-90° 給 MeshReflectorMaterial 使用 */
+export function useMetricPlane(w: number, d: number) {
+  const g = useMemo(() => {
+    const W = Math.max(w, 0.01)
+    const D = Math.max(d, 0.01)
+    const p = new THREE.PlaneGeometry(W, D)
+    const uv = p.attributes.uv as THREE.BufferAttribute
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * W, uv.getY(i) * D)
+    return p
+  }, [w, d])
+  useEffect(() => () => g.dispose(), [g])
+  return g
+}
+
 export function useMetricBox(w: number, h: number, d: number) {
   const g = useMemo(() => makeMetricBox(Math.max(w, 0.001), Math.max(h, 0.001), Math.max(d, 0.001)), [w, h, d])
   useEffect(() => () => g.dispose(), [g])

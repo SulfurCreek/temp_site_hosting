@@ -7,7 +7,7 @@ export type Vec2 = [number, number]
 export type Vec3 = [number, number, number]
 
 /** PBR 材質描述。顏色/粗糙度/金屬度必填，貼圖欄位選填。 */
-export type Archetype = 'paint_eggshell' | 'egger_st9' | 'egger_st19' | 'laminate_wood' | 'matte_tile'
+export type Archetype = 'paint_eggshell' | 'egger_st9' | 'egger_st19' | 'laminate_wood' | 'matte_tile' | 'fabric_scratch'
 
 export interface MaterialSpec {
   /** Hex 色碼，例如 "#e8e2d6"。有貼圖時作為色彩乘數（tint）。 */
@@ -113,7 +113,7 @@ export interface ReferenceImage {
 
 export type FurnitureMode = 'glb' | 'parametric' | 'billboard'
 export type FaceName = 'front' | 'back' | 'left' | 'right' | 'top'
-export type ParametricKind = 'box' | 'table' | 'sofa' | 'cabinet' | 'chair' | 'bed' | 'rug' | 'toilet' | 'sink' | 'hob' | 'roundtable' | 'shelf'
+export type ParametricKind = 'box' | 'table' | 'sofa' | 'cabinet' | 'chair' | 'bed' | 'rug' | 'toilet' | 'sink' | 'hob' | 'roundtable' | 'shelf' | 'modsofa'
 
 /** 把商品照貼在家具指定表面（模式 B） */
 export interface Decal {
@@ -141,6 +141,10 @@ export interface CatalogItem {
     kind: ParametricKind
     /** 櫃體門片數（cabinet）或座位數（sofa）等 */
     count?: number
+    /** modsofa：並排的模組（寬度公尺，mat 指定用哪個材質槽，預設 main）。頭靠加在第一個模組上 */
+    modules?: { w: number; mat?: 'main' | 'secondary' | 'accent' }[]
+    /** modsofa：第一個模組頂部加圓柱頭靠（長度公尺） */
+    headrest?: number
     /** cabinet：正面留一個開放壁龕（放電子衣櫥/家電），w/h 為開口寬高（公尺），上方自動加一片上櫃門 */
     niche?: { w: number; h: number }
     /** main = 主體；secondary = 次要（椅墊/桌腳…）；accent = 點綴（把手/抱枕…） */
@@ -263,8 +267,8 @@ export interface BrandMaterial {
   /** 型號 / 色號 */
   code: string
   name: string
-  /** 'paint' 牆漆 | 'board' 系統櫃板材 | 'floor' 地板 | 'tile' 磁磚 */
-  kind: 'paint' | 'board' | 'floor' | 'tile'
+  /** 'paint' 牆漆 | 'board' 系統櫃板材 | 'floor' 地板 | 'tile' 磁磚 | 'fabric' 沙發布料 */
+  kind: 'paint' | 'board' | 'floor' | 'tile' | 'fabric'
   archetype: Archetype
   hex: string
   roughness: number
@@ -296,4 +300,12 @@ export interface Settings {
   showHud: boolean
   /** 標準對色光：5500K 純白、無環境色偏，避免暖光造成色差誤判 */
   colorProof?: boolean
+  /** 燈光情境（迴路開關模擬），預設 all */
+  lightScene?: LightScene
+  /** 後期渲染品質；auto = 手機(<768px)用 low，其他用 high */
+  fxQuality?: FxQuality
 }
+
+/** all 全開 | track 僅開氛圍軌道燈 | night 夜燈模式 | day 白天自然光 */
+export type LightScene = 'all' | 'track' | 'night' | 'day'
+export type FxQuality = 'auto' | 'high' | 'medium' | 'low'

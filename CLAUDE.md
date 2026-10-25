@@ -231,6 +231,10 @@ src/
 - 圖面手寫藍字：「有管道 / 一樣的話保留」→ 管道間 `part-shaft` 保留；「改乾濕分離滑門」；「改推門」。
 - **估計項目**（圖面未明示）：乾濕分離玻璃位置、衛浴門位置、各插座中未標高度者（`assumed:true`）、開關高度（預設 120，主臥入口 100 為圖面值）、窗尺寸高度（台 37.5 / H194.9 取自圖面標註）。
 - 材質：地板 ED-KS81555（內建淺橡貼圖）、百合白 `#F7F5F0` 蛋殼光 0.65、EGGER W1000 ST19 / U708 ST9 / U727 ST9；玄關落塵區依使用者選的實景參考右版使用 `builtin:encaustic` 花磚（原圖面 CW025501 灰磚仍在材質庫）。
+- **rev 11**：圓桌 `f-round` 移到餐桌後牆（part-south 南面、電視牆東面到主臥滑門洞）中央 `[-0.3, 0, 0.45]`。這面牆場景 185.5 cm、施工圖約 181 cm，使用者實量 170 cm，差異原因待使用者確認量測端點，牆未改。
+- **rev 10**：依使用者截圖把沙發預設改成：兩個 90 橄欖綠模組緊貼西牆併排（`f-sheeper-a` z=-0.82、`f-sheeper-c` z=-1.72，x=-4.145，rotationY 90），60 黑色模組 `f-sheeper-b` 斜放在其南側 `[-4.0, 0, 0.0]`、rotationY 60（角度為依截圖估計，請以實際調整為準）。全屋尺寸驗算表見專案檔案 `sheeper-sofa/dimension-audit.md`：場景與施工圖差 ≤ 3 cm；使用者實量的「170cm 牆」尚待確認是哪一面。
+- **rev 9**：①組綿羊拆成三件獨立家具 `f-sheeper-a/b/c`（目錄 `sheeper-module-90-head` / `-60` / `-90`，各自可選取、移動、換材質；z = -0.22 / -0.97 / -1.72，x = -4.145，rotationY 90，併排總寬仍 2.4）。②玄關花磚區 `z-foyer` 寬 191 → **160 cm**（西側仍貼牆內面 x=-4.6，東緣由 -2.69 縮到 -3.0），center `[-3.8, 2.11]`、size `[1.6, 1.55]`；其餘家具未動。③使用者說明「多功能房間 = 客廳」：原「次臥 / 多功能房」（part-tv 以西、北牆窗邊的房間）就是客廳，名稱改為客廳（北牆窗名、第一人稱 hotspot `second` →「客廳入口」）；沙發在此房內、圓桌在半牆南側的餐廳區。
+- **rev 8**：客廳靠西牆新增 Sheeper「組綿羊」模組沙發 `sheeper-modular-sheep-90-60-90`（`parametric.kind = modsofa`，90+60+90 cm、深 90、高 78，座面約 43 cm、頭靠 50 cm；尺寸依 sheeper.com.tw 官網：單椅 90/65×95×78、椅凳高 43、頭靠 50×15×20）。兩個 90 為橄欖綠貓抓布、60 為黑色，新 archetype `fabric_scratch`（斜紋織理微紋理）、品牌字典 `SHEEPER-SCRATCH-OLIVE/BLACK`（Hex 皆為估計）。位置 `[-4.145, 0, -0.97]`、`rotationY 90`（背靠西牆內面 x=-4.6，南北夾在北角柱與儲藏室之間）。圓桌 `f-round` 依使用者截圖移到 part-south 隔間牆南面、玄關側牆段（`[-0.5, 0, 0.45]`，位置為依截圖估計）。第一人稱「客廳沙發」立足點改為坐在沙發上。
 - **rev 5**：使用者確認主臥衣櫃 **200**（依 p5 立面）、浴室保留磁磚。為了不讓衣櫃擋門，浴室門洞由圖面的 z −1.50~−0.71 往南移 33cm 到 **z −1.17~−0.42**（仍為 75 寬），門邊開關移到門南側。
 - **rev 4（使用者回饋修正）**：浴室門改到「衛浴/主臥隔間」（從主臥進入，圖面 75 開口 z −1.50~−0.71）；主臥衣櫃暫縮為 170（rev 5 已改回 200）；乾濕分離改為北側淋浴區；地板除玄關花磚外皆為木地板（陽台也改木地板；浴室保留磁磚——使用者已確認）；結構柱外凸 1cm 避免共平面閃爍；底圖預設隱藏；施工圖圖層改用去除手寫標註的版本；手繪參考圖已去除 Procreate 介面與手寫數字。
 - **rev 3（材質對照更新）**：依實景 AI 圖與手繪材質圖調整——地板改為灰褐橡木 `builtin:oak-ash`（手繪的棕色僅代表「木地板」，未採用）、衛浴深灰磁磚、淋浴區大理石、陽台木地板、廚具橘棕木色、床粉色寢具；進門左側儲藏櫃改 3 門 + 72cm 電子衣櫥壁龕（`niche`）並放入 `lg-styler`（LG 電子衣櫥 5 件式 60×196.5）。玄關仍為花磚，非手繪的藍色。參考圖在 `public/inputs/references/`（已加入 `layout.references`）。
@@ -293,6 +297,13 @@ src/
 - 改完請 `npm run build`，並在回覆中說明：改了哪些檔案/欄位、依據的比例或取色來源、哪些是估計值。
 
 ---
+
+### 燈光與後期渲染（升級一 / 二）
+- `src/scene/Fixtures.tsx`：燈具位置**全部取自 `mep.json`**（track / ceiling / fan / downlight / strip），不要另外硬寫座標。軌道燈頭瞄準點寫在該檔 `TRACK_AIM`（以 mep id 對應）。燈具外觀有 emissive（供 Bloom），光源為 SpotLight（軌道、嵌燈）/ PointLight（吸頂、吊扇、條燈，圓心下 15 cm）。
+- `src/lib/lightScenes.ts`：四種情境（`settings.lightScene`：all / track / night / day）＝ ambient、Environment 強度、各迴路倍率、日光/月光。新增情境改這裡。標準對色光（`colorProof`）維持舊的 5500K 打光，不套用燈具情境與後期。
+- `src/scene/PostFX.tsx`：`<EffectComposer>` 順序 N8AO → **children** → Bloom → ToneMapping(ACES) → SMAA。要加特效（例如 DepthOfField）用 `<PostFX><Xxx /></PostFX>` 注入。
+- 品質分級 `useFxTier()`（`src/lib/fx.ts`，`settings.fxQuality`：auto/high/medium/low）：high=AO 高品質 + 地板微反射 + 燈具陰影；medium=半解析度 AO + Bloom；low（手機 <768px 預設）=不掛 composer、無反射/AO/燈具陰影，只用 renderer ACES。
+- 地板微反射（`MeshReflectorMaterial`，Floor.tsx）只在 high + **透視相機**時啟用（反射器的虛擬相機不支援正交），只作用在主地板與玄關花磚。著色器取樣器有上限（多數 GPU 16），所以投影的燈只有：軌道偶數燈頭 4 盞 + 三盞主燈（吊扇、主臥、次臥吸頂）。
 
 ## 資料檔注意事項
 
