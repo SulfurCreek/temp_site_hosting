@@ -7,6 +7,7 @@ import { usePBRMaterial } from '../lib/materials'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 import type { Vec2, Wall } from '../types'
+import { WallTrim } from './WallTrim'
 
 const LOW_HEIGHT = 0.3 // 矮牆模式高度 30 cm
 const GHOST_OPACITY = 0.15
@@ -201,6 +202,13 @@ function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: nu
           castShadow={!p.glass}
         />
       ))}
+      <WallTrim
+        wall={wall}
+        len={geo.len}
+        interiorSign={Math.sin(geo.angle) * geo.normal[0] + Math.cos(geo.angle) * geo.normal[1] > 0 ? -1 : 1}
+        heightRef={heightNow}
+        wallMat={mat}
+      />
     </group>
   )
 }

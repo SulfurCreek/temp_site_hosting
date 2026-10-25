@@ -11,6 +11,7 @@ import { useUi } from '../store/uiStore'
 import type { CatalogItem, Decal, FurnitureInstance, MaterialSpec, Vec3 } from '../types'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { objectRegistry } from './registry'
+import { MergedParts, cabinetParts, nicheCabinetParts } from './cabinetParts'
 
 const D = Math.PI / 180
 
@@ -201,64 +202,12 @@ function SofaGen({ w, h, d, count, m }: GenProps) {
   )
 }
 
-/** 含壁龕的櫃體：兩側板 + 背板 + 上櫃（含門片），中間開放放電子衣櫥 */
-function NicheCabinetGen({ w, h, d, niche, m }: GenProps & { niche: { w: number; h: number } }) {
-  const nw = Math.min(niche.w, w - 0.04)
-  const nh = Math.min(niche.h, h - 0.1)
-  const side = (w - nw) / 2
-  const top = h - nh
-  return (
-    <>
-      {[-1, 1].map((sgn) => (
-        <Box key={sgn} pos={[sgn * (w / 2 - side / 2), h / 2, 0]} dims={[side, h, d]} mat={m.main} />
-      ))}
-      <Box pos={[0, nh / 2, -d / 2 + 0.01]} dims={[nw, nh, 0.02]} mat={m.secondary} />
-      <Box pos={[0, nh + top / 2, 0]} dims={[nw, top, d - 0.02]} mat={m.secondary} />
-      <Box pos={[0, nh + top / 2, d / 2 - 0.009]} dims={[nw - 0.004, top - 0.008, 0.018]} mat={m.main} />
-      <Box pos={[0, nh - 0.01, 0]} dims={[nw, 0.02, d - 0.04]} mat={m.secondary} shadow={false} />
-    </>
-  )
-}
-
 function CabinetGen({ w, h, d, count, niche, m }: GenProps) {
-  if (niche) return <NicheCabinetGen w={w} h={h} d={d} count={count} niche={niche} m={m} />
-  const plinth = Math.min(0.08, h * 0.1)
-  const bodyH = h - plinth
-  const n = Math.max(1, count)
-  const dw = w / n
-  const handleH = Math.min(0.28, bodyH * 0.3)
-  const tall = h > 1.5
-  return (
-    <>
-      {/* 踢腳（內縮） */}
-      <Box pos={[0, plinth / 2, -0.015]} dims={[w - 0.04, plinth, d - 0.05]} mat={m.secondary} />
-      {/* 櫃體 */}
-      <Box pos={[0, plinth + bodyH / 2, -0.01]} dims={[w, bodyH, d - 0.02]} mat={m.secondary} />
-      {/* 門片 */}
-      {Array.from({ length: n }, (_, i) => {
-        const x = -w / 2 + dw * (i + 0.5)
-        const splitH = tall ? bodyH * 0.62 : bodyH
-        return (
-          <group key={i}>
-            <Box pos={[x, plinth + splitH / 2 + 0.002, d / 2 - 0.009]} dims={[dw - 0.006, splitH - 0.008, 0.018]} mat={m.main} />
-            {tall && (
-              <Box
-                pos={[x, plinth + splitH + (bodyH - splitH) / 2, d / 2 - 0.009]}
-                dims={[dw - 0.006, bodyH - splitH - 0.008, 0.018]}
-                mat={m.main}
-              />
-            )}
-            <Box
-              pos={[x + (i % 2 === 0 ? 1 : -1) * (dw / 2 - 0.035), plinth + (tall ? splitH * 0.5 : bodyH * 0.5), d / 2 + 0.012]}
-              dims={[0.012, handleH, 0.016]}
-              mat={m.accent}
-              shadow={false}
-            />
-          </group>
-        )
-      })}
-    </>
+  const parts = useMemo(
+    () => (niche ? nicheCabinetParts(w, h, d, niche) : cabinetParts(w, h, d, count)),
+    [w, h, d, count, niche],
   )
+  return <MergedParts parts={parts} m={m} />
 }
 
 function BedGen({ w, h, d, m }: GenProps) {
