@@ -298,6 +298,13 @@ src/
 
 ---
 
+### 燈光與後期渲染（升級一 / 二）
+- `src/scene/Fixtures.tsx`：燈具位置**全部取自 `mep.json`**（track / ceiling / fan / downlight / strip），不要另外硬寫座標。軌道燈頭瞄準點寫在該檔 `TRACK_AIM`（以 mep id 對應）。燈具外觀有 emissive（供 Bloom），光源為 SpotLight（軌道、嵌燈）/ PointLight（吸頂、吊扇、條燈，圓心下 15 cm）。
+- `src/lib/lightScenes.ts`：四種情境（`settings.lightScene`：all / track / night / day）＝ ambient、Environment 強度、各迴路倍率、日光/月光。新增情境改這裡。標準對色光（`colorProof`）維持舊的 5500K 打光，不套用燈具情境與後期。
+- `src/scene/PostFX.tsx`：`<EffectComposer>` 順序 N8AO → **children** → Bloom → ToneMapping(ACES) → SMAA。要加特效（例如 DepthOfField）用 `<PostFX><Xxx /></PostFX>` 注入。
+- 品質分級 `useFxTier()`（`src/lib/fx.ts`，`settings.fxQuality`：auto/high/medium/low）：high=AO 高品質 + 地板微反射 + 燈具陰影；medium=半解析度 AO + Bloom；low（手機 <768px 預設）=不掛 composer、無反射/AO/燈具陰影，只用 renderer ACES。
+- 地板微反射（`MeshReflectorMaterial`，Floor.tsx）只在 high + **透視相機**時啟用（反射器的虛擬相機不支援正交），只作用在主地板與玄關花磚。著色器取樣器有上限（多數 GPU 16），所以投影的燈只有：軌道偶數燈頭 4 盞 + 三盞主燈（吊扇、主臥、次臥吸頂）。
+
 ## 資料檔注意事項
 
 - **瀏覽器會把使用者的格局自動存在 localStorage（key `interior-planner:v1`）**，所以改了 `defaultLayout.json` 預設不會影響已開啟過的瀏覽器。
