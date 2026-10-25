@@ -1,5 +1,5 @@
 import { Canvas, useThree } from '@react-three/fiber'
-import { Suspense, useEffect } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import * as THREE from 'three'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
@@ -14,7 +14,11 @@ import { Lighting } from './Lighting'
 import { DepthOfFieldFx } from './DepthOfFieldFx'
 import { PostFX } from './PostFX'
 import { LIGHT_SCENES } from '../lib/lightScenes'
+import { FloorContact, StudioExport, StudioSoftShadows } from './Studio'
 import { Walls } from './Walls'
+
+// 路徑追蹤與 BVH 體積大，只在使用者按下「高品質渲染」時才載入
+const PathTraceRender = lazy(() => import('./PathTraceRender').then((m) => ({ default: m.PathTraceRender })))
 
 function GridLines() {
   const showGrid = useLayout((s) => s.settings.showGrid)
@@ -54,10 +58,12 @@ function Backdrop() {
 export function Scene() {
   const fp = useUi((s) => s.viewMode) === 'firstPerson'
   const dof = useUi((s) => s.dof)
+  const pt = useUi((s) => s.pt.active)
+  const studio = useUi((s) => s.studio)
   return (
     <Canvas
       shadows="percentage"
-      dpr={[1, 2]}
+      dpr={studio ? 2 : [1, 2]}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       // 色調映射由 <PostFX /> 管理：預設 ACES Filmic（電影級層次），標準對色光時維持 Khronos Neutral（保留色票原色）
       onCreated={({ gl }) => {
@@ -75,6 +81,8 @@ export function Scene() {
       {fp && <FirstPersonRig />}
       {import.meta.env.DEV && <DevProbe />}
       <Lighting />
+      <StudioSoftShadows />
+      <StudioExport />
       <Suspense fallback={null}>
         <Ground />
         <BlueprintPlane />
@@ -85,11 +93,16 @@ export function Scene() {
         <PlacementLayer />
         <FurnitureLayer />
         <GridLines />
+        <FloorContact />
         {!fp && <Gizmo />}
         <MepLayer />
         <CalibrationLayer />
       </Suspense>
-      <PostFX>{fp && dof && <DepthOfFieldFx />}</PostFX>
+      {pt ? (
+        <Suspense fallback={null}>
+          <PathTraceRender />
+        </Suspense>
+      ) : <PostFX>{fp && dof && <DepthOfFieldFx />}</PostFX>}
     </Canvas>
   )
 }

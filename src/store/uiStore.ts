@@ -67,9 +67,33 @@ interface UiState {
   toast: string | null
   showToast: (m: string) => void
 
+  /** 相片級算圖模式（靜態高畫質：dpr 2、MSAA、2048 陰影、柔陰影、可匯出 4K） */
+  studio: boolean
+  setStudio: (v: boolean) => void
+  /** 匯出 4K PNG 請求計數 */
+  exportNonce: number
+  requestExport: () => void
+  exporting: boolean
+  setExporting: (v: boolean) => void
+
+  /** 高品質渲染（路徑追蹤，進階） */
+  pt: PtState
+  setPt: (p: Partial<PtState>) => void
+
   /** 當前拖拉中（用來暫停破牆閃爍等） */
   dragging: boolean
   setDragging: (v: boolean) => void
+}
+
+export interface PtState {
+  active: boolean
+  samples: number
+  target: number
+  /** 1 = 全解析度；0.5 = 半解析度（較快） */
+  scale: number
+  status: 'idle' | 'building' | 'rendering' | 'done' | 'error'
+  /** 下載 PNG 的請求計數（Scene 內的渲染器收到後輸出） */
+  saveNonce: number
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined
@@ -134,6 +158,15 @@ export const useUi = create<UiState>()((set) => ({
   setPip: (p) => set((s) => ({ pip: { ...s.pip, ...p } })),
   pickedColor: null,
   setPickedColor: (pickedColor) => set({ pickedColor }),
+
+  studio: false,
+  setStudio: (studio) => set({ studio }),
+  exportNonce: 0,
+  requestExport: () => set((s) => ({ exportNonce: s.exportNonce + 1 })),
+  exporting: false,
+  setExporting: (exporting) => set({ exporting }),
+  pt: { active: false, samples: 0, target: 256, scale: 1, status: 'idle', saveNonce: 0 },
+  setPt: (p) => set((s) => ({ pt: { ...s.pt, ...p } })),
 
   toast: null,
   showToast: (toast) => {

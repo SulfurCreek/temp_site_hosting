@@ -5,6 +5,7 @@ import { kelvinToHex } from "../lib/color";
 import { useFxTier } from "../lib/fx";
 import { LIGHT_SCENES } from "../lib/lightScenes";
 import { useLayout } from "../store/layoutStore";
+import { useUi } from "../store/uiStore";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
 import { Fixtures } from "./Fixtures";
 
@@ -33,7 +34,8 @@ function FixtureRig() {
         .getHexString()
     );
   }, [kelvin]);
-  const sunMap = tier === "high" ? 2048 : 1024;
+  const studio = useUi((s) => s.studio);
+  const sunMap = studio ? 4096 : tier === "high" ? 2048 : 1024;
 
   return (
     <>

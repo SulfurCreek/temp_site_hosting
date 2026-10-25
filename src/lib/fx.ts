@@ -1,4 +1,5 @@
 import { useLayout } from '../store/layoutStore'
+import { useUi } from '../store/uiStore'
 import { useMediaQuery } from '../ui/hooks'
 
 export type FxTier = 'high' | 'medium' | 'low'
@@ -12,6 +13,8 @@ export type FxTier = 'high' | 'medium' | 'low'
 export function useFxTier(): FxTier {
   const pref = useLayout((s) => s.settings.fxQuality ?? 'auto')
   const small = useMediaQuery('(max-width: 767px)')
+  // 相片級算圖模式：靜態檢視，手機也升到 high
+  if (useUi((s) => s.studio)) return 'high'
   if (pref === 'auto') return small ? 'low' : 'high'
   return pref
 }
