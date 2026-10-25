@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 9,
+  "rev": 10,
   "name": "鴻築麗苑（柏毅 2026/10/19 施工圖）",
   "floor": {
     "center": [
@@ -1081,7 +1081,7 @@
       "position": [
         -4.145,
         0,
-        -0.22
+        -0.82
       ],
       "rotationY": 90,
       "size": [
@@ -1095,11 +1095,11 @@
       "catalogId": "sheeper-module-60",
       "name": "組綿羊 60（黑）",
       "position": [
-        -4.145,
+        -4.0,
         0,
-        -0.97
+        0.0
       ],
-      "rotationY": 90,
+      "rotationY": 60,
       "size": [
         0.6,
         0.78,
