@@ -13,7 +13,8 @@ import { MepLayer } from './Mep'
 import { Lighting } from './Lighting'
 import { DepthOfFieldFx } from './DepthOfFieldFx'
 import { PostFX } from './PostFX'
-import { FrameLoop } from '../lib/frameloop'
+import { collectCaps } from '../lib/diagnostics'
+import { FrameLoop, wake } from '../lib/frameloop'
 import { FloorContact } from './FloorContact'
 import { Walls } from './Walls'
 
@@ -60,6 +61,7 @@ export function Scene() {
       gl={{ powerPreference: 'high-performance', antialias: false, stencil: false, depth: true }}
       // 色調映射由 <PostFX /> 管理：預設 ACES Filmic（電影級層次），標準對色光時維持 Khronos Neutral（保留色票原色）
       onCreated={({ gl }) => {
+        collectCaps(gl, () => wake(2000))
         gl.toneMapping = THREE.ACESFilmicToneMapping
         gl.toneMappingExposure = 1
       }}

@@ -3,7 +3,11 @@ import { Effect, ToneMappingMode } from 'postprocessing'
 import { useMemo, type ReactNode } from 'react'
 import * as THREE from 'three'
 import { Uniform } from 'three'
+import { useThree } from '@react-three/fiber'
+import { useEffect } from 'react'
+import { reportDiag, useDiag } from '../lib/diagnostics'
 import { useFx } from '../lib/frameloop'
+import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { useLayout } from '../store/layoutStore'
 
 /** 建築攝影白平衡：色調映射前在線性空間對 RGB 微調，整體略偏暖但保持中性白牆 */
@@ -32,7 +36,32 @@ function WarmGrade() {
  * 停下 180 ms 後回到全解析度 high AO + 景深 + Bloom 的相片級畫面。
  * 標準對色光（colorProof）：只保留中性色調映射 + SMAA（Canvas 原生 antialias 已關閉）。
  */
+/** 後製管線失敗時的安全路徑：不掛 EffectComposer，只用 renderer 的色調映射（會在診斷報告中標示） */
+function SafePost({ proof }: { proof: boolean }) {
+  const gl = useThree((s) => s.gl)
+  useEffect(() => {
+    const prev = gl.toneMapping
+    gl.toneMapping = proof ? THREE.NeutralToneMapping : THREE.ACESFilmicToneMapping
+    return () => {
+      gl.toneMapping = prev
+    }
+  }, [gl, proof])
+  return null
+}
+
 export function PostFX({ children }: { children?: ReactNode }) {
+  const proof = useLayout((s) => !!s.settings.colorProof)
+  const broken = useDiag((s) => s.postBroken)
+  if (broken) return <SafePost proof={proof} />
+  return (
+    <ErrorBoundary fallback={<SafePost proof={proof} />} onError={(e) => reportDiag('postfx', e.message)}>
+      <FullPost>{children}</FullPost>
+    </ErrorBoundary>
+  )
+}
+
+function FullPost({ children }: { children?: ReactNode }) {
+  const floatRT = useDiag((s) => s.floatRT)
   const proof = useLayout((s) => !!s.settings.colorProof)
   const hq = useFx((s) => s.hq)
   const level = useFx((s) => s.level)
@@ -50,7 +79,7 @@ export function PostFX({ children }: { children?: ReactNode }) {
         intensity={3.5}
         distanceFalloff={0.8}
         quality={hq ? 'high' : 'performance'}
-        halfRes={!hq}
+        halfRes={!hq && floatRT}
         enabled={hq || level < 2}
         color="black"
       />
