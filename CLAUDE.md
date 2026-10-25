@@ -215,7 +215,7 @@ src/
 - `src/data/materials.json`：**材質庫**，`[{ id, name, brand?, code?, note?, spec: MaterialSpec }]`。建材型號（EGGER W1000 ST19、地磚、漆色…）註冊在這；UI 的「材質庫」下拉會套用 `spec`。新增型號時同時填 `code` 與 `note`（來源/估計）。
 - `src/data/mep.json`：**水電/燈具標記**，`[MepItem]`（型別見 `types.ts`）。`kind`: outlet | dedicated | weak | switch | water | track | ceiling | fan | downlight | strip；`at:[x,z]`；`h`＝離地/安裝高度（公尺）；`face`＝牆面朝向（從牆指向室內：N 朝北 -Z、S 朝南 +Z、E 朝東、W 朝西；天花板燈具省略）；`assumed:true` 表示圖面未標、為推估值；`src`＝圖面來源頁。頂部工具列 **MEP** 開關控制顯示，點標記看資訊。
 - `CatalogItem.notes?: string[]`：施工圖規格備註（板材型號、預留尺寸…），顯示在屬性面板。
-- `parametric.kind` 另有 `toilet` / `sink` / `hob`（衛浴與廚房設備）；cabinet 的 `count` = 門片數。
+- `parametric.kind` 另有 `toilet` / `sink` / `hob`（衛浴與廚房設備）、`roundtable`（單柱圓桌，`size[0]`=直徑）、`shelf`（壁掛立柱層架，`count`=層板數）；cabinet 的 `count` = 門片數。
 
 ---
 

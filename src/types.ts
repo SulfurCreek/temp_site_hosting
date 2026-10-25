@@ -46,6 +46,8 @@ export interface Wall {
   exterior: boolean
   material: MaterialSpec
   openings: Opening[]
+  /** 'railing' = 直立柵欄欄杆（下有矮牆），material = 框架色；預設實心牆 */
+  style?: 'solid' | 'railing'
 }
 
 /** 地板分區（疊在主地板上方，例如玄關落塵區磁磚、浴室、陽台） */
@@ -100,7 +102,7 @@ export interface ReferenceImage {
 
 export type FurnitureMode = 'glb' | 'parametric' | 'billboard'
 export type FaceName = 'front' | 'back' | 'left' | 'right' | 'top'
-export type ParametricKind = 'box' | 'table' | 'sofa' | 'cabinet' | 'chair' | 'bed' | 'rug' | 'toilet' | 'sink' | 'hob'
+export type ParametricKind = 'box' | 'table' | 'sofa' | 'cabinet' | 'chair' | 'bed' | 'rug' | 'toilet' | 'sink' | 'hob' | 'roundtable' | 'shelf'
 
 /** 把商品照貼在家具指定表面（模式 B） */
 export interface Decal {

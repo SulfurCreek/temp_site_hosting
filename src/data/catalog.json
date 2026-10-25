@@ -837,5 +837,131 @@
         }
       }
     }
+  },
+  {
+    "id": "rareraw-system000-shelf",
+    "name": "rareraw SYSTEM000 白色層架（W60×D30）",
+    "category": "storage",
+    "mode": "parametric",
+    "size": [
+      0.6,
+      1.5,
+      0.3
+    ],
+    "notes": [
+      "rareraw SYSTEM000 粉體塗裝鋼層板：寬 60/80、深 15/30 cm，側擋高 9.5 cm、前擋 5 cm，每片載重約 20 kg（NOSA / Sheeper 商品頁）",
+      "立柱高度、層數為依實景照估計（4 層，離地約 0.5 m 起掛）"
+    ],
+    "parametric": {
+      "kind": "shelf",
+      "count": 4,
+      "materials": {
+        "main": {
+          "color": "#f1efe9",
+          "roughness": 0.5,
+          "metalness": 0.2
+        },
+        "secondary": {
+          "color": "#e6e3dc",
+          "roughness": 0.45,
+          "metalness": 0.3
+        }
+      }
+    }
+  },
+  {
+    "id": "round-table-90",
+    "name": "圓桌（Ø90）",
+    "category": "dining",
+    "mode": "parametric",
+    "size": [
+      0.9,
+      0.75,
+      0.9
+    ],
+    "notes": [
+      "實景照為奶油白單柱圓桌；直徑 90 cm、高 75 cm 為使用者指定/常規估計"
+    ],
+    "parametric": {
+      "kind": "roundtable",
+      "materials": {
+        "main": {
+          "color": "#efe8da",
+          "roughness": 0.6,
+          "metalness": 0
+        },
+        "secondary": {
+          "color": "#efe8da",
+          "roughness": 0.6,
+          "metalness": 0
+        }
+      }
+    }
+  },
+  {
+    "id": "bal-drain",
+    "name": "陽台地板排水孔",
+    "category": "decor",
+    "mode": "parametric",
+    "size": [
+      0.15,
+      0.012,
+      0.15
+    ],
+    "notes": [],
+    "parametric": {
+      "kind": "box",
+      "materials": {
+        "main": {
+          "color": "#8e9094",
+          "roughness": 0.4,
+          "metalness": 0.8
+        }
+      }
+    }
+  },
+  {
+    "id": "bal-outlet",
+    "name": "陽台防水插座",
+    "category": "decor",
+    "mode": "parametric",
+    "size": [
+      0.08,
+      0.12,
+      0.02
+    ],
+    "notes": [],
+    "parametric": {
+      "kind": "box",
+      "materials": {
+        "main": {
+          "color": "#f4f4f2",
+          "roughness": 0.5,
+          "metalness": 0
+        }
+      }
+    }
+  },
+  {
+    "id": "bal-faucet",
+    "name": "陽台水龍頭",
+    "category": "decor",
+    "mode": "parametric",
+    "size": [
+      0.06,
+      0.1,
+      0.12
+    ],
+    "notes": [],
+    "parametric": {
+      "kind": "box",
+      "materials": {
+        "main": {
+          "color": "#b8bcc0",
+          "roughness": 0.3,
+          "metalness": 0.9
+        }
+      }
+    }
   }
 ]

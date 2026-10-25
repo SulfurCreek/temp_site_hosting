@@ -98,5 +98,29 @@
       "roughness": 0.85,
       "metalness": 0
     }
+  },
+  {
+    "id": "BAL-TILE",
+    "name": "陽台地磚（米灰 30cm 方磚、白縫）",
+    "note": "取自陽台實景照；色相已校正去除藍偏，尺寸約 30cm 為估計",
+    "spec": {
+      "color": "#ffffff",
+      "roughness": 0.7,
+      "metalness": 0,
+      "map": "builtin:tile-beige",
+      "repeat": 1
+    }
+  },
+  {
+    "id": "BAL-BRICK",
+    "name": "陽台外牆棕灰混色長條磚（粗面）",
+    "note": "取自陽台實景照；磚約 25×8cm 為估計",
+    "spec": {
+      "color": "#ffffff",
+      "roughness": 0.9,
+      "metalness": 0,
+      "map": "builtin:brick-mix",
+      "repeat": 1
+    }
   }
 ]

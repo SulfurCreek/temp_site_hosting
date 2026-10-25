@@ -184,15 +184,56 @@ function WallView({ wall, center }: { wall: Wall; center: Vec2 }) {
   )
 }
 
+/** 陽台直立柵欄：底部磚矮牆 + 上下橫桿 + 直立細條，長度/朝向與一般牆相同（以中心線定義） */
+function RailingView({ wall }: { wall: Wall }) {
+  const selected = useUi((s) => s.selection?.type === 'wall' && s.selection.id === wall.id)
+  const frame = usePBRMaterial(wall.material, { highlight: selected })
+  const bar = usePBRMaterial({ color: '#8a7660', roughness: 0.55, metalness: 0.3 })
+  const curb = usePBRMaterial({ color: '#8d9095', roughness: 0.9, metalness: 0, map: 'builtin:brick-mix', repeat: 1 })
+  const dx = wall.end[0] - wall.start[0]
+  const dz = wall.end[1] - wall.start[1]
+  const len = Math.max(Math.hypot(dx, dz), 0.01)
+  const H = wall.height
+  const ch = 0.25
+  const n = Math.max(2, Math.round(len / 0.11))
+  const geo = useMemo(() => makeMetricBox(len, ch, 0.15), [len])
+  const barGeo = useMemo(() => new THREE.BoxGeometry(0.025, H - ch - 0.05, 0.025), [H])
+  const railGeo = useMemo(() => makeMetricBox(len, 0.05, 0.05), [len])
+  return (
+    <group
+      position={[(wall.start[0] + wall.end[0]) / 2, 0, (wall.start[1] + wall.end[1]) / 2]}
+      rotation-y={-Math.atan2(dz, dx)}
+      onClick={(e) => {
+        if (useUi.getState().calib.active) return
+        e.stopPropagation()
+        useUi.getState().select({ type: 'wall', id: wall.id })
+      }}
+    >
+      <mesh geometry={geo} material={curb} position={[0, ch / 2, 0]} castShadow receiveShadow />
+      <mesh geometry={railGeo} material={frame} position={[0, H - 0.025, 0]} castShadow />
+      <mesh geometry={railGeo} material={frame} position={[0, ch + 0.025, 0]} castShadow />
+      {Array.from({ length: n + 1 }, (_, i) => (
+        <mesh
+          key={i}
+          geometry={barGeo}
+          material={bar}
+          position={[-len / 2 + 0.03 + (i * (len - 0.06)) / n, ch + 0.05 + (H - ch - 0.05) / 2, 0]}
+          castShadow
+        />
+      ))}
+    </group>
+  )
+}
+
 export function Walls() {
   const walls = useLayout((s) => s.layout.walls)
   const fc = useLayout((s) => s.layout.floor.center)
   const center = useMemo<Vec2>(() => [fc[0], fc[1]], [fc])
   return (
     <>
-      {walls.map((w) => (
-        <WallView key={w.id} wall={w} center={center} />
-      ))}
+      {walls.map((w) =>
+        w.style === 'railing' ? <RailingView key={w.id} wall={w} /> : <WallView key={w.id} wall={w} center={center} />,
+      )}
     </>
   )
 }

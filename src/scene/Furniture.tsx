@@ -232,6 +232,46 @@ function Cyl({ pos, r, h, mat }: { pos: Vec3; r: number; h: number; mat: THREE.M
   )
 }
 
+/** 圓形單柱桌：w = 桌面直徑；main = 桌面與柱身，secondary = 底座 */
+function RoundTableGen({ w, h, m }: GenProps) {
+  const r = w / 2
+  const tt = Math.min(0.04, h * 0.06)
+  return (
+    <>
+      <Cyl pos={[0, h - tt / 2, 0]} r={r} h={tt} mat={m.main} />
+      <Cyl pos={[0, (h - tt) / 2, 0]} r={r * 0.3} h={h - tt} mat={m.main} />
+      <Cyl pos={[0, 0.01, 0]} r={r * 0.42} h={0.02} mat={m.secondary} />
+    </>
+  )
+}
+
+/** 壁掛立柱層架（rareraw SYSTEM000 型）：兩支立柱 + count 片層板，層板兩側有 9.5cm 側擋、前緣 5cm 擋條 */
+function ShelfGen({ w, h, d, count, m }: GenProps) {
+  const rail = 0.02
+  const t = 0.012
+  const n = Math.max(1, count)
+  const gap = (h - 0.1) / n
+  return (
+    <>
+      {[-1, 1].map((s) => (
+        <Box key={s} pos={[s * (w / 2 - 0.05), h / 2, -d / 2 + rail / 2]} dims={[rail, h, rail]} mat={m.secondary} />
+      ))}
+      {Array.from({ length: n }, (_, i) => {
+        const y = 0.1 + i * gap
+        return (
+          <group key={i}>
+            <Box pos={[0, y, 0]} dims={[w, t, d]} mat={m.main} />
+            {[-1, 1].map((s) => (
+              <Box key={s} pos={[s * (w / 2 - t / 2), y + 0.0475, 0]} dims={[t, 0.095, d]} mat={m.main} />
+            ))}
+            <Box pos={[0, y + 0.025, d / 2 - t / 2]} dims={[w, 0.05, t]} mat={m.main} />
+          </group>
+        )
+      })}
+    </>
+  )
+}
+
 function HobGen({ w, h, d, m }: GenProps) {
   const r = Math.min(d * 0.36, w * 0.2)
   return (
@@ -287,6 +327,12 @@ function ParametricModel({
       break
     case 'hob':
       body = <HobGen {...props} />
+      break
+    case 'roundtable':
+      body = <RoundTableGen {...props} />
+      break
+    case 'shelf':
+      body = <ShelfGen {...props} />
       break
     case 'rug':
     case 'box':

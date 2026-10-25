@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 3,
+  "rev": 5,
   "name": "鴻築麗苑（柏毅 2026/10/19 施工圖）",
   "floor": {
     "center": [
@@ -60,7 +60,7 @@
     },
     {
       "id": "z-balcony",
-      "name": "工作陽台",
+      "name": "陽台地磚（米灰 30cm）",
       "center": [
         3.92,
         1.463
@@ -71,9 +71,9 @@
       ],
       "material": {
         "color": "#ffffff",
-        "roughness": 0.6,
+        "roughness": 0.7,
         "metalness": 0,
-        "map": "builtin:tile-gray",
+        "map": "builtin:tile-beige",
         "repeat": 1
       }
     },
@@ -475,11 +475,12 @@
       "thickness": 0.06,
       "exterior": false,
       "material": {
-        "color": "#F7F5F0",
-        "roughness": 0.65,
-        "metalness": 0
+        "color": "#2b2622",
+        "roughness": 0.5,
+        "metalness": 0.4
       },
-      "openings": []
+      "openings": [],
+      "style": "railing"
     },
     {
       "id": "rail-s",
@@ -496,11 +497,67 @@
       "thickness": 0.06,
       "exterior": false,
       "material": {
-        "color": "#F7F5F0",
-        "roughness": 0.65,
-        "metalness": 0
+        "color": "#2b2622",
+        "roughness": 0.5,
+        "metalness": 0.4
+      },
+      "openings": [],
+      "style": "railing"
+    },
+    {
+      "id": "bal-clad-n",
+      "name": "陽台北牆（棕灰長條磚）",
+      "start": [
+        3.2,
+        -0.014
+      ],
+      "end": [
+        4.6,
+        -0.014
+      ],
+      "height": 2.6,
+      "thickness": 0.02,
+      "exterior": false,
+      "material": {
+        "color": "#ffffff",
+        "roughness": 0.9,
+        "metalness": 0,
+        "map": "builtin:brick-mix",
+        "repeat": 1
       },
       "openings": []
+    },
+    {
+      "id": "bal-clad-w",
+      "name": "陽台西牆（棕灰長條磚，含落地門洞）",
+      "start": [
+        3.25,
+        -0.014
+      ],
+      "end": [
+        3.25,
+        2.95
+      ],
+      "height": 2.6,
+      "thickness": 0.02,
+      "exterior": false,
+      "material": {
+        "color": "#ffffff",
+        "roughness": 0.9,
+        "metalness": 0,
+        "map": "builtin:brick-mix",
+        "repeat": 1
+      },
+      "openings": [
+        {
+          "id": "bal-door",
+          "type": "door",
+          "at": 1.424,
+          "width": 1.58,
+          "height": 2.07,
+          "sill": 0.12
+        }
+      ]
     }
   ],
   "furniture": [
@@ -826,6 +883,102 @@
         0.6,
         0.85,
         0.6
+      ]
+    },
+    {
+      "id": "f-shelf",
+      "catalogId": "rareraw-system000-shelf",
+      "name": "rareraw 白色層架",
+      "position": [
+        0.4,
+        0.5,
+        2.735
+      ],
+      "rotationY": 180,
+      "size": [
+        0.6,
+        1.5,
+        0.3
+      ]
+    },
+    {
+      "id": "f-round",
+      "catalogId": "round-table-90",
+      "name": "90cm 圓桌",
+      "position": [
+        1.0,
+        0,
+        1.2
+      ],
+      "rotationY": 0,
+      "size": [
+        0.9,
+        0.75,
+        0.9
+      ]
+    },
+    {
+      "id": "bal-o1",
+      "catalogId": "bal-outlet",
+      "name": "陽台插座 1",
+      "position": [
+        3.85,
+        0.3,
+        0.0
+      ],
+      "rotationY": 0,
+      "size": [
+        0.08,
+        0.12,
+        0.02
+      ]
+    },
+    {
+      "id": "bal-o2",
+      "catalogId": "bal-outlet",
+      "name": "陽台插座 2",
+      "position": [
+        3.99,
+        0.3,
+        0.0
+      ],
+      "rotationY": 0,
+      "size": [
+        0.08,
+        0.12,
+        0.02
+      ]
+    },
+    {
+      "id": "bal-faucet",
+      "catalogId": "bal-faucet",
+      "name": "陽台水龍頭",
+      "position": [
+        4.3,
+        0.6,
+        0.07
+      ],
+      "rotationY": 0,
+      "size": [
+        0.06,
+        0.1,
+        0.12
+      ]
+    },
+    {
+      "id": "bal-drain",
+      "catalogId": "bal-drain",
+      "name": "陽台排水孔",
+      "position": [
+        4.2,
+        0.003,
+        2.7
+      ],
+      "rotationY": 0,
+      "size": [
+        0.15,
+        0.012,
+        0.15
       ]
     }
   ],

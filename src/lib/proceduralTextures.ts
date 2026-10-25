@@ -13,6 +13,8 @@ export const BUILTIN_TEXTURES = [
   { id: 'builtin:fabric', label: '織布' },
   { id: 'builtin:marble', label: '大理石' },
   { id: 'builtin:encaustic', label: '八角花磚' },
+  { id: 'builtin:tile-beige', label: '陽台米灰方磚（30cm）' },
+  { id: 'builtin:brick-mix', label: '陽台棕灰混色長條磚' },
 ] as const
 
 /** 可重現的偽亂數，讓每次生成的貼圖一致 */
@@ -224,6 +226,57 @@ function encaustic() {
   return cv
 }
 
+/** 陽台地磚：30 cm 米灰方磚 + 白縫（每公尺 3×3，微幅色差） */
+function tileBeige() {
+  const cv = document.createElement('canvas')
+  cv.width = cv.height = SIZE
+  const g = cv.getContext('2d')!
+  const r = rng(31)
+  const n = 3
+  const s = SIZE / n
+  g.fillStyle = '#e9e6df'
+  g.fillRect(0, 0, SIZE, SIZE)
+  for (let i = 0; i < n; i++)
+    for (let j = 0; j < n; j++) {
+      g.fillStyle = shade('#c3b4a2', 0.95 + r() * 0.1)
+      g.fillRect(i * s + 2, j * s + 2, s - 4, s - 4)
+    }
+  for (let k = 0; k < 2500; k++) {
+    g.fillStyle = `rgba(${r() > 0.5 ? '255,255,255' : '90,70,50'},${0.05 + r() * 0.08})`
+    g.fillRect(r() * SIZE, r() * SIZE, 2, 2)
+  }
+  return cv
+}
+
+/** 陽台外牆：棕灰混色粗面長條磚，約 25×8 cm（每公尺 4 欄 × 12 列），半塊錯縫 */
+function brickMix() {
+  const cv = document.createElement('canvas')
+  cv.width = cv.height = SIZE
+  const g = cv.getContext('2d')!
+  const r = rng(53)
+  const cols = 4
+  const rows = 12
+  const bw = SIZE / cols
+  const bh = SIZE / rows
+  const tones = ['#8d7459', '#7a6350', '#6a5a4b', '#54483e', '#9a8268']
+  g.fillStyle = '#8c8173'
+  g.fillRect(0, 0, SIZE, SIZE)
+  for (let j = 0; j < rows; j++) {
+    const off = j % 2 ? bw / 2 : 0
+    for (let i = -1; i < cols; i++) {
+      g.fillStyle = shade(tones[Math.floor(r() * tones.length)], 0.94 + r() * 0.12)
+      const x = i * bw + off
+      g.fillRect(x + 1.5, j * bh + 1.5, bw - 3, bh - 3)
+      if (x + bw > SIZE) g.fillRect(x - SIZE + 1.5, j * bh + 1.5, bw - 3, bh - 3)
+    }
+  }
+  for (let k = 0; k < 6000; k++) {
+    g.fillStyle = `rgba(${r() > 0.5 ? '255,240,220' : '20,15,10'},${0.05 + r() * 0.1})`
+    g.fillRect(r() * SIZE, r() * SIZE, 2, 2)
+  }
+  return cv
+}
+
 const makers: Record<string, () => HTMLCanvasElement> = {
   'builtin:oak': () => wood('#c9a171', 5, 3),
   'builtin:oak-light': () => wood('#dcc8a6', 5, 5),
@@ -234,6 +287,8 @@ const makers: Record<string, () => HTMLCanvasElement> = {
   'builtin:fabric': fabric,
   'builtin:marble': marble,
   'builtin:encaustic': encaustic,
+  'builtin:tile-beige': tileBeige,
+  'builtin:brick-mix': brickMix,
 }
 
 const cache = new Map<string, HTMLCanvasElement>()
