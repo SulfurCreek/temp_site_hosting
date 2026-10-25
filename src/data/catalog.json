@@ -1054,20 +1054,19 @@
     }
   },
   {
-    "id": "sheeper-modular-sheep-90-60-90",
-    "name": "Sheeper 組綿羊模組沙發（90+60+90）",
+    "id": "sheeper-module-90",
+    "name": "Sheeper 組綿羊 90 單椅（橄欖綠）",
     "category": "living",
     "mode": "parametric",
     "size": [
-      2.4,
+      0.9,
       0.78,
       0.9
     ],
     "notes": [
-      "Sheeper 官網：單椅 90/65 cm 寬 × 95 深 × 78 高；椅凳高 43 cm（座面約 43 cm）；頭靠 50×15×20 cm；取下背靠座深可由 65 擴至 90",
-      "本件為 90+60+90 三模組併排，深度依使用者指定 90 cm；60 cm 模組為黑色，兩個 90 cm 為橄欖綠貓抓布",
-      "腳高、靠背厚度、圓柱頭靠半徑為依官網尺寸與實景照的估計",
-      "顏色 Hex 為估計值（官網未公開），請以實體布樣確認"
+      "Sheeper 組綿羊單模組（官網：單椅 90/65×95×78、座面約 43 cm、頭靠 50×15×20）；深度依使用者指定 90 cm",
+      "貓抓布；橄欖綠 / 黑色 Hex 為估計（官網未公開），請以實體布樣確認",
+      "與其他模組併排時側面緊貼；腳高、靠背厚度、頭靠半徑為估計"
     ],
     "parametric": {
       "kind": "modsofa",
@@ -1075,17 +1074,113 @@
         {
           "w": 0.9,
           "mat": "main"
+        }
+      ],
+      "materials": {
+        "main": {
+          "color": "#5a5f34",
+          "roughness": 0.92,
+          "metalness": 0,
+          "archetype": "fabric_scratch",
+          "clearcoat": 0,
+          "clearcoatRoughness": 0.5,
+          "reflectivity": 0.3,
+          "bumpScale": 0.9
         },
-        {
-          "w": 0.6,
-          "mat": "accent"
+        "secondary": {
+          "color": "#2a2a2c",
+          "roughness": 0.5,
+          "metalness": 0.2
         },
+        "accent": {
+          "color": "#1e1e20",
+          "roughness": 0.92,
+          "metalness": 0,
+          "archetype": "fabric_scratch",
+          "clearcoat": 0,
+          "clearcoatRoughness": 0.5,
+          "reflectivity": 0.3,
+          "bumpScale": 0.9
+        }
+      }
+    }
+  },
+  {
+    "id": "sheeper-module-90-head",
+    "name": "Sheeper 組綿羊 90 單椅＋頭靠（橄欖綠）",
+    "category": "living",
+    "mode": "parametric",
+    "size": [
+      0.9,
+      0.78,
+      0.9
+    ],
+    "notes": [
+      "Sheeper 組綿羊單模組（官網：單椅 90/65×95×78、座面約 43 cm、頭靠 50×15×20）；深度依使用者指定 90 cm",
+      "貓抓布；橄欖綠 / 黑色 Hex 為估計（官網未公開），請以實體布樣確認",
+      "與其他模組併排時側面緊貼；腳高、靠背厚度、頭靠半徑為估計"
+    ],
+    "parametric": {
+      "kind": "modsofa",
+      "modules": [
         {
           "w": 0.9,
           "mat": "main"
         }
       ],
-      "headrest": 0.5,
+      "materials": {
+        "main": {
+          "color": "#5a5f34",
+          "roughness": 0.92,
+          "metalness": 0,
+          "archetype": "fabric_scratch",
+          "clearcoat": 0,
+          "clearcoatRoughness": 0.5,
+          "reflectivity": 0.3,
+          "bumpScale": 0.9
+        },
+        "secondary": {
+          "color": "#2a2a2c",
+          "roughness": 0.5,
+          "metalness": 0.2
+        },
+        "accent": {
+          "color": "#1e1e20",
+          "roughness": 0.92,
+          "metalness": 0,
+          "archetype": "fabric_scratch",
+          "clearcoat": 0,
+          "clearcoatRoughness": 0.5,
+          "reflectivity": 0.3,
+          "bumpScale": 0.9
+        }
+      },
+      "headrest": 0.5
+    }
+  },
+  {
+    "id": "sheeper-module-60",
+    "name": "Sheeper 組綿羊 60 單椅（黑）",
+    "category": "living",
+    "mode": "parametric",
+    "size": [
+      0.6,
+      0.78,
+      0.9
+    ],
+    "notes": [
+      "Sheeper 組綿羊單模組（官網：單椅 90/65×95×78、座面約 43 cm、頭靠 50×15×20）；深度依使用者指定 90 cm",
+      "貓抓布；橄欖綠 / 黑色 Hex 為估計（官網未公開），請以實體布樣確認",
+      "與其他模組併排時側面緊貼；腳高、靠背厚度、頭靠半徑為估計"
+    ],
+    "parametric": {
+      "kind": "modsofa",
+      "modules": [
+        {
+          "w": 0.6,
+          "mat": "accent"
+        }
+      ],
       "materials": {
         "main": {
           "color": "#5a5f34",
