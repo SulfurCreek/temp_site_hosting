@@ -1,0 +1,18 @@
+{
+  "_doc": "第一人稱立足點資料（鴻築麗苑）。座標單位公尺，[x, z]（+X 東、+Z 南）。floor 與目前格局的 center/size 完全相符時才套用（匯入其他格局時退回地板外框 + 無預設點）。pos = 站立位置，look = 視線落點；yaw 由兩者推算。標記 estimated 的點，因圖面未標明家具（例如沙發尚未擺放），位置為依格局推估。",
+  "floor": { "center": [-0.175, -0.1475], "size": [8.85, 6.065] },
+  "ceilingHeight": 2.6,
+  "ceiling": [
+    [-4.675, -2.62], [0.44, -2.62], [0.44, -3.255], [4.4, -3.255],
+    [4.4, -0.074], [3.14, -0.074], [3.14, 2.96], [-4.675, 2.96]
+  ],
+  "extraWalk": [{ "id": "balcony", "center": [3.92, 1.463], "size": [1.2, 2.9] }],
+  "hotspots": [
+    { "id": "foyer", "name": "玄關進門", "pos": [-4.15, 2.15], "look": [-1.0, 0.9], "eye": "stand", "note": "站在左下落塵區，往客餐廳與儲藏室看（門位置取自圖面 door-main）", "estimated": false },
+    { "id": "living", "name": "客廳沙發", "pos": [1.7, 0.5], "look": [-0.6, 1.1], "eye": "sit", "note": "沙發尚未擺放：以客廳東側、冰箱左方推估坐位，面向電視半牆與廚房", "estimated": true },
+    { "id": "kitchen", "name": "廚房料理", "pos": [1.89, 2.05], "look": [-2.0, 0.3], "eye": "stand", "note": "站在 230cm 廚具正前方（廚具前緣 + 約 45cm），往客廳與次臥看", "estimated": false },
+    { "id": "master-door", "name": "主臥門口", "pos": [1.06, 0.0], "look": [2.2, -2.2], "eye": "stand", "note": "站在 75cm 滑門（door-master）處，看 155×200 雙人床與 200cm 衣櫃", "estimated": false },
+    { "id": "master-bed", "name": "主臥床上", "pos": [3.16, -2.75], "look": [2.6, -0.6], "eye": "sit", "note": "假設床頭靠北牆：坐在床頭往床尾電視與衣櫃看（床頭方向為推估）", "estimated": true },
+    { "id": "second", "name": "次臥 / 多功能房", "pos": [-1.75, -0.2], "look": [-3.2, -2.6], "eye": "stand", "note": "次臥入口圖面無門：取半牆（part-tv）旁開口，往北側窗邊看（位置為推估）", "estimated": true }
+  ]
+}

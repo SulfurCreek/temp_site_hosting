@@ -192,6 +192,26 @@ export type CutawayMode = 'lower' | 'ghost' | 'off'
 export type ToolMode = 'drag' | 'move' | 'rotate'
 export type Kelvin = 3000 | 4000 | 6000
 export type ViewPreset = 'SE' | 'SW' | 'NE' | 'NW' | 'TOP'
+export type ViewMode = 'isometric' | 'firstPerson'
+export type EyeMode = 'stand' | 'sit' | 'robot'
+
+/** 第一人稱立足點預設點與天花板外框（src/data/vantage.json） */
+export interface VantageHotspot {
+  id: string
+  name: string
+  pos: Vec2
+  look: Vec2
+  eye: EyeMode
+  note?: string
+  estimated?: boolean
+}
+export interface VantageData {
+  floor: { center: Vec2; size: Vec2 }
+  ceilingHeight: number
+  ceiling: Vec2[]
+  extraWalk?: { id: string; center: Vec2; size: Vec2 }[]
+  hotspots: VantageHotspot[]
+}
 
 /** 水電 / 燈具標記點。座標 [x, z]，高度 h 皆為公尺。 */
 export type MepKind = 'outlet' | 'dedicated' | 'weak' | 'switch' | 'water' | 'track' | 'ceiling' | 'fan' | 'downlight' | 'strip'

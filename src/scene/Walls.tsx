@@ -134,7 +134,8 @@ function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: nu
   }, [pieces, wall.thickness, wall.height])
 
   useFrame(({ camera }, dt) => {
-    const mode = useLayout.getState().settings.cutaway
+    // 第一人稱：強制關閉破牆，所有牆 100% 完整高度與不透明
+    const mode = useUi.getState().viewMode === 'firstPerson' ? 'off' : useLayout.getState().settings.cutaway
     let target = 0
     if (wall.exterior && mode !== 'off') {
       // 相機相對房間中心的水平方向 v；牆外法線 n 與 v 內積大 → 該牆擋在鏡頭與房間之間

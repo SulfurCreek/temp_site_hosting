@@ -43,12 +43,15 @@ export function useHotkeys() {
         e.preventDefault()
         deleteSelected()
       } else if (e.key === ' ') {
+        if (useUi.getState().viewMode === 'firstPerson') return
         if ((e.target as HTMLElement | null)?.tagName === 'BUTTON') return
         e.preventDefault()
         cycleView()
       } else if (e.key === 'Escape') {
         const ui = useUi.getState()
-        if (ui.calib.active) ui.endCalib()
+        if (ui.viewMode === 'firstPerson') ui.setViewMode('isometric')
+        else if (ui.placing) ui.setPlacing(false)
+        else if (ui.calib.active) ui.endCalib()
         else if (ui.moving) ui.setMoving(false)
         else ui.select(null)
       }
