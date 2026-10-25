@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 10,
+  "rev": 11,
   "name": "鴻築麗苑（柏毅 2026/10/19 施工圖）",
   "floor": {
     "center": [
@@ -951,7 +951,7 @@
       "catalogId": "round-table-90",
       "name": "90cm 圓桌",
       "position": [
-        -0.5,
+        -0.3,
         0,
         0.45
       ],
