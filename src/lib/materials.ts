@@ -4,7 +4,7 @@ import type { MaterialSpec } from '../types'
 import { ARCHETYPES } from './archetypes'
 import { ROUGH_MEAN, getDerivedMicro, getStandaloneMicro } from './microTextures'
 import { ARCHETYPE_PBR, PBR_SETS, loadPbrSet, type LoadedPbr } from './pbrTextures'
-import { loadBaseTexture } from './textures'
+import { loadBaseTexture, sharedClone } from './textures'
 
 export const PAINT_FINISHES = [
   { id: 'flat', label: '平光', roughness: 0.95 },
@@ -38,12 +38,7 @@ interface ScanTex {
 
 /** 每個材質各自 clone（repeat 不互相影響；底層 image 共用，GPU 只上傳一次） */
 function cloneScan(l: LoadedPbr): ScanTex {
-  const c = (t?: THREE.Texture) => {
-    if (!t) return undefined
-    const k = t.clone()
-    k.needsUpdate = true
-    return k
-  }
+  const c = (t?: THREE.Texture) => (t ? sharedClone(t) : undefined)
   const albedo = c(l.albedo)
   const normal = c(l.normal)
   const rough = c(l.rough)
@@ -57,12 +52,18 @@ function cloneScan(l: LoadedPbr): ScanTex {
   }
 }
 
+/** 同一張 canvas 只建立一個基底貼圖；各材質拿到的是共用 GPU 記憶體的 clone（原本每個材質各上傳一份） */
+const microBase = new WeakMap<HTMLCanvasElement, THREE.CanvasTexture>()
 function microTexture(cv: HTMLCanvasElement, color: boolean) {
-  const t = new THREE.CanvasTexture(cv)
-  t.wrapS = t.wrapT = THREE.RepeatWrapping
-  t.colorSpace = color ? THREE.SRGBColorSpace : THREE.NoColorSpace
-  t.anisotropy = 8
-  return t
+  let t = microBase.get(cv)
+  if (!t) {
+    t = new THREE.CanvasTexture(cv)
+    t.wrapS = t.wrapT = THREE.RepeatWrapping
+    t.colorSpace = color ? THREE.SRGBColorSpace : THREE.NoColorSpace
+    t.anisotropy = 8
+    microBase.set(cv, t)
+  }
+  return sharedClone(t)
 }
 
 /**
@@ -113,8 +114,7 @@ export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
     loadBaseTexture(spec.map)
       .then((base) => {
         if (!alive) return
-        clone = base.clone()
-        clone.needsUpdate = true
+        clone = sharedClone(base)
         setTex(clone)
       })
       .catch((e) => {
