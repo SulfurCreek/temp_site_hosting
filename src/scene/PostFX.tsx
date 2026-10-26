@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { Uniform } from 'three'
 import { useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
-import { reportDiag, useDiag } from '../lib/diagnostics'
+import { getSafeLevel, reportDiag, useDiag } from '../lib/diagnostics'
 import { useFx } from '../lib/frameloop'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { useLayout } from '../store/layoutStore'
@@ -52,7 +52,7 @@ function SafePost({ proof }: { proof: boolean }) {
 export function PostFX({ children }: { children?: ReactNode }) {
   const proof = useLayout((s) => !!s.settings.colorProof)
   const broken = useDiag((s) => s.postBroken)
-  if (broken) return <SafePost proof={proof} />
+  if (broken || getSafeLevel() >= 2) return <SafePost proof={proof} />
   return (
     <ErrorBoundary fallback={<SafePost proof={proof} />} onError={(e) => reportDiag('postfx', e.message)}>
       <FullPost>{children}</FullPost>

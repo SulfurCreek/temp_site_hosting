@@ -24,6 +24,48 @@ interface DiagState {
 export const useDiag = create<DiagState>(() => ({ items: [], contextLost: false, caps: null, postBroken: false, floatRT: true }))
 
 const STORE_KEY = 'interior-planner:diag'
+const SAFE_KEY = 'interior-planner:safe'
+const RELOAD_KEY = 'interior-planner:autoreload'
+
+/**
+ * 自動畫質保險：只有在這台裝置「實際發生過 WebGL context lost」之後才會啟用，沒出過事的裝置永遠是完整畫質。
+ * 0 = 完整；1 = 解析度上限 1.5；2 = 再關閉後製（AO / 景深 / Bloom）；3 = 再關閉陰影、解析度 1。
+ * 用 ?hq=1 或診斷面板的「嘗試完整畫質」可重設。
+ */
+export function getSafeLevel(): 0 | 1 | 2 | 3 {
+  try {
+    if (/[?&]hq=1/.test(location.search)) {
+      localStorage.removeItem(SAFE_KEY)
+      sessionStorage.removeItem(RELOAD_KEY)
+      return 0
+    }
+    const n = Number(localStorage.getItem(SAFE_KEY) ?? 0)
+    return (n >= 3 ? 3 : n >= 2 ? 2 : n >= 1 ? 1 : 0) as 0 | 1 | 2 | 3
+  } catch {
+    return 0
+  }
+}
+export function resetSafeLevel() {
+  try {
+    localStorage.removeItem(SAFE_KEY)
+    sessionStorage.removeItem(RELOAD_KEY)
+  } catch {
+    /* ignore */
+  }
+  location.reload()
+}
+/** context lost 後提高保險等級並自動重新載入（每個分頁最多 3 次，避免無限重載） */
+export function escalateAndReload() {
+  try {
+    localStorage.setItem(SAFE_KEY, String(Math.min(3, getSafeLevel() + 1)))
+    const n = Number(sessionStorage.getItem(RELOAD_KEY) ?? 0)
+    if (n >= 3) return
+    sessionStorage.setItem(RELOAD_KEY, String(n + 1))
+    setTimeout(() => location.reload(), 900)
+  } catch {
+    /* ignore */
+  }
+}
 const IGNORE = /THREE\.Clock|THREE\.Timer|ErrorBoundary/
 const BAD = /framebuffer|incomplete|program info log|shader|compile|link|INVALID_|GL_INVALID|context lost|out of memory/i
 
@@ -86,6 +128,7 @@ export function collectCaps(gl: WebGLRenderer, onRestore: () => void) {
     e.preventDefault()
     useDiag.setState({ contextLost: true })
     reportDiag('context', 'WebGL context lost（通常是記憶體不足或 GPU 被系統回收）')
+    escalateAndReload()
   })
   el.addEventListener('webglcontextrestored', () => {
     useDiag.setState({ contextLost: false })
