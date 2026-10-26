@@ -15,6 +15,7 @@ import { DepthOfFieldFx } from './DepthOfFieldFx'
 import { PostFX } from './PostFX'
 import { collectCaps, getSafeLevel, probeWebGL } from '../lib/diagnostics'
 import { FrameLoop, wake } from '../lib/frameloop'
+import { initTextureCompression } from '../lib/pbrTextures'
 import { FloorContact } from './FloorContact'
 import { Walls } from './Walls'
 
@@ -88,9 +89,12 @@ function SceneCanvas({ attrs, safe }: { attrs: WebGLContextAttributes; safe: 0 |
       frameloop="demand"
       dpr={safe >= 3 ? 1 : safe >= 1 ? [1, 1.5] : [1.5, 2]}
       gl={attrs}
+      // 尺寸變動時所有全螢幕緩衝都要重新配置；iOS 工具列伸縮會連續觸發，合併成一次（不監聽面板捲動）
+      resize={{ scroll: false, debounce: { scroll: 50, resize: 150 } }}
       // 色調映射由 <PostFX /> 管理：預設 ACES Filmic（電影級層次），標準對色光時維持 Khronos Neutral（保留色票原色）
       onCreated={({ gl }) => {
         collectCaps(gl, () => wake(2000))
+        initTextureCompression(gl)
         gl.toneMapping = THREE.ACESFilmicToneMapping
         gl.toneMappingExposure = 1
       }}

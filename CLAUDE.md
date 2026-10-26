@@ -307,12 +307,18 @@ src/
 - 燈具：`src/scene/Fixtures.tsx` 位置全取自 `mep.json`，固定 4000K、全迴路開啟。軌道燈頭瞄準點寫在該檔 `TRACK_AIM`。
 - `PostFX.tsx` 順序 N8AO → **children（景深，只在定格時掛）** → Bloom → WarmGrade → ToneMapping(ACES) → Vignette → SMAA；Canvas 原生 `antialias:false, stencil:false`。標準對色光（`colorProof`，不沿用存檔）只有 Neutral 色調映射 + SMAA。
 
+### GPU 記憶體（iPhone Safari 的 WebGL 超過上限會整個 context 被收掉）
+- `src/lib/gpuLean.ts`：N8AO 合成結果直接寫進 composer 的 outputBuffer（省掉自己的全解析度 RGBA16F 與一次全螢幕複製）、N8AO 累積緩衝 RGBA8、composer stable depth 與點光源 cube 陰影的色彩附件改 R8。都是「配置了但內容不被讀或重複」的緩衝，畫面輸出不變。
+- 新增投影燈：點光源要掛 `ref={leanPointShadow}`；新增全螢幕效果前先估算 dpr 2（786×1704）時的 MB 數。
+- 量測方式：Playwright 以 393×852 @2x 載入，攔截 WebGL `texStorage2D / texImage2D / renderbufferStorage` 累加位元組（`scripts/gpu-mem/measure.cjs`）。
+
 ### PBR 掃描貼圖與 HDRI（Poly Haven, CC0）
 - `scripts/optimize-textures.mjs`（`--max 1024`，`--dry` 先看結果）壓縮 / 縮小貼圖；地板與磁磚組預設維持 2048。
 - `node scripts/fetch-textures.mjs` 會下載原始檔；**提交進 repo 的是瘦身後的版本**：地板 / 磁磚 2k（diffuse / normal / 單通道 roughness，約 2.6 MB 一組），板材微紋理 1k，無 AO 圖（AO 由 N8AO 即時算），HDRI 只留 `public/hdri/interior-1k.hdr`。總量約 8 MB。
 - `MaterialSpec.pbr = '<slug>'` 綁定（`src/lib/pbrTextures.ts` 的 `PBR_SETS`，`meters` = 一張涵蓋的公尺數、`size` = 檔案解析度）。`pbr: false` 強制停用。`egger_st19` / `egger_st9` archetype 預設自動套用（只取 Normal + Roughness）。
 - 對應：ED-KS81555 → `laminate_floor_02`；CW025501 → `large_grey_tiles`；EGGER ST19 → `white_oak_veneer`；ST9 → `grey_plaster_02`。⚠️ 皆為最接近的替代品，非同型號。
-- 材質用到才載入；已載入的貼圖共用同一份 GPU 上傳。
+- 材質用到才載入；已載入的貼圖共用同一份 GPU 上傳（clone 一律用 `textures.ts` 的 `sharedClone()`，不要 `clone()` 後設 `needsUpdate`，那會讓大圖重傳）。
+- **KTX2**：`node scripts/encode-ktx2.mjs` 把每張 JPG 轉成同名 `.ktx2`（UASTC + Zstd + mipmap，編碼時已 Y 翻轉），`node scripts/check-ktx2.mjs` 印出與 JPG 的 PSNR（目前 43–50 dB）。執行期在支援 ASTC / BC7 的裝置載 KTX2（`public/basis/` 轉碼器），否則載 JPG；`?ktx2=0` 強制 JPG。**改了 JPG 要重跑 encode**，粗糙度圖的平均值（`PBR_SETS[].roughMean`）也要更新。
 
 ## 資料檔注意事項
 

@@ -1,12 +1,13 @@
 import { Bloom, EffectComposer, N8AO, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing'
 import { Effect, ToneMappingMode } from 'postprocessing'
-import { useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
 import { Uniform } from 'three'
 import { useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
 import { getSafeLevel, reportDiag, useDiag } from '../lib/diagnostics'
 import { useFx } from '../lib/frameloop'
+import { leanN8AO } from '../lib/gpuLean'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { useLayout } from '../store/layoutStore'
 
@@ -74,6 +75,7 @@ function FullPost({ children }: { children?: ReactNode }) {
   const proof = useLayout((s) => !!s.settings.colorProof)
   const hq = useFx((s) => s.hq)
   const level = useFx((s) => s.level)
+  const aoRef = useCallback((p: unknown) => leanN8AO(p), [])
   if (stage === 0) return <SafePost proof={proof} />
   if (proof)
     return (
@@ -85,6 +87,7 @@ function FullPost({ children }: { children?: ReactNode }) {
   return (
     <EffectComposer multisampling={0} enableNormalPass={false}>
       <N8AO
+        ref={aoRef}
         aoRadius={0.4}
         intensity={3.5}
         distanceFalloff={0.8}

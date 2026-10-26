@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { MEP_ITEMS } from '../data'
 import type { MepItem } from '../types'
+import { leanPointShadow } from '../lib/gpuLean'
 
 /**
  * 燈具圖的真實光源：位置全部取自 src/data/mep.json（track / ceiling / fan / downlight / strip）。
@@ -148,6 +149,7 @@ function CeilingLamp({ it, k, color }: { it: MepItem; k: number; color: string }
         intensity={(it.id === 'ce-bath' ? 5 : 9) * GAIN * k}
         distance={0}
         decay={1.8}
+        ref={shadow ? leanPointShadow : undefined}
         castShadow={shadow}
         shadow-mapSize={[1024, 1024]}
         shadow-bias={-0.0008}
