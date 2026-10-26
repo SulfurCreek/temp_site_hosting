@@ -97,3 +97,33 @@ export function diagReport() {
   const s = useDiag.getState()
   return JSON.stringify({ at: new Date().toISOString(), caps: s.caps, contextLost: s.contextLost, postBroken: s.postBroken, items: s.items }, null, 2)
 }
+
+const ATTR_TRIES: WebGLContextAttributes[] = [
+  { powerPreference: 'high-performance', antialias: false, stencil: false, depth: true },
+  { antialias: false, stencil: false, depth: true },
+  { antialias: false },
+]
+
+/** 在拋棄式 canvas 上試建 WebGL2 並驗證可用（getShaderPrecisionFormat 非 null、未 lost）；回傳第一組可用屬性，全部失敗回 null */
+export async function probeWebGL(): Promise<WebGLContextAttributes | null> {
+  for (let round = 0; round < 3; round++) {
+    for (const a of ATTR_TRIES) {
+      const cv = document.createElement('canvas')
+      let ok = false
+      try {
+        const c = cv.getContext('webgl2', a) as WebGL2RenderingContext | null
+        ok = !!c && !c.isContextLost() && !!c.getShaderPrecisionFormat(c.VERTEX_SHADER, c.HIGH_FLOAT) && !!c.getShaderPrecisionFormat(c.FRAGMENT_SHADER, c.HIGH_FLOAT)
+        if (!ok) reportDiag('probe', `WebGL2 探測失敗 ${JSON.stringify(a)}：${c ? (c.isContextLost() ? 'context 已失效' : 'precision=null') : 'getContext 回傳 null'}`)
+        c?.getExtension('WEBGL_lose_context')?.loseContext()
+      } catch (e) {
+        reportDiag('probe', `WebGL2 探測例外：${(e as Error).message}`)
+      }
+      if (ok) {
+        if (a !== ATTR_TRIES[0]) reportDiag('info', `改用較保守的 WebGL 屬性 ${JSON.stringify(a)}`)
+        return a
+      }
+    }
+    await new Promise((r) => setTimeout(r, 400))
+  }
+  return null
+}

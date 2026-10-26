@@ -1,5 +1,5 @@
 import { Canvas, useThree } from '@react-three/fiber'
-import { Suspense, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import * as THREE from 'three'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
@@ -13,7 +13,7 @@ import { MepLayer } from './Mep'
 import { Lighting } from './Lighting'
 import { DepthOfFieldFx } from './DepthOfFieldFx'
 import { PostFX } from './PostFX'
-import { collectCaps } from '../lib/diagnostics'
+import { collectCaps, probeWebGL } from '../lib/diagnostics'
 import { FrameLoop, wake } from '../lib/frameloop'
 import { FloorContact } from './FloorContact'
 import { Walls } from './Walls'
@@ -51,14 +51,35 @@ function Backdrop() {
   return <color attach="background" args={['#e8ecf1']} />
 }
 
+/** 先用拋棄式 canvas 試建 WebGL2，挑出能正常運作的屬性組合再掛 R3F（iOS 上 context 可能一建立就失效） */
 export function Scene() {
+  const [attrs, setAttrs] = useState<WebGLContextAttributes | null | undefined>(undefined)
+  useEffect(() => {
+    let off = false
+    probeWebGL().then((a) => !off && setAttrs(a))
+    return () => {
+      off = true
+    }
+  }, [])
+  if (attrs === undefined) return null
+  if (attrs === null) {
+    return (
+      <div className="flex h-full w-full items-center justify-center p-8 text-center text-sm text-rose-200">
+        無法建立 WebGL（裝置拒絕或記憶體不足）。請關閉其他分頁後重新整理，並點左上角診斷按鈕複製報告回報。
+      </div>
+    )
+  }
+  return <SceneCanvas attrs={attrs} />
+}
+
+function SceneCanvas({ attrs }: { attrs: WebGLContextAttributes }) {
   const fp = useUi((s) => s.viewMode) === 'firstPerson'
   return (
     <Canvas
       shadows="percentage"
       frameloop="demand"
       dpr={[1.5, 2]}
-      gl={{ powerPreference: 'high-performance', antialias: false, stencil: false, depth: true }}
+      gl={attrs}
       // 色調映射由 <PostFX /> 管理：預設 ACES Filmic（電影級層次），標準對色光時維持 Khronos Neutral（保留色票原色）
       onCreated={({ gl }) => {
         collectCaps(gl, () => wake(2000))
