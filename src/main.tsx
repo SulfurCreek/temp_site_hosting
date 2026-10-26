@@ -4,7 +4,7 @@ import './index.css'
 import App from './App'
 import { useLayout } from './store/layoutStore'
 import { useUi } from './store/uiStore'
-import { escalateAndReload, installDiagnostics, reportDiag } from './lib/diagnostics'
+import { retryLater, installDiagnostics, reportDiag } from './lib/diagnostics'
 import { ErrorBoundary } from './ui/ErrorBoundary'
 
 installDiagnostics()
@@ -17,7 +17,7 @@ createRoot(document.getElementById('root')!).render(
     <ErrorBoundary
       onError={(e) => {
         reportDiag('crash', e.message)
-        if (/getShaderPrecisionFormat|context/i.test(e.message)) escalateAndReload()
+        if (/getShaderPrecisionFormat|context/i.test(e.message)) retryLater()
       }}
       fallback={(e) => (
         <div style={{ padding: 24, color: '#fecaca', background: '#0f172a', minHeight: '100dvh', font: '14px system-ui' }}>

@@ -28,12 +28,13 @@ const SAFE_KEY = 'interior-planner:safe'
 const RELOAD_KEY = 'interior-planner:autoreload'
 
 /**
- * 自動畫質保險：只有在這台裝置「實際發生過 WebGL context lost」之後才會啟用，沒出過事的裝置永遠是完整畫質。
+ * 手動降級（預設關閉，不會自動啟用）：網址加 ?lq=1|2|3 才會生效並記住；?hq=1 重設。
  * 0 = 完整；1 = 解析度上限 1.5；2 = 再關閉後製（AO / 景深 / Bloom）；3 = 再關閉陰影、解析度 1。
- * 用 ?hq=1 或診斷面板的「嘗試完整畫質」可重設。
  */
 export function getSafeLevel(): 0 | 1 | 2 | 3 {
   try {
+    const m = /[?&]lq=([123])/.exec(location.search)
+    if (m) localStorage.setItem(SAFE_KEY, m[1])
     if (/[?&]hq=1/.test(location.search)) {
       localStorage.removeItem(SAFE_KEY)
       sessionStorage.removeItem(RELOAD_KEY)
@@ -54,14 +55,13 @@ export function resetSafeLevel() {
   }
   location.reload()
 }
-/** context lost 後提高保險等級並自動重新載入（每個分頁最多 3 次，避免無限重載） */
-export function escalateAndReload() {
+/** 建立 WebGL 失敗時等幾秒再重試一次（每個分頁最多 2 次；給系統時間釋放上一頁的 GPU 記憶體） */
+export function retryLater() {
   try {
-    localStorage.setItem(SAFE_KEY, String(Math.min(3, getSafeLevel() + 1)))
     const n = Number(sessionStorage.getItem(RELOAD_KEY) ?? 0)
-    if (n >= 3) return
+    if (n >= 2) return
     sessionStorage.setItem(RELOAD_KEY, String(n + 1))
-    setTimeout(() => location.reload(), 900)
+    setTimeout(() => location.reload(), 4000)
   } catch {
     /* ignore */
   }
@@ -128,7 +128,6 @@ export function collectCaps(gl: WebGLRenderer, onRestore: () => void) {
     e.preventDefault()
     useDiag.setState({ contextLost: true })
     reportDiag('context', 'WebGL context lost（通常是記憶體不足或 GPU 被系統回收）')
-    escalateAndReload()
   })
   el.addEventListener('webglcontextrestored', () => {
     useDiag.setState({ contextLost: false })

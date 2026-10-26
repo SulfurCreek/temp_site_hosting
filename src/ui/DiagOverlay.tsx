@@ -14,7 +14,7 @@ export function DiagOverlay() {
   return (
     <div className="absolute left-2 top-16 z-50 max-w-[calc(100%-1rem)] text-xs max-lg:top-[84px]">
       <button onClick={() => setOpen(!open)} className="glass rounded-full px-3 py-1.5 text-rose-300">
-        {lost ? '畫面中斷（WebGL 記憶體不足），自動降低畫質重新載入中' : safe ? `已自動降低畫質（等級 ${safe}）` : postBroken ? '後製效果已自動關閉' : '渲染診斷'} · 點此查看
+        {lost ? '畫面中斷（WebGL 記憶體不足）' : safe ? `已自動降低畫質（等級 ${safe}）` : postBroken ? '後製效果已自動關閉' : '渲染診斷'} · 點此查看
       </button>
       {open && (
         <div className="glass mt-2 max-h-[60dvh] overflow-auto rounded-xl p-3 text-slate-100">

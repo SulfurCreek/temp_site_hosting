@@ -1,6 +1,6 @@
 import { Bloom, EffectComposer, N8AO, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing'
 import { Effect, ToneMappingMode } from 'postprocessing'
-import { useMemo, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
 import { Uniform } from 'three'
 import { useThree } from '@react-three/fiber'
@@ -61,9 +61,20 @@ export function PostFX({ children }: { children?: ReactNode }) {
 }
 
 function FullPost({ children }: { children?: ReactNode }) {
+  // 分段啟用：貼圖 / HDRI 上傳尚在進行時不同時配置 Bloom 等全解析度緩衝，降低載入瞬間的 GPU 記憶體尖峰（最終畫面與完整管線相同）
+  const [stage, setStage] = useState(0)
+  useEffect(() => {
+    const a = setTimeout(() => setStage(1), 2500)
+    const b = setTimeout(() => setStage(2), 4500)
+    return () => {
+      clearTimeout(a)
+      clearTimeout(b)
+    }
+  }, [])
   const proof = useLayout((s) => !!s.settings.colorProof)
   const hq = useFx((s) => s.hq)
   const level = useFx((s) => s.level)
+  if (stage === 0) return <SafePost proof={proof} />
   if (proof)
     return (
       <EffectComposer multisampling={0} enableNormalPass={false}>
@@ -82,7 +93,7 @@ function FullPost({ children }: { children?: ReactNode }) {
         color="black"
       />
       {children}
-      <Bloom luminanceThreshold={1.1} luminanceSmoothing={0.05} intensity={0.5} mipmapBlur />
+      {stage >= 2 ? <Bloom luminanceThreshold={1.1} luminanceSmoothing={0.05} intensity={0.5} mipmapBlur /> : <></>}
       <WarmGrade />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <Vignette eskil={false} offset={0.1} darkness={0.35} />

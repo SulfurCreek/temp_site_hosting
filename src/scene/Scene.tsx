@@ -56,9 +56,17 @@ export function Scene() {
   const [attrs, setAttrs] = useState<WebGLContextAttributes | null | undefined>(undefined)
   useEffect(() => {
     let off = false
-    probeWebGL().then((a) => !off && setAttrs(a))
+    // 重新整理時上一頁的 GPU 資源可能還沒釋放（iOS 會因此直接收掉新的 context），稍等再建立
+    let reloaded = false
+    try {
+      reloaded = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type === 'reload'
+    } catch {
+      /* ignore */
+    }
+    const t = setTimeout(() => probeWebGL().then((a) => !off && setAttrs(a)), reloaded ? 1500 : 0)
     return () => {
       off = true
+      clearTimeout(t)
     }
   }, [])
   if (attrs === undefined) return null
