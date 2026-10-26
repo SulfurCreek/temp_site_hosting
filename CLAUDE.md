@@ -298,8 +298,8 @@ src/
 ---
 
 ### v2 渲染原則：動靜分離雙態渲染（目標 iPhone 15/17 Pro、iPad、MacBook Pro M1 Pro / Chrome）
-- **互動中 vs 定格**（`src/lib/frameloop.ts`）：拖曳 / 縮放 / 按鍵 / 動畫 / 載入時連續出幀，dpr [1, 1.25]、N8AO 半解析度 performance、旁路景深；停下 180 ms 後 dpr [1.5, 2]、全解析度 N8AO high + Bloom + 光學景深，補 3 幀定格後 `frameloop = demand`（GPU 閒置）。**靜止畫面是相片級品質，降級只發生在互動中。** 狀態由 DOM 事件與計時器切換，不在 `useFrame` 內 setState。
-- 互動中 FPS 監看（rAF，只量互動期間）：平均 > 26 ms 連續一窗 → level 1（dpr 降到 1），再掉 → level 2（互動中關 AO）；恢復後逐級回升。不影響定格畫質。
+- **互動中 vs 定格**（`src/lib/frameloop.ts`）：拖曳 / 縮放 / 按鍵 / 動畫 / 載入時連續出幀，補 3 幀定格後 `frameloop = demand`（GPU 閒置）。⚠️ **互動前後後製管線結構與解析度必須完全相同**：不要在手勢開始時改 dpr、N8AO quality/halfRes、或增減效果 pass（景深）——iPhone（Safari / iOS 27 beta）會在手勢一開始就 WebGL context lost 黑屏（2026-10-26 診斷報告）。只能切換 `frameloop` 與 N8AO 的 `enabled`。**靜止畫面是相片級品質，降級只發生在互動中。** 狀態由 DOM 事件與計時器切換，不在 `useFrame` 內 setState。
+- 互動中 FPS 監看（rAF，只量互動期間）：平均 > 26 ms 連續一窗 → level 1，再掉 → level 2（互動中關 AO）；恢復後逐級回升。不影響定格畫質。
 - 新增動畫若超過 1.2 s，要呼叫 `wake(ms)`。
 - **陰影圖手動更新**：`gl.shadowMap.autoUpdate = false`，只在 layout 資料 commit（拖拉 / 位移軸放開）、切換視角、資源載入後重算（`dirtyShadows()`）。**全場景只有 2 盞燈投影**（客廳吊扇 `fan-liv`、主臥吸頂 `ce-master`，1024），其餘燈具只有光照；不要再增加投影光源。
 - 接觸陰影 `frames=1`，資料變動時換 key 重烘。

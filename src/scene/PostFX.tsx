@@ -32,8 +32,8 @@ function WarmGrade() {
  *
  *   <PostFX><DepthOfFieldFx /></PostFX>
  *
- * 動靜分離（見 lib/frameloop.ts）：互動中 AO = 半解析度 performance（嚴重掉幀時再關閉）、旁路 children（景深）；
- * 停下 180 ms 後回到全解析度 high AO + 景深 + Bloom 的相片級畫面。
+ * 動靜分離（見 lib/frameloop.ts）：互動前後管線結構與解析度完全相同（不重配 dpr / AO 模式 / 效果 pass，
+ * iOS 會因此收回 WebGL context）；只有嚴重掉幀時才暫時關閉 AO（enabled 開關，不重建）。
  * 標準對色光（colorProof）：只保留中性色調映射 + SMAA（Canvas 原生 antialias 已關閉）。
  */
 /** 後製管線失敗時的安全路徑：不掛 EffectComposer，只用 renderer 的色調映射（會在診斷報告中標示） */
@@ -61,7 +61,6 @@ export function PostFX({ children }: { children?: ReactNode }) {
 }
 
 function FullPost({ children }: { children?: ReactNode }) {
-  const floatRT = useDiag((s) => s.floatRT)
   const proof = useLayout((s) => !!s.settings.colorProof)
   const hq = useFx((s) => s.hq)
   const level = useFx((s) => s.level)
@@ -78,12 +77,11 @@ function FullPost({ children }: { children?: ReactNode }) {
         aoRadius={0.4}
         intensity={3.5}
         distanceFalloff={0.8}
-        quality={hq ? 'high' : 'performance'}
-        halfRes={!hq && floatRT}
+        quality="high"
         enabled={hq || level < 2}
         color="black"
       />
-      {hq ? children : <></>}
+      {children}
       <Bloom luminanceThreshold={1.1} luminanceSmoothing={0.05} intensity={0.5} mipmapBlur />
       <WarmGrade />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
