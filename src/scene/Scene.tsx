@@ -1,5 +1,6 @@
-import { Canvas, useThree } from '@react-three/fiber'
-import { Suspense, useEffect } from 'react'
+import { Canvas, events as createPointerEvents, useThree, type RootState } from '@react-three/fiber'
+import type { UseBoundStore, StoreApi } from 'zustand'
+import { Suspense, useEffect, useState } from 'react'
 import * as THREE from 'three'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
@@ -13,9 +14,30 @@ import { MepLayer } from './Mep'
 import { Lighting } from './Lighting'
 import { DepthOfFieldFx } from './DepthOfFieldFx'
 import { PostFX } from './PostFX'
-import { FrameLoop } from '../lib/frameloop'
+import { collectCaps, getSafeLevel, probeWebGL } from '../lib/diagnostics'
+import { FrameLoop, wake } from '../lib/frameloop'
+import { initTextureCompression } from '../lib/pbrTextures'
+import { LEAN, LEAN_DPR, MEDIUMP } from '../lib/lean'
+import { CornerAO } from './BakedLight'
 import { FloorContact } from './FloorContact'
 import { Walls } from './Walls'
+
+/**
+ * 射線檢測節流：轉動 / 縮放視角（觸控、滑鼠拖曳、滾輪）期間 R3F 不再對每個 pointermove / wheel 事件掃描所有可互動 Mesh；
+ * 觸控沒有懸停，所以 touch 的 pointermove 一律略過。點選（pointerdown / pointerup / click）照常檢測。
+ */
+const pointerEvents = (store: UseBoundStore<StoreApi<RootState>>) => {
+  const em = createPointerEvents(store)
+  const h = em.handlers as unknown as Record<string, (e: Event) => void>
+  const move = h.onPointerMove
+  h.onPointerMove = (e) => {
+    const p = e as PointerEvent
+    if (p.pointerType === 'touch' || p.buttons !== 0) return
+    move(e)
+  }
+  h.onWheel = () => {}
+  return em
+}
 
 function GridLines() {
   const showGrid = useLayout((s) => s.settings.showGrid)
@@ -50,16 +72,51 @@ function Backdrop() {
   return <color attach="background" args={['#e8ecf1']} />
 }
 
+/** 先用拋棄式 canvas 試建 WebGL2，挑出能正常運作的屬性組合再掛 R3F（iOS 上 context 可能一建立就失效） */
 export function Scene() {
+  const [attrs, setAttrs] = useState<WebGLContextAttributes | null | undefined>(undefined)
+  useEffect(() => {
+    let off = false
+    // 重新整理時上一頁的 GPU 資源可能還沒釋放（iOS 會因此直接收掉新的 context），稍等再建立
+    let reloaded = false
+    try {
+      reloaded = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type === 'reload'
+    } catch {
+      /* ignore */
+    }
+    const t = setTimeout(() => probeWebGL().then((a) => !off && setAttrs(a)), reloaded ? 1500 : 0)
+    return () => {
+      off = true
+      clearTimeout(t)
+    }
+  }, [])
+  if (attrs === undefined) return null
+  if (attrs === null) {
+    return (
+      <div className="flex h-full w-full items-center justify-center p-8 text-center text-sm text-rose-200">
+        無法建立 WebGL（裝置拒絕或記憶體不足）。請關閉其他分頁後重新整理，並點左上角診斷按鈕複製報告回報。
+      </div>
+    )
+  }
+  return <SceneCanvas attrs={attrs} safe={getSafeLevel()} />
+}
+
+function SceneCanvas({ attrs, safe }: { attrs: WebGLContextAttributes; safe: 0 | 1 | 2 | 3 }) {
   const fp = useUi((s) => s.viewMode) === 'firstPerson'
   return (
     <Canvas
-      shadows="percentage"
+      shadows={safe >= 3 ? false : 'percentage'}
       frameloop="demand"
-      dpr={[1.5, 2]}
-      gl={{ powerPreference: 'high-performance', antialias: false, stencil: false, depth: true }}
+      events={pointerEvents}
+      // 行動端：dpr 固定（絕不在互動中改變），原生 MSAA；其餘裝置維持 [1.5, 2]
+      dpr={safe >= 3 ? 1 : LEAN ? LEAN_DPR : safe >= 1 ? [1, 1.5] : [1.5, 2]}
+      gl={LEAN ? { powerPreference: 'high-performance', ...attrs, stencil: false, ...(MEDIUMP ? { precision: 'mediump' } : {}) } : attrs}
+      // 尺寸變動時所有全螢幕緩衝都要重新配置；iOS 工具列伸縮會連續觸發，合併成一次（不監聽面板捲動）
+      resize={{ scroll: false, debounce: { scroll: 50, resize: 150 } }}
       // 色調映射由 <PostFX /> 管理：預設 ACES Filmic（電影級層次），標準對色光時維持 Khronos Neutral（保留色票原色）
       onCreated={({ gl }) => {
+        collectCaps(gl, () => wake(2000))
+        initTextureCompression(gl)
         gl.toneMapping = THREE.ACESFilmicToneMapping
         gl.toneMappingExposure = 1
       }}
@@ -84,7 +141,7 @@ export function Scene() {
         {fp && <Ceiling />}
         <FurnitureLayer />
         <GridLines />
-        <FloorContact />
+        {LEAN ? <CornerAO /> : <FloorContact />}
         {!fp && <Gizmo />}
         <MepLayer />
         <CalibrationLayer />

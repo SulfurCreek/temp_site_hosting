@@ -1,4 +1,4 @@
-import { Check, ChevronDown, ChevronUp, Copy, Frame, Image as ImageIcon, Layers, Move, RotateCw, Sofa, Trash2, X } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, Copy, Frame, Image as ImageIcon, Layers, Lock, Move, RotateCcw, RotateCw, Sofa, Trash2, X } from 'lucide-react'
 import { useRef } from 'react'
 import { deleteSelected, duplicateSelected, rotateSelected, toggleMoving } from '../store/actions'
 import { useLayout } from '../store/layoutStore'
@@ -73,6 +73,43 @@ const TABS: { id: MobileTab; label: string; icon: React.ReactNode }[] = [
   { id: 'props', label: '屬性', icon: <Layers size={17} /> },
 ]
 
+/**
+ * 手機浮動「旋轉角度」列：選取家具時固定在抽屜上方（屬性頁的旋轉欄位在長捲動內、抽屜最高只有 32dvh，手機上幾乎碰不到）。
+ * 拇指可及：±15° 微調 + 滑桿 + 數字，Slider 的連續拖動以 key 合併成同一筆復原紀錄。
+ */
+function RotationDock() {
+  const sel = useUi((s) => s.selection)
+  const f = useLayout((s) => (sel?.type === 'furniture' ? s.layout.furniture.find((x) => x.id === sel.id) : undefined))
+  const update = useLayout((s) => s.updateFurniture)
+  if (!f) return null
+  const deg = Math.round((((f.rotationY % 360) + 540) % 360) - 180)
+  const set = (v: number) => !f.locked && update(f.id, { rotationY: ((((v % 360) + 540) % 360) - 180) }, `${f.id}:rot`)
+  const step = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 active:bg-white/20 disabled:opacity-40'
+  return (
+    <div className="glass pointer-events-auto mx-1 mb-1 flex h-11 items-center gap-1.5 rounded-xl px-2 text-slate-100 shadow-lg" role="group" aria-label="旋轉角度">
+      <span className="shrink-0 text-[11px] font-semibold text-slate-300">{f.locked ? <Lock size={13} /> : '角度'}</span>
+      <button aria-label="逆時針 15°" disabled={f.locked} className={step} onClick={() => rotateSelected(-15)}>
+        <RotateCcw size={15} />
+      </button>
+      <input
+        aria-label="旋轉角度"
+        type="range"
+        min={-180}
+        max={180}
+        step={1}
+        value={deg}
+        disabled={f.locked}
+        onChange={(e) => set(Number(e.target.value))}
+        className="h-8 min-w-0 flex-1 accent-sky-400"
+      />
+      <button aria-label="順時針 15°" disabled={f.locked} className={step} onClick={() => rotateSelected(15)}>
+        <RotateCw size={15} />
+      </button>
+      <span className="w-11 shrink-0 text-right text-xs font-semibold tabular-nums">{deg}°</span>
+    </div>
+  )
+}
+
 const NAV_H = '44px'
 // 三段：peek = 細橫桿（含標題與快速動作）、half = 18dvh、full = 整疊（含分頁列）不超過 32dvh
 const SHEET_H: Record<SheetState, string> = {
@@ -99,7 +136,7 @@ export function BottomSheet() {
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex flex-col">
-      {/* 快速立足點：單行橫向滑動膠囊（抽屜全展開時隱藏，讓出 3D 空間） */}
+      <RotationDock />
 
       {/* 面板 */}
       <div

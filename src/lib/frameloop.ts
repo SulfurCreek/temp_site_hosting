@@ -2,28 +2,27 @@ import { useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
 import * as THREE from 'three'
 import { create } from 'zustand'
+import { LEAN } from './lean'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 
 /**
  * 動靜分離雙態渲染（Interaction-Aware Progressive Rendering）
  *
- * - 互動中（拖曳 / 縮放 / 按鍵 / 動畫 / 載入）：連續出幀、dpr [1, 1.25]、AO 降為半解析度 performance、旁路景深。
- * - 停下 180 ms 後：dpr [1.5, 2]、完整 N8AO（全解析度 high）+ Bloom + 光學景深，只渲染定格幾幀，之後 GPU 閒置（frameloop = demand）。
+ * - 互動中（拖曳 / 縮放 / 按鍵 / 動畫 / 載入）：連續出幀；後製管線的結構與解析度（dpr、渲染目標、shader）互動前後完全相同。
+ *   （iOS 上在手勢開始的瞬間重配 dpr / AO 模式 / 增減效果 pass 會讓 WebGL context 被系統收掉，所以只切換「是否持續出幀」。）
+ * - 停下 180 ms 後：補幾幀定格，之後 GPU 閒置（frameloop = demand）。
  * - 陰影圖 autoUpdate = false，只在資料變動 / 切換視角 / 資源載入後重算。
  *
  * 狀態切換全部由 DOM 事件與計時器觸發，不在 useFrame 內呼叫任何 setState / zustand set。
  */
 export const SETTLE_MS = 180
 const ANIM_MS = 1200
-const DPR_ACTIVE: [number, number] = [1, 1.25]
-const DPR_SETTLED: [number, number] = [1.5, 2]
-const DPR_LOW: [number, number] = [1, 1]
 
 interface FxState {
   /** true = 靜止定格（相片級）；false = 互動中 */
   hq: boolean
-  /** 互動中的自動降級等級：0 正常、1 dpr 降到 1、2 再關掉 AO（只影響互動中，靜止畫質不變） */
+  /** 互動中的自動降級等級：0 正常、1 觀察期、2 互動中暫時關閉 AO（只影響互動中，靜止畫質不變） */
   level: 0 | 1 | 2
 }
 export const useFx = create<FxState>(() => ({ hq: true, level: 0 }))
@@ -39,7 +38,6 @@ export const dirtyShadows = () => dirtyImpl()
 export function FrameLoop() {
   const gl = useThree((s) => s.gl)
   const setFrameloop = useThree((s) => s.setFrameloop)
-  const setDpr = useThree((s) => s.setDpr)
   const invalidate = useThree((s) => s.invalidate)
 
   useEffect(() => {
@@ -53,7 +51,6 @@ export function FrameLoop() {
       gl.shadowMap.needsUpdate = true
       invalidate()
     }
-    const lowDpr = () => (useFx.getState().level >= 1 ? DPR_LOW : DPR_ACTIVE)
 
     // 互動中的 FPS 監看（取代常駐 PerformanceMonitor：按需出幀下閒置間隔會被誤判成低 FPS，這裡只量互動中的幀間隔）
     let last = 0
@@ -74,13 +71,11 @@ export function FrameLoop() {
           const lvl = useFx.getState().level
           if (avg > 26 && lvl < 2) {
             useFx.setState({ level: (lvl + 1) as 0 | 1 | 2 })
-            setDpr(lowDpr())
             good = 0
           } else if (avg < 18 && lvl > 0) {
             if (++good >= 3) {
               useFx.setState({ level: (lvl - 1) as 0 | 1 | 2 })
-              setDpr(lowDpr())
-              good = 0
+                good = 0
             }
           }
           sum = 0
@@ -94,18 +89,16 @@ export function FrameLoop() {
       if (active) return
       active = true
       useFx.setState({ hq: false })
-      setDpr(lowDpr())
       setFrameloop('always')
       last = sum = n = 0
-      raf = requestAnimationFrame(watch)
+      if (!LEAN) raf = requestAnimationFrame(watch)
     }
     const settle = () => {
       active = false
       cancelAnimationFrame(raf)
       useFx.setState({ hq: true })
-      setDpr(DPR_SETTLED)
       setFrameloop('demand')
-      // 定格：重設解析度與後製管線後補幾幀，確保最終畫面是完整品質
+      // 定格：補幾幀，確保最終畫面是完整品質
       invalidate()
       setTimeout(invalidate, 60)
       setTimeout(invalidate, 250)
@@ -128,14 +121,17 @@ export function FrameLoop() {
     let burst = 0
     const warm = setInterval(() => {
       gl.shadowMap.needsUpdate = true
+      invalidate() // 旗標要被一次渲染消耗掉，否則會留給使用者的第一次觸碰多畫一次陰影
       if (++burst >= 7) clearInterval(warm)
     }, 1000)
 
-    const onInput = () => wakeFn(SETTLE_MS)
+    // 行動端：觸控 / 滾輪不切成連續出幀，只在事件與 OrbitControls 的 change（含慣性阻尼）時 invalidate() 補一幀 → 手指離開後 GPU 負載 0
+    const onInput = () => (LEAN ? invalidate() : wakeFn(SETTLE_MS))
     const onPointer = (e: PointerEvent) => {
       // 滑鼠懸停（沒按鍵）不算互動
       if (e.type === 'pointermove' && e.pointerType === 'mouse' && e.buttons === 0) return
-      wakeFn(SETTLE_MS)
+      if (LEAN) invalidate()
+      else wakeFn(SETTLE_MS)
     }
     const passive = { passive: true } as const
     window.addEventListener('pointerdown', onPointer, passive)
@@ -180,7 +176,7 @@ export function FrameLoop() {
       unsubLayout()
       unsubUi()
     }
-  }, [gl, setFrameloop, setDpr, invalidate])
+  }, [gl, setFrameloop, invalidate])
 
   return null
 }
