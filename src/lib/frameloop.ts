@@ -2,6 +2,7 @@ import { useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
 import * as THREE from 'three'
 import { create } from 'zustand'
+import { LEAN } from './lean'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 
@@ -90,7 +91,7 @@ export function FrameLoop() {
       useFx.setState({ hq: false })
       setFrameloop('always')
       last = sum = n = 0
-      raf = requestAnimationFrame(watch)
+      if (!LEAN) raf = requestAnimationFrame(watch)
     }
     const settle = () => {
       active = false
@@ -120,14 +121,17 @@ export function FrameLoop() {
     let burst = 0
     const warm = setInterval(() => {
       gl.shadowMap.needsUpdate = true
+      invalidate() // 旗標要被一次渲染消耗掉，否則會留給使用者的第一次觸碰多畫一次陰影
       if (++burst >= 7) clearInterval(warm)
     }, 1000)
 
-    const onInput = () => wakeFn(SETTLE_MS)
+    // 行動端：觸控 / 滾輪不切成連續出幀，只在事件與 OrbitControls 的 change（含慣性阻尼）時 invalidate() 補一幀 → 手指離開後 GPU 負載 0
+    const onInput = () => (LEAN ? invalidate() : wakeFn(SETTLE_MS))
     const onPointer = (e: PointerEvent) => {
       // 滑鼠懸停（沒按鍵）不算互動
       if (e.type === 'pointermove' && e.pointerType === 'mouse' && e.buttons === 0) return
-      wakeFn(SETTLE_MS)
+      if (LEAN) invalidate()
+      else wakeFn(SETTLE_MS)
     }
     const passive = { passive: true } as const
     window.addEventListener('pointerdown', onPointer, passive)

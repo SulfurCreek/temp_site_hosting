@@ -1,4 +1,5 @@
-import { Canvas, useThree } from '@react-three/fiber'
+import { Canvas, events as createPointerEvents, useThree, type RootState } from '@react-three/fiber'
+import type { UseBoundStore, StoreApi } from 'zustand'
 import { Suspense, useEffect, useState } from 'react'
 import * as THREE from 'three'
 import { useLayout } from '../store/layoutStore'
@@ -16,8 +17,27 @@ import { PostFX } from './PostFX'
 import { collectCaps, getSafeLevel, probeWebGL } from '../lib/diagnostics'
 import { FrameLoop, wake } from '../lib/frameloop'
 import { initTextureCompression } from '../lib/pbrTextures'
+import { LEAN, LEAN_DPR, MEDIUMP } from '../lib/lean'
+import { CornerAO } from './BakedLight'
 import { FloorContact } from './FloorContact'
 import { Walls } from './Walls'
+
+/**
+ * 射線檢測節流：轉動 / 縮放視角（觸控、滑鼠拖曳、滾輪）期間 R3F 不再對每個 pointermove / wheel 事件掃描所有可互動 Mesh；
+ * 觸控沒有懸停，所以 touch 的 pointermove 一律略過。點選（pointerdown / pointerup / click）照常檢測。
+ */
+const pointerEvents = (store: UseBoundStore<StoreApi<RootState>>) => {
+  const em = createPointerEvents(store)
+  const h = em.handlers as unknown as Record<string, (e: Event) => void>
+  const move = h.onPointerMove
+  h.onPointerMove = (e) => {
+    const p = e as PointerEvent
+    if (p.pointerType === 'touch' || p.buttons !== 0) return
+    move(e)
+  }
+  h.onWheel = () => {}
+  return em
+}
 
 function GridLines() {
   const showGrid = useLayout((s) => s.settings.showGrid)
@@ -87,8 +107,10 @@ function SceneCanvas({ attrs, safe }: { attrs: WebGLContextAttributes; safe: 0 |
     <Canvas
       shadows={safe >= 3 ? false : 'percentage'}
       frameloop="demand"
-      dpr={safe >= 3 ? 1 : safe >= 1 ? [1, 1.5] : [1.5, 2]}
-      gl={attrs}
+      events={pointerEvents}
+      // 行動端：dpr 固定（絕不在互動中改變），原生 MSAA；其餘裝置維持 [1.5, 2]
+      dpr={safe >= 3 ? 1 : LEAN ? LEAN_DPR : safe >= 1 ? [1, 1.5] : [1.5, 2]}
+      gl={LEAN ? { powerPreference: 'high-performance', ...attrs, stencil: false, ...(MEDIUMP ? { precision: 'mediump' } : {}) } : attrs}
       // 尺寸變動時所有全螢幕緩衝都要重新配置；iOS 工具列伸縮會連續觸發，合併成一次（不監聽面板捲動）
       resize={{ scroll: false, debounce: { scroll: 50, resize: 150 } }}
       // 色調映射由 <PostFX /> 管理：預設 ACES Filmic（電影級層次），標準對色光時維持 Khronos Neutral（保留色票原色）
@@ -119,7 +141,7 @@ function SceneCanvas({ attrs, safe }: { attrs: WebGLContextAttributes; safe: 0 |
         {fp && <Ceiling />}
         <FurnitureLayer />
         <GridLines />
-        <FloorContact />
+        {LEAN ? <CornerAO /> : <FloorContact />}
         {!fp && <Gizmo />}
         <MepLayer />
         <CalibrationLayer />

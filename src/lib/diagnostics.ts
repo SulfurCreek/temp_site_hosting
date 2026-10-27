@@ -1,5 +1,6 @@
 import type { WebGLRenderer } from 'three'
 import { create } from 'zustand'
+import { LEAN } from './lean'
 
 /**
  * 渲染診斷：收集 WebGL 能力、three.js 的錯誤 / 警告、未捕捉的例外與 context lost，
@@ -148,8 +149,10 @@ const ATTR_TRIES: WebGLContextAttributes[] = [
 
 /** 在拋棄式 canvas 上試建 WebGL2 並驗證可用（getShaderPrecisionFormat 非 null、未 lost）；回傳第一組可用屬性，全部失敗回 null */
 export async function probeWebGL(): Promise<WebGLContextAttributes | null> {
+  // 行動端輕量管線不掛後製，抗鋸齒改用原生 MSAA，所以先探測 antialias: true
+  const tries = LEAN ? [{ powerPreference: 'high-performance', antialias: true, stencil: false, depth: true } as WebGLContextAttributes, ...ATTR_TRIES] : ATTR_TRIES
   for (let round = 0; round < 3; round++) {
-    for (const a of ATTR_TRIES) {
+    for (const a of tries) {
       const cv = document.createElement('canvas')
       let ok = false
       try {
@@ -161,7 +164,7 @@ export async function probeWebGL(): Promise<WebGLContextAttributes | null> {
         reportDiag('probe', `WebGL2 探測例外：${(e as Error).message}`)
       }
       if (ok) {
-        if (a !== ATTR_TRIES[0]) reportDiag('info', `改用較保守的 WebGL 屬性 ${JSON.stringify(a)}`)
+        if (a !== tries[0]) reportDiag('info', `改用較保守的 WebGL 屬性 ${JSON.stringify(a)}`)
         return a
       }
     }

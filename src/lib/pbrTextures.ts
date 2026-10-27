@@ -9,6 +9,7 @@
 import * as THREE from 'three'
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js'
 import type { Archetype } from '../types'
+import { LEAN } from './lean'
 
 export interface PbrSet {
   slug: string
@@ -116,14 +117,16 @@ export function loadPbrSet(slug: string): Promise<LoadedPbr> {
   if (!p) {
     const set = PBR_SETS[slug]
     if (!set) return Promise.reject(new Error(`unknown pbr set ${slug}`))
-    const aniso = 16 // three 會再被 GPU 上限夾住
+    const aniso = LEAN ? 4 : 16 // three 會再被 GPU 上限夾住
+    // 行動端：2k 掃描貼圖改載 1k 版（public/textures/<slug>/*_1k.*，scripts/make-mobile-textures.mjs 產生；同樣是無縫平鋪，meters 不變），顯存 1/4
+    const px = LEAN ? '1k' : set.size
     const dir = `/textures/${slug}`
     const want = (m: PbrSet['maps'][number]) => set.maps.includes(m)
     p = (async () => {
       const [albedo, normal, rough] = await Promise.all([
-        want('albedo') ? loadTex(dir, `diff_${set.size}`, true, aniso) : undefined,
-        want('normal') ? loadTex(dir, `nor_${set.size}`, false, aniso) : undefined,
-        want('rough') ? loadTex(dir, `rough_${set.size}`, false, aniso) : undefined,
+        want('albedo') ? loadTex(dir, `diff_${px}`, true, aniso) : undefined,
+        want('normal') ? loadTex(dir, `nor_${px}`, false, aniso) : undefined,
+        want('rough') ? loadTex(dir, `rough_${px}`, false, aniso) : undefined,
       ])
       return { set, albedo, normal, rough, roughMean: rough ? set.roughMean : 1 }
     })()

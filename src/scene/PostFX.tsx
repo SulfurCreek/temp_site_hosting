@@ -8,6 +8,7 @@ import { useEffect } from 'react'
 import { getSafeLevel, reportDiag, useDiag } from '../lib/diagnostics'
 import { useFx } from '../lib/frameloop'
 import { leanN8AO } from '../lib/gpuLean'
+import { LEAN } from '../lib/lean'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { useLayout } from '../store/layoutStore'
 
@@ -53,7 +54,8 @@ function SafePost({ proof }: { proof: boolean }) {
 export function PostFX({ children }: { children?: ReactNode }) {
   const proof = useLayout((s) => !!s.settings.colorProof)
   const broken = useDiag((s) => s.postBroken)
-  if (broken || getSafeLevel() >= 2) return <SafePost proof={proof} />
+  // 行動端輕量管線：完全不掛 EffectComposer / N8AO / Bloom / DepthOfField（含 children），只用 renderer 色調映射 + 原生 MSAA
+  if (LEAN || broken || getSafeLevel() >= 2) return <SafePost proof={proof} />
   return (
     <ErrorBoundary fallback={<SafePost proof={proof} />} onError={(e) => reportDiag('postfx', e.message)}>
       <FullPost>{children}</FullPost>

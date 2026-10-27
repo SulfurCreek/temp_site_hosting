@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { LEAN } from './lean'
 import { getBuiltinCanvas } from './proceduralTextures'
 
 const baseCache = new Map<string, Promise<THREE.Texture>>()
@@ -6,7 +7,7 @@ const baseCache = new Map<string, Promise<THREE.Texture>>()
 function finalize(t: THREE.Texture) {
   t.colorSpace = THREE.SRGBColorSpace
   t.wrapS = t.wrapT = THREE.RepeatWrapping
-  t.anisotropy = 8
+  t.anisotropy = LEAN ? 4 : 8
   t.needsUpdate = true
   return t
 }

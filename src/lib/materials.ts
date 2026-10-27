@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import * as THREE from 'three'
 import type { MaterialSpec } from '../types'
 import { ARCHETYPES } from './archetypes'
+import { LEAN } from './lean'
 import { ROUGH_MEAN, getDerivedMicro, getStandaloneMicro } from './microTextures'
 import { ARCHETYPE_PBR, PBR_SETS, loadPbrSet, type LoadedPbr } from './pbrTextures'
 import { loadBaseTexture, sharedClone } from './textures'
@@ -60,19 +61,20 @@ function microTexture(cv: HTMLCanvasElement, color: boolean) {
     t = new THREE.CanvasTexture(cv)
     t.wrapS = t.wrapT = THREE.RepeatWrapping
     t.colorSpace = color ? THREE.SRGBColorSpace : THREE.NoColorSpace
-    t.anisotropy = 8
+    t.anisotropy = LEAN ? 4 : 8
     microBase.set(cv, t)
   }
   return sharedClone(t)
 }
 
 /**
- * 依 MaterialSpec 建立並同步一個 MeshPhysicalMaterial。
+ * 依 MaterialSpec 建立並同步一個 MeshPhysicalMaterial（行動端輕量管線改為 MeshStandardMaterial：不跑 clearcoat / 折射的著色器分支，
+ * clearcoat 以略降 roughness + 環境光強度取代）。
  * 有 archetype 時：套用該基底的 clearcoat / reflectivity 預設，並生成程序化 Normal + Roughness 微紋理。
  * 貼圖非同步載入；失敗時退回純色。回傳的 material 可被呼叫端在 useFrame 中直接改 opacity（破牆用）。
  */
 export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
-  const mat = useMemo(() => new THREE.MeshPhysicalMaterial(), [])
+  const mat = useMemo(() => (LEAN ? new THREE.MeshStandardMaterial() : new THREE.MeshPhysicalMaterial()) as THREE.MeshPhysicalMaterial, [])
   const [tex, setTex] = useState<THREE.Texture | null>(null)
   const [micro, setMicro] = useState<MicroTex | null>(null)
   const [scan, setScan] = useState<ScanTex | null>(null)
@@ -157,11 +159,17 @@ export function usePBRMaterial(spec: MaterialSpec, opts: Opts = {}) {
   useEffect(() => {
     const def = spec.archetype ? ARCHETYPES[spec.archetype] : undefined
     mat.color.set(spec.color)
+    const coat = spec.clearcoat ?? def?.clearcoat ?? 0
     mat.roughness = Math.min(1, spec.roughness / (scan?.rough ? scan.roughMean : micro ? ROUGH_MEAN : 1))
     mat.metalness = spec.metalness
-    mat.clearcoat = spec.clearcoat ?? def?.clearcoat ?? 0
-    mat.clearcoatRoughness = spec.clearcoatRoughness ?? def?.clearcoatRoughness ?? 0.5
-    mat.reflectivity = spec.reflectivity ?? def?.reflectivity ?? 0.5
+    if (LEAN) {
+      // 無 clearcoat：把那層透明塗層的光澤折進主層（略降 roughness），金屬度維持規格值
+      mat.roughness = Math.max(0.2, mat.roughness - coat * 0.5)
+    } else {
+      mat.clearcoat = coat
+      mat.clearcoatRoughness = spec.clearcoatRoughness ?? def?.clearcoatRoughness ?? 0.5
+      mat.reflectivity = spec.reflectivity ?? def?.reflectivity ?? 0.5
+    }
     const op = spec.opacity ?? 1
     mat.opacity = op
     mat.transparent = op < 1

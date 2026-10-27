@@ -341,6 +341,15 @@ src/
 - 色彩：使用 `THREE.NeutralToneMapping`（保留色票原色），4000K 為中性白、3000K 偏暖、6000K 偏冷；apartment HDR 偏暖，已用略冷的天光抵銷。新增共平面的幾何（重疊的牆、疊放的地板分區）會 z-fighting 閃爍——牆已有逐面 polygonOffset、地板分區逐層墊高 1mm，新增物件請避免與牆面完全共平面。
 - 鍵盤：`M` 移動模式、`R` 旋轉 90°（Shift+R 反向）、`Backspace/Delete` 刪除、`Space` 平面圖 ⇄ 斜視、`Ctrl+Z/Shift+Z` 復原/重做、`Ctrl+D` 複製、`Ctrl+S` 匯出、`Esc` 取消選取/結束校準。
 
+## 行動端輕量管線（2026-10-27，`src/lib/lean.ts`）
+- **`LEAN` = 視窗寬 < 768 或主要指標為觸控（手機、iPad）**，載入時決定一次、整個工作階段不變（動態切換 dpr / 後製 / 材質會讓 iOS 收回 WebGL context）。桌面（`?lean=0` 或寬螢幕滑鼠）完全走原本的 v2 管線，畫面逐位元相同。除錯：`?lean=1|0` 強制開關、`?dpr=2` 改 dpr、`?mediump=1` 著色器 mediump（預設關，需實機比對有無色帶）。
+- LEAN 時：不掛 `EffectComposer` / N8AO / Bloom / DepthOfField（`PostFX` 走 `SafePost`，renderer 內建 ACES 色調映射）；Canvas dpr 固定 `min(devicePixelRatio, 1.5)` + 原生 MSAA；`frameloop="demand"`，觸控 / 滾輪只 `invalidate()`，不切 `always`。
+- 材質改 `MeshStandardMaterial`（無 clearcoat，以略降 roughness 取代）；掃描貼圖改載 `*_1k`（`scripts/make-mobile-textures.mjs` + `encode-ktx2.mjs` 產生），anisotropy 4。
+- 燈光：只有 `hemisphereLight` + 1 盞帶陰影的 `directionalLight`（陰影只在資料變動時重烘）。**不放任何 Spot/Point Light**：燈具光斑 = `src/scene/BakedLight.tsx` 的加色漸層貼片（射線打到牆 / 地板後貼上），家具底部軟陰影墊片 `ShadowPad`、牆腳 / 牆頂 15 cm 暗角帶 `CornerAO` 取代 ContactShadows / N8AO。新增燈具請更新 `mep.json`，光斑會自動跟著。
+- 轉動 / 縮放期間不做射線檢測（`Scene.tsx` 的 `pointerEvents` 略過 touch 與按住狀態的 pointermove、wheel）；破牆目標每 100 ms 才重算，手機上二態切換（帶遲滯），不逐幀重建幾何。
+- 手機選取家具時，抽屜上方有浮動「旋轉角度」列（`Panels.tsx` 的 `RotationDock`：±15°、滑桿、數字）。
+- 量測 / 測試腳本：`scripts/gpu-mem/measure.cjs`（顯存）、`draw-calls.cjs`（draw call）、`touch-test.cjs`（觸控旋轉 / 縮放的射線檢測次數與閒置幀數）。均為無頭軟體 WebGL，**不是實機數據**。
+
 ## v2 介面精簡（2026-10-25）
 - 移除：四方位按鈕、燈光色溫與燈光情境、後期品質選項、相片級算圖 / 路徑追蹤 / 4K 匯出、放置立足點與預設立足點列、第一人稱的高度 / 視角 / 退後滑桿與景深開關（景深固定開、退後固定 50 cm、站高 168 cm）。
 - 第一人稱 = 工具列一鍵（從玄關進門開始，下次回到上次位置）；底部只留 站立 / 坐姿 / 低視角 與「俯視」。

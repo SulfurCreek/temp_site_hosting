@@ -10,6 +10,8 @@ import { findCatalogItem, useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
 import type { CatalogItem, Decal, FurnitureInstance, MaterialSpec, Vec3 } from '../types'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
+import { LEAN } from '../lib/lean'
+import { ShadowPad } from './BakedLight'
 import { objectRegistry } from './registry'
 import { MergedParts, cabinetParts, nicheCabinetParts } from './cabinetParts'
 
@@ -739,6 +741,8 @@ const FurnitureView = memo(function FurnitureView({ inst }: { inst: FurnitureIns
       }}
     >
       <HybridModel item={item} inst={inst} />
+      {/* 行動端：靜態軟陰影墊片取代 ContactShadows / N8AO（貼地家具才需要） */}
+      {LEAN && inst.position[1] < 0.15 && <ShadowPad size={inst.size} />}
       {selected && (
         <lineSegments geometry={edges} position={[0, h / 2, 0]} renderOrder={999}>
           <lineBasicMaterial color={moving ? '#f59e0b' : '#38bdf8'} depthTest={false} transparent />
