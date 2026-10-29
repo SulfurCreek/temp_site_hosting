@@ -214,18 +214,6 @@
     }
   },
   {
-    "id": "REF-DECK-WOOD",
-    "name": "陽台木地板（手繪參考）",
-    "note": "手繪圖陽台為深棕木條，取樣約 #75583e",
-    "spec": {
-      "color": "#ffffff",
-      "roughness": 0.7,
-      "metalness": 0,
-      "map": "builtin:walnut",
-      "repeat": 1
-    }
-  },
-  {
     "id": "REF-KITCHEN-WOOD",
     "name": "廚具檯面木色（手繪參考）",
     "note": "手繪圖廚具為橘棕木色（取樣約 #ac713a），已以橡木貼圖染色",
