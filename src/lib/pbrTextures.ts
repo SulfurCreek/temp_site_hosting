@@ -14,10 +14,14 @@ export interface PbrSet {
   maps: ReadonlyArray<'albedo' | 'normal' | 'rough'>
   /** 檔案解析度 */
   size: '1k' | '2k'
+  /** 某通道改讀別組的檔案（共用同一份 normal / rough，不重複放檔） */
+  from?: Partial<Record<'albedo' | 'normal' | 'rough', string>>
 }
 
 export const PBR_SETS: Record<string, PbrSet> = {
   laminate_floor_02: { slug: 'laminate_floor_02', meters: 1.7, maps: ['albedo', 'normal', 'rough'], size: '2k' },
+  // 灰階木紋（線性均值 0.74）+ 與 laminate_floor_02 共用的 normal / rough：以 MaterialSpec.color 染成各色橡木
+  oak_grain: { slug: 'oak_grain', meters: 1.7, maps: ['albedo', 'normal', 'rough'], size: '2k', from: { normal: 'laminate_floor_02', rough: 'laminate_floor_02' } },
   large_grey_tiles: { slug: 'large_grey_tiles', meters: 3, maps: ['albedo', 'normal', 'rough'], size: '2k' },
   white_oak_veneer: { slug: 'white_oak_veneer', meters: 0.5, maps: ['normal', 'rough'], size: '1k' },
   grey_plaster_02: { slug: 'grey_plaster_02', meters: 1, maps: ['normal', 'rough'], size: '1k' },
@@ -77,13 +81,13 @@ export function loadPbrSet(slug: string): Promise<LoadedPbr> {
     const set = PBR_SETS[slug]
     if (!set) return Promise.reject(new Error(`unknown pbr set ${slug}`))
     const aniso = 16 // three 會再被 GPU 上限夾住
-    const url = (n: string) => `/textures/${slug}/${n}_${set.size}.jpg`
+    const url = (n: string, ch: 'albedo' | 'normal' | 'rough') => `/textures/${set.from?.[ch] ?? slug}/${n}_${set.size}.jpg`
     const want = (m: PbrSet['maps'][number]) => set.maps.includes(m)
     p = (async () => {
       const [albedo, normal, rough] = await Promise.all([
-        want('albedo') ? loadTex(url('diff'), true, aniso) : undefined,
-        want('normal') ? loadTex(url('nor'), false, aniso) : undefined,
-        want('rough') ? loadTex(url('rough'), false, aniso) : undefined,
+        want('albedo') ? loadTex(url('diff', 'albedo'), true, aniso) : undefined,
+        want('normal') ? loadTex(url('nor', 'normal'), false, aniso) : undefined,
+        want('rough') ? loadTex(url('rough', 'rough'), false, aniso) : undefined,
       ])
       return { set, albedo, normal, rough, roughMean: rough ? meanGreen(rough.image as CanvasImageSource) : 1 }
     })()
