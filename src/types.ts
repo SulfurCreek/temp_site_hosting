@@ -284,6 +284,10 @@ export interface BrandMaterial {
   /** albedo 貼圖（builtin:* 或 URL），沒有就是純色 */
   map?: string
   repeat?: number
+  /** 綁定 PBR 掃描貼圖組（同 MaterialSpec.pbr） */
+  pbr?: string
+  /** 套用時的色彩乘數（貼圖為灰階木紋時用來染色）；沒填則有貼圖用 #ffffff */
+  tint?: string
   /** hex 可信度：official 官方給的 RGB/Hex；measured 專案內由圖面/照片取樣；reference 由官方 NCS/RAL 等參考色換算；estimate 目視估計 */
   hexConfidence: 'official' | 'measured' | 'reference' | 'estimate'
   /** hex 與特性的依據來源 */

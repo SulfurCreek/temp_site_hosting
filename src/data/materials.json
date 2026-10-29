@@ -1,16 +1,97 @@
 [
   {
-    "id": "ED-KS81555",
-    "name": "超耐磨木地板 ED-KS81555（溫潤淺橡）",
-    "brand": "超耐磨",
-    "code": "ED-KS81555",
-    "note": "全室木地板（使用者指定型號）。依實景照（玄關/往陽台）調整為偏灰褐的淺橡木；手繪圖以棕色表示『木地板』，未採用其棕色；實景照取樣地板 #919087（牆 #d3d6d4 對應百合白，換算後約 #aaa599）",
+    "id": "PERGO-SUNWASH-OAK",
+    "name": "PERGO Sunwash Oak（日洗橡木）",
+    "brand": "PERGO",
+    "code": "Sunwash Oak",
+    "note": "暖調淺橡木，偏沙色。 色值由樣板照（偏冷光）目視校正估計，非色票；顆粒為共用灰階木紋貼圖染色。",
     "spec": {
-      "color": "#ffffff",
+      "color": "#fbe2bc",
+      "roughness": 0.5,
+      "metalness": 0,
+      "map": "builtin:oak-light",
+      "repeat": 1,
+      "archetype": "laminate_wood",
+      "clearcoat": 0.12,
+      "clearcoatRoughness": 0.4,
+      "bumpScale": 0.6,
+      "pbr": "oak_grain"
+    }
+  },
+  {
+    "id": "PERGO-MIDSUMMER-LIGHT-OAK",
+    "name": "PERGO Midsummer Light Oak（仲夏淺橡）",
+    "brand": "PERGO",
+    "code": "Midsummer Light Oak",
+    "note": "淺灰米色橡木，木紋細直。 色值由樣板照（偏冷光）目視校正估計，非色票；顆粒為共用灰階木紋貼圖染色。",
+    "spec": {
+      "color": "#f1e1c6",
+      "roughness": 0.5,
+      "metalness": 0,
+      "map": "builtin:oak-light",
+      "repeat": 1,
+      "archetype": "laminate_wood",
+      "clearcoat": 0.12,
+      "clearcoatRoughness": 0.4,
+      "bumpScale": 0.6,
+      "pbr": "oak_grain"
+    }
+  },
+  {
+    "id": "PERGO-BLUSH-OAK",
+    "name": "PERGO Blush Oak（腮紅橡木）",
+    "brand": "PERGO",
+    "code": "Blush Oak",
+    "note": "中調蜂蜜棕橡木，山形紋明顯。 色值由樣板照（偏冷光）目視校正估計，非色票；顆粒為共用灰階木紋貼圖染色。",
+    "spec": {
+      "color": "#c1a47c",
+      "roughness": 0.5,
+      "metalness": 0,
+      "map": "builtin:oak",
+      "repeat": 1,
+      "archetype": "laminate_wood",
+      "clearcoat": 0.12,
+      "clearcoatRoughness": 0.4,
+      "bumpScale": 0.6,
+      "pbr": "oak_grain"
+    }
+  },
+  {
+    "id": "WHITEWASH-OAK",
+    "name": "白洗橡木 Whitewashed Oak",
+    "brand": "",
+    "code": "Whitewashed Oak",
+    "note": "極淺白洗橡木、細直紋（樣板照右側色板，標籤未入鏡，名稱為自擬）。 色值由樣板照（偏冷光）目視校正估計，非色票；顆粒為共用灰階木紋貼圖染色。",
+    "spec": {
+      "color": "#fffbee",
       "roughness": 0.55,
       "metalness": 0,
+      "map": "builtin:oak-light",
+      "repeat": 1,
+      "archetype": "laminate_wood",
+      "clearcoat": 0.12,
+      "clearcoatRoughness": 0.4,
+      "bumpScale": 0.6,
+      "pbr": "oak_grain"
+    }
+  },
+  {
+    "id": "DRIFTWOOD-OAK",
+    "name": "漂流灰褐橡木 Driftwood Oak",
+    "brand": "",
+    "code": "Driftwood Oak",
+    "note": "中調灰褐橡木（樣板照左側色板，標籤未入鏡，名稱為自擬）。 色值由樣板照（偏冷光）目視校正估計，非色票；顆粒為共用灰階木紋貼圖染色。",
+    "spec": {
+      "color": "#ad9379",
+      "roughness": 0.5,
+      "metalness": 0,
       "map": "builtin:oak-ash",
-      "repeat": 1
+      "repeat": 1,
+      "archetype": "laminate_wood",
+      "clearcoat": 0.12,
+      "clearcoatRoughness": 0.4,
+      "bumpScale": 0.6,
+      "pbr": "oak_grain"
     }
   },
   {
@@ -130,18 +211,6 @@
       "metalness": 0,
       "map": "builtin:marble",
       "repeat": 0.8
-    }
-  },
-  {
-    "id": "REF-DECK-WOOD",
-    "name": "陽台木地板（手繪參考）",
-    "note": "手繪圖陽台為深棕木條，取樣約 #75583e",
-    "spec": {
-      "color": "#ffffff",
-      "roughness": 0.7,
-      "metalness": 0,
-      "map": "builtin:walnut",
-      "repeat": 1
     }
   },
   {

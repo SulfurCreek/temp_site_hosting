@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 12,
+  "rev": 13,
   "name": "鴻築麗苑（柏毅 2026/10/19 施工圖）",
   "floor": {
     "center": [
@@ -12,16 +12,16 @@
       6.065
     ],
     "material": {
-      "color": "#c4ccd6",
-      "roughness": 0.55,
+      "color": "#f1e1c6",
+      "roughness": 0.5,
       "metalness": 0,
-      "map": "builtin:oak-ash",
+      "map": "builtin:oak-light",
       "repeat": 1,
       "archetype": "laminate_wood",
       "clearcoat": 0.12,
       "clearcoatRoughness": 0.4,
       "bumpScale": 0.6,
-      "pbr": "laminate_floor_02"
+      "pbr": "oak_grain"
     }
   },
   "floorZones": [

@@ -230,6 +230,7 @@ src/
 - 圖面手寫藍字：「有管道 / 一樣的話保留」→ 管道間 `part-shaft` 保留；「改乾濕分離滑門」；「改推門」。
 - **估計項目**（圖面未明示）：乾濕分離玻璃位置、衛浴門位置、各插座中未標高度者（`assumed:true`）、開關高度（預設 120，主臥入口 100 為圖面值）、窗尺寸高度（台 37.5 / H194.9 取自圖面標註）。
 - 材質：地板 ED-KS81555（內建淺橡貼圖）、百合白 `#F7F5F0` 蛋殼光 0.65、EGGER W1000 ST19 / U708 ST9 / U727 ST9；玄關落塵區依使用者選的實景參考右版使用 `builtin:encaustic` 花磚（原圖面 CW025501 灰磚仍在材質庫）。
+- **rev 13（5 種新木地板）**：材質庫與品牌色卡的舊地板（ED-KS81555、LAMINATE-OAK/WALNUT）全部移除，換成 5 種橡木：PERGO Sunwash Oak（日洗橡木）、PERGO Midsummer Light Oak（仲夏淺橡，預設地板）、PERGO Blush Oak（腮紅橡木）、白洗橡木 `WHITEWASH-OAK`、漂流灰褐橡木 `DRIFTWOOD-OAK`（後兩者名稱自擬）。色值由樣板照（偏冷光）目視校正估計。全部用 `pbr: "oak_grain"`（`public/textures/oak_grain/diff_2k.jpg` = laminate_floor_02 的灰階木紋，normal/rough 共用原組，不增加 GPU 貼圖量），`color` 為染色乘數（`BrandMaterial.tint`）。
 - **rev 11**：圓桌 `f-round` 移到餐桌後牆（part-south 南面、電視牆東面到主臥滑門洞）中央 `[-0.3, 0, 0.45]`。這面牆場景 185.5 cm、施工圖約 181 cm，使用者實量 170 cm，差異原因待使用者確認量測端點，牆未改。
 - **rev 10**：依使用者截圖把沙發預設改成：兩個 90 橄欖綠模組緊貼西牆併排（`f-sheeper-a` z=-0.82、`f-sheeper-c` z=-1.72，x=-4.145，rotationY 90），60 黑色模組 `f-sheeper-b` 斜放在其南側 `[-4.0, 0, 0.0]`、rotationY 60（角度為依截圖估計，請以實際調整為準）。全屋尺寸驗算表見專案檔案 `sheeper-sofa/dimension-audit.md`：場景與施工圖差 ≤ 3 cm；使用者實量的「170cm 牆」尚待確認是哪一面。
 - **rev 9**：①組綿羊拆成三件獨立家具 `f-sheeper-a/b/c`（目錄 `sheeper-module-90-head` / `-60` / `-90`，各自可選取、移動、換材質；z = -0.22 / -0.97 / -1.72，x = -4.145，rotationY 90，併排總寬仍 2.4）。②玄關花磚區 `z-foyer` 寬 191 → **160 cm**（西側仍貼牆內面 x=-4.6，東緣由 -2.69 縮到 -3.0），center `[-3.8, 2.11]`、size `[1.6, 1.55]`；其餘家具未動。③使用者說明「多功能房間 = 客廳」：原「次臥 / 多功能房」（part-tv 以西、北牆窗邊的房間）就是客廳，名稱改為客廳（北牆窗名、第一人稱 hotspot `second` →「客廳入口」）；沙發在此房內、圓桌在半牆南側的餐廳區。
