@@ -41,7 +41,7 @@ export function brandPatch(b: BrandMaterial): Partial<MaterialSpec> {
   const a = ARCHETYPES[b.archetype]
   return {
     archetype: b.archetype,
-    color: b.map ? '#ffffff' : b.hex.toLowerCase(),
+    color: b.tint ?? (b.map ? '#ffffff' : b.hex.toLowerCase()),
     roughness: b.roughness,
     metalness: b.metalness ?? a.metalness,
     clearcoat: b.clearcoat ?? a.clearcoat,
@@ -49,6 +49,7 @@ export function brandPatch(b: BrandMaterial): Partial<MaterialSpec> {
     reflectivity: b.reflectivity ?? a.reflectivity,
     bumpScale: b.bumpScale,
     map: b.map,
+    pbr: b.pbr,
     repeat: b.map ? (b.repeat ?? 1) : undefined,
     opacity: undefined,
   }
