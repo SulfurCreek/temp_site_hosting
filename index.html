@@ -12,6 +12,12 @@
   </head>
   <body>
     <div id="root"></div>
+    <div id="boot" style="position:fixed;inset:0;z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#0f172a;color:#e2e8f0;font:600 14px system-ui,sans-serif">
+      <div>3D 室內裝潢規劃</div>
+      <div style="width:192px;height:4px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden"><div id="boot-bar" style="width:40%;height:100%;border-radius:4px;background:#38bdf8;animation:boot 1.1s ease-in-out infinite"></div></div>
+      <div style="font:400 12px system-ui,sans-serif;color:#94a3b8">載入程式中…</div>
+    </div>
+    <style>@keyframes boot{0%{transform:translateX(-100%)}100%{transform:translateX(280%)}}body{background:#0f172a}</style>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

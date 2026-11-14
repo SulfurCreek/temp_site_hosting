@@ -5,6 +5,7 @@ import { useLayout } from './store/layoutStore'
 import { useUi } from './store/uiStore'
 import { FirstPersonBar } from './ui/FirstPersonBar'
 import { DiagOverlay } from './ui/DiagOverlay'
+import { LoadingScreen } from './ui/LoadingScreen'
 import { Hud, Toast } from './ui/Hud'
 import { useIsMobile } from './ui/hooks'
 import { BottomSheet, LeftDrawer, RightPanel } from './ui/Panels'
@@ -59,6 +60,7 @@ export default function App() {
         <MepInfo />
         <Toast />
         <DiagOverlay />
+        <LoadingScreen />
         {colorProof && (
           <div className="absolute inset-x-0 bottom-20 z-30 flex justify-center px-3">
             <button
