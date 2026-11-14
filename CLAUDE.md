@@ -230,6 +230,7 @@ src/
 - 圖面手寫藍字：「有管道 / 一樣的話保留」→ 管道間 `part-shaft` 保留；「改乾濕分離滑門」；「改推門」。
 - **估計項目**（圖面未明示）：乾濕分離玻璃位置、衛浴門位置、各插座中未標高度者（`assumed:true`）、開關高度（預設 120，主臥入口 100 為圖面值）、窗尺寸高度（台 37.5 / H194.9 取自圖面標註）。
 - 材質：地板 ED-KS81555（內建淺橡貼圖）、百合白 `#F7F5F0` 蛋殼光 0.65、EGGER W1000 ST19 / U708 ST9 / U727 ST9；玄關落塵區依使用者選的實景參考右版使用 `builtin:encaustic` 花磚（原圖面 CW025501 灰磚仍在材質庫）。
+- **rev 13**：重新依使用者 2026-10-25 截圖還原沙發：兩個 90 橄欖綠模組緊貼西牆併排並頂到儲藏室北面（`f-sheeper-a` z=0.135、`f-sheeper-c` z=-0.765，x=-4.145，rotationY 90）；60 黑色模組 `f-sheeper-b` 斜放在北側 `[-3.94, 0, -1.97]`、rotationY 52。位置由透視截圖估算，**不是精確值**；要精準請匯出 layout.json。⚠️ 每次 `rev` +1 都會把使用者瀏覽器內自行擺放的家具覆蓋成預設（舊存檔進復原堆疊）——使用者調好的家具位置要先寫進預設，或避免無必要的 rev 提升。
 - **rev 11**：圓桌 `f-round` 移到餐桌後牆（part-south 南面、電視牆東面到主臥滑門洞）中央 `[-0.3, 0, 0.45]`。這面牆場景 185.5 cm、施工圖約 181 cm，使用者實量 170 cm，差異原因待使用者確認量測端點，牆未改。
 - **rev 10**：依使用者截圖把沙發預設改成：兩個 90 橄欖綠模組緊貼西牆併排（`f-sheeper-a` z=-0.82、`f-sheeper-c` z=-1.72，x=-4.145，rotationY 90），60 黑色模組 `f-sheeper-b` 斜放在其南側 `[-4.0, 0, 0.0]`、rotationY 60（角度為依截圖估計，請以實際調整為準）。全屋尺寸驗算表見專案檔案 `sheeper-sofa/dimension-audit.md`：場景與施工圖差 ≤ 3 cm；使用者實量的「170cm 牆」尚待確認是哪一面。
 - **rev 9**：①組綿羊拆成三件獨立家具 `f-sheeper-a/b/c`（目錄 `sheeper-module-90-head` / `-60` / `-90`，各自可選取、移動、換材質；z = -0.22 / -0.97 / -1.72，x = -4.145，rotationY 90，併排總寬仍 2.4）。②玄關花磚區 `z-foyer` 寬 191 → **160 cm**（西側仍貼牆內面 x=-4.6，東緣由 -2.69 縮到 -3.0），center `[-3.8, 2.11]`、size `[1.6, 1.55]`；其餘家具未動。③使用者說明「多功能房間 = 客廳」：原「次臥 / 多功能房」（part-tv 以西、北牆窗邊的房間）就是客廳，名稱改為客廳（北牆窗名、第一人稱 hotspot `second` →「客廳入口」）；沙發在此房內、圓桌在半牆南側的餐廳區。
@@ -298,8 +299,8 @@ src/
 ---
 
 ### v2 渲染原則：動靜分離雙態渲染（目標 iPhone 15/17 Pro、iPad、MacBook Pro M1 Pro / Chrome）
-- **互動中 vs 定格**（`src/lib/frameloop.ts`）：拖曳 / 縮放 / 按鍵 / 動畫 / 載入時連續出幀，dpr [1, 1.25]、N8AO 半解析度 performance、旁路景深；停下 180 ms 後 dpr [1.5, 2]、全解析度 N8AO high + Bloom + 光學景深，補 3 幀定格後 `frameloop = demand`（GPU 閒置）。**靜止畫面是相片級品質，降級只發生在互動中。** 狀態由 DOM 事件與計時器切換，不在 `useFrame` 內 setState。
-- 互動中 FPS 監看（rAF，只量互動期間）：平均 > 26 ms 連續一窗 → level 1（dpr 降到 1），再掉 → level 2（互動中關 AO）；恢復後逐級回升。不影響定格畫質。
+- **互動中 vs 定格**（`src/lib/frameloop.ts`）：拖曳 / 縮放 / 按鍵 / 動畫 / 載入時連續出幀，補 3 幀定格後 `frameloop = demand`（GPU 閒置）。⚠️ **互動前後後製管線結構與解析度必須完全相同**：不要在手勢開始時改 dpr、N8AO quality/halfRes、或增減效果 pass（景深）——iPhone（Safari / iOS 27 beta）會在手勢一開始就 WebGL context lost 黑屏（2026-10-26 診斷報告）。只能切換 `frameloop` 與 N8AO 的 `enabled`。**靜止畫面是相片級品質，降級只發生在互動中。** 狀態由 DOM 事件與計時器切換，不在 `useFrame` 內 setState。
+- 互動中 FPS 監看（rAF，只量互動期間）：平均 > 26 ms 連續一窗 → level 1，再掉 → level 2（互動中關 AO）；恢復後逐級回升。不影響定格畫質。
 - 新增動畫若超過 1.2 s，要呼叫 `wake(ms)`。
 - **陰影圖手動更新**：`gl.shadowMap.autoUpdate = false`，只在 layout 資料 commit（拖拉 / 位移軸放開）、切換視角、資源載入後重算（`dirtyShadows()`）。**全場景只有 2 盞燈投影**（客廳吊扇 `fan-liv`、主臥吸頂 `ce-master`，1024），其餘燈具只有光照；不要再增加投影光源。
 - 接觸陰影 `frames=1`，資料變動時換 key 重烘。
@@ -307,12 +308,18 @@ src/
 - 燈具：`src/scene/Fixtures.tsx` 位置全取自 `mep.json`，固定 4000K、全迴路開啟。軌道燈頭瞄準點寫在該檔 `TRACK_AIM`。
 - `PostFX.tsx` 順序 N8AO → **children（景深，只在定格時掛）** → Bloom → WarmGrade → ToneMapping(ACES) → Vignette → SMAA；Canvas 原生 `antialias:false, stencil:false`。標準對色光（`colorProof`，不沿用存檔）只有 Neutral 色調映射 + SMAA。
 
+### GPU 記憶體（iPhone Safari 的 WebGL 超過上限會整個 context 被收掉）
+- `src/lib/gpuLean.ts`：N8AO 合成結果直接寫進 composer 的 outputBuffer（省掉自己的全解析度 RGBA16F 與一次全螢幕複製）、N8AO 累積緩衝 RGBA8、composer stable depth 與點光源 cube 陰影的色彩附件改 R8。都是「配置了但內容不被讀或重複」的緩衝，畫面輸出不變。
+- 新增投影燈：點光源要掛 `ref={leanPointShadow}`；新增全螢幕效果前先估算 dpr 2（786×1704）時的 MB 數。
+- 量測方式：Playwright 以 393×852 @2x 載入，攔截 WebGL `texStorage2D / texImage2D / renderbufferStorage` 累加位元組（`scripts/gpu-mem/measure.cjs`）。
+
 ### PBR 掃描貼圖與 HDRI（Poly Haven, CC0）
 - `scripts/optimize-textures.mjs`（`--max 1024`，`--dry` 先看結果）壓縮 / 縮小貼圖；地板與磁磚組預設維持 2048。
 - `node scripts/fetch-textures.mjs` 會下載原始檔；**提交進 repo 的是瘦身後的版本**：地板 / 磁磚 2k（diffuse / normal / 單通道 roughness，約 2.6 MB 一組），板材微紋理 1k，無 AO 圖（AO 由 N8AO 即時算），HDRI 只留 `public/hdri/interior-1k.hdr`。總量約 8 MB。
 - `MaterialSpec.pbr = '<slug>'` 綁定（`src/lib/pbrTextures.ts` 的 `PBR_SETS`，`meters` = 一張涵蓋的公尺數、`size` = 檔案解析度）。`pbr: false` 強制停用。`egger_st19` / `egger_st9` archetype 預設自動套用（只取 Normal + Roughness）。
 - 對應：ED-KS81555 → `laminate_floor_02`；CW025501 → `large_grey_tiles`；EGGER ST19 → `white_oak_veneer`；ST9 → `grey_plaster_02`。⚠️ 皆為最接近的替代品，非同型號。
-- 材質用到才載入；已載入的貼圖共用同一份 GPU 上傳。
+- 材質用到才載入；已載入的貼圖共用同一份 GPU 上傳（clone 一律用 `textures.ts` 的 `sharedClone()`，不要 `clone()` 後設 `needsUpdate`，那會讓大圖重傳）。
+- **KTX2**：`node scripts/encode-ktx2.mjs` 把每張 JPG 轉成同名 `.ktx2`（UASTC + Zstd + mipmap，編碼時已 Y 翻轉），`node scripts/check-ktx2.mjs` 印出與 JPG 的 PSNR（目前 43–50 dB）。執行期在支援 ASTC / BC7 的裝置載 KTX2（`public/basis/` 轉碼器），否則載 JPG；`?ktx2=0` 強制 JPG。**改了 JPG 要重跑 encode**，粗糙度圖的平均值（`PBR_SETS[].roughMean`）也要更新。
 
 ## 資料檔注意事項
 
@@ -333,6 +340,15 @@ src/
 - **點選 ≠ 移動**：點擊只選取；要移動需按屬性面板「移動」或 `M` 進入移動模式（`uiStore.moving`），拖拉放開後自動結束（位移軸/旋轉環則按「完成移動」/ Enter / Esc）。鎖定（`locked`）的物件不能移動、旋轉、刪除。
 - 色彩：使用 `THREE.NeutralToneMapping`（保留色票原色），4000K 為中性白、3000K 偏暖、6000K 偏冷；apartment HDR 偏暖，已用略冷的天光抵銷。新增共平面的幾何（重疊的牆、疊放的地板分區）會 z-fighting 閃爍——牆已有逐面 polygonOffset、地板分區逐層墊高 1mm，新增物件請避免與牆面完全共平面。
 - 鍵盤：`M` 移動模式、`R` 旋轉 90°（Shift+R 反向）、`Backspace/Delete` 刪除、`Space` 平面圖 ⇄ 斜視、`Ctrl+Z/Shift+Z` 復原/重做、`Ctrl+D` 複製、`Ctrl+S` 匯出、`Esc` 取消選取/結束校準。
+
+## 行動端輕量管線（2026-10-27，`src/lib/lean.ts`）
+- **`LEAN` = 視窗寬 < 768 或主要指標為觸控（手機、iPad）**，載入時決定一次、整個工作階段不變（動態切換 dpr / 後製 / 材質會讓 iOS 收回 WebGL context）。桌面（`?lean=0` 或寬螢幕滑鼠）完全走原本的 v2 管線，畫面逐位元相同。除錯：`?lean=1|0` 強制開關、`?dpr=2` 改 dpr、`?mediump=1` 著色器 mediump（預設關，需實機比對有無色帶）。
+- LEAN 時：不掛 `EffectComposer` / N8AO / Bloom / DepthOfField（`PostFX` 走 `SafePost`，renderer 內建 ACES 色調映射）；Canvas dpr 固定 `min(devicePixelRatio, 1.5)` + 原生 MSAA；`frameloop="demand"`，觸控 / 滾輪只 `invalidate()`，不切 `always`。
+- 材質改 `MeshStandardMaterial`（無 clearcoat，以略降 roughness 取代）；掃描貼圖改載 `*_1k`（`scripts/make-mobile-textures.mjs` + `encode-ktx2.mjs` 產生），anisotropy 4。
+- 燈光：只有 `hemisphereLight` + 1 盞帶陰影的 `directionalLight`（陰影只在資料變動時重烘）。**不放任何 Spot/Point Light**：燈具光斑 = `src/scene/BakedLight.tsx` 的加色漸層貼片（射線打到牆 / 地板後貼上），家具底部軟陰影墊片 `ShadowPad`、牆腳 / 牆頂 15 cm 暗角帶 `CornerAO` 取代 ContactShadows / N8AO。新增燈具請更新 `mep.json`，光斑會自動跟著。
+- 轉動 / 縮放期間不做射線檢測（`Scene.tsx` 的 `pointerEvents` 略過 touch 與按住狀態的 pointermove、wheel）；破牆目標每 100 ms 才重算，手機上二態切換（帶遲滯），不逐幀重建幾何。
+- 手機選取家具時，抽屜上方有浮動「旋轉角度」列（`Panels.tsx` 的 `RotationDock`：±15°、滑桿、數字）。
+- 量測 / 測試腳本：`scripts/gpu-mem/measure.cjs`（顯存）、`draw-calls.cjs`（draw call）、`touch-test.cjs`（觸控旋轉 / 縮放的射線檢測次數與閒置幀數）。均為無頭軟體 WebGL，**不是實機數據**。
 
 ## v2 介面精簡（2026-10-25）
 - 移除：四方位按鈕、燈光色溫與燈光情境、後期品質選項、相片級算圖 / 路徑追蹤 / 4K 匯出、放置立足點與預設立足點列、第一人稱的高度 / 視角 / 退後滑桿與景深開關（景深固定開、退後固定 50 cm、站高 168 cm）。

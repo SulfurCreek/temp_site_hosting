@@ -1,8 +1,9 @@
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { wallBlocksCamera } from '../lib/fpClip'
 import { makeMetricBox } from '../lib/geometry'
+import { LEAN } from '../lib/lean'
 import { usePBRMaterial } from '../lib/materials'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
@@ -10,6 +11,8 @@ import type { Vec2, Wall } from '../types'
 import { WallTrim } from './WallTrim'
 
 const LOW_HEIGHT = 0.3 // 矮牆模式高度 30 cm
+/** 破牆角度判斷的最小間隔：相機每幀都在動，但「哪面牆擋住視線」不需要每幀重算 */
+const CUT_CHECK_MS = 100
 const GHOST_OPACITY = 0.15
 
 interface Piece {
@@ -79,7 +82,7 @@ function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: nu
   }, [mat, index])
   const glassMat = useMemo(
     () =>
-      new THREE.MeshPhysicalMaterial({
+      new THREE.MeshStandardMaterial({
         color: '#bfe0f5',
         roughness: 0.05,
         metalness: 0,
@@ -112,6 +115,13 @@ function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: nu
   const root = useRef<THREE.Group>(null)
   const fade = useRef(0) // 第一人稱：擋住相機的牆淡出（0 = 實體，1 = 隱藏）
   const hidden = useRef(false)
+  const invalidate = useThree((s) => s.invalidate)
+  const lastCheck = useRef(-1e9)
+  const lastCam = useRef(new THREE.Vector3(Infinity, 0, 0))
+  const lastKey = useRef<unknown[]>([])
+  const cutTarget = useRef(0)
+  const recheck = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useLayoutEffect(() => () => clearTimeout(recheck.current), [])
 
   /** 依目前高度重建每塊方塊的幾何（UV 保持實際公尺比例） */
   const apply = (H: number) => {
@@ -141,21 +151,45 @@ function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: nu
   useFrame(({ camera }, dt) => {
     // 第一人稱：強制關閉破牆，所有牆 100% 完整高度與不透明
     const mode = useUi.getState().viewMode === 'firstPerson' ? 'off' : useLayout.getState().settings.cutaway
-    let target = 0
-    if (wall.exterior && mode !== 'off') {
-      // 相機相對房間中心的水平方向 v；牆外法線 n 與 v 內積大 → 該牆擋在鏡頭與房間之間
-      const vx = camera.position.x - center[0]
-      const vz = camera.position.z - center[1]
-      const horiz = Math.hypot(vx, vz)
-      const dist = Math.hypot(horiz, camera.position.y)
-      const dot = horiz > 1e-4 ? (geo.normal[0] * vx + geo.normal[1] * vz) / horiz : 1
-      const facing = smoothstep(0.1, 0.45, dot)
-      // 幾乎正上方俯視（平面圖）時，所有外牆都降低，才看得到室內
-      const top = 1 - smoothstep(0.12, 0.38, horiz / Math.max(dist, 1e-4))
-      target = Math.max(facing, top)
+    // 每 100 ms 才重算一次目標（其餘幀沿用）；相機沒動、模式與牆沒變就不必重算。
+    // 若這一幀因節流被略過而相機還在動，補排一次檢查，避免相機停下時牆停在過時的狀態（相機不動後不再補排，不會形成空轉）。
+    const nowMs = performance.now()
+    const key = lastKey.current
+    const same = key[0] === mode && key[1] === geo && key[2] === center
+    const moved = camera.position.distanceToSquared(lastCam.current) > 1e-8
+    if (!same || (moved && nowMs - lastCheck.current >= CUT_CHECK_MS)) {
+      lastCheck.current = nowMs
+      lastKey.current = [mode, geo, center]
+      lastCam.current.copy(camera.position)
+      let target = 0
+      if (wall.exterior && mode !== 'off') {
+        // 相機相對房間中心的水平方向 v；牆外法線 n 與 v 內積大 → 該牆擋在鏡頭與房間之間
+        const vx = camera.position.x - center[0]
+        const vz = camera.position.z - center[1]
+        const horiz = Math.hypot(vx, vz)
+        const dist = Math.hypot(horiz, camera.position.y)
+        const dot = horiz > 1e-4 ? (geo.normal[0] * vx + geo.normal[1] * vz) / horiz : 1
+        const facing = smoothstep(0.1, 0.45, dot)
+        // 幾乎正上方俯視（平面圖）時，所有外牆都降低，才看得到室內
+        const top = 1 - smoothstep(0.12, 0.38, horiz / Math.max(dist, 1e-4))
+        target = Math.max(facing, top)
+      }
+      cutTarget.current = target
+    } else if (moved && recheck.current === undefined) {
+      recheck.current = setTimeout(() => {
+        recheck.current = undefined
+        invalidate()
+      }, CUT_CHECK_MS - (nowMs - lastCheck.current) + 5)
     }
-    cut.current = THREE.MathUtils.damp(cut.current, target, 9, dt)
-    if (Math.abs(cut.current - target) < 0.001) cut.current = target
+    const target = cutTarget.current
+    if (LEAN) {
+      // 行動端：二態切換（帶遲滯），只在翻轉那一幀重建一次幾何，不逐幀插值高度 / 透明度
+      if (cut.current < 0.5 ? target > 0.6 : target < 0.4) cut.current = cut.current < 0.5 ? 1 : 0
+    } else {
+      cut.current = THREE.MathUtils.damp(cut.current, target, 9, dt)
+      if (Math.abs(cut.current - target) < 0.001) cut.current = target
+      if (cut.current !== target) invalidate()
+    }
     const t = cut.current
 
     const H = mode === 'lower' ? THREE.MathUtils.lerp(wall.height, Math.min(LOW_HEIGHT, wall.height), t) : wall.height
@@ -169,6 +203,7 @@ function WallView({ wall, center, index }: { wall: Wall; center: Vec2; index: nu
     hidden.current = fpOn && wallBlocksCamera(wall.start, wall.end, wall.thickness, hidden.current)
     fade.current = THREE.MathUtils.damp(fade.current, hidden.current ? 1 : 0, 14, dt)
     if (Math.abs(fade.current - (hidden.current ? 1 : 0)) < 0.01) fade.current = hidden.current ? 1 : 0
+    else invalidate()
     op *= 1 - fade.current
     if (root.current) root.current.visible = fade.current < 0.99
     const base = wall.material.opacity ?? 1

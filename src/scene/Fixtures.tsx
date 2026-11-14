@@ -2,6 +2,8 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { MEP_ITEMS } from '../data'
 import type { MepItem } from '../types'
+import { leanPointShadow } from '../lib/gpuLean'
+import { LEAN } from '../lib/lean'
 
 /**
  * 燈具圖的真實光源：位置全部取自 src/data/mep.json（track / ceiling / fan / downlight / strip）。
@@ -14,7 +16,7 @@ const EMISSIVE = '#fff5e0'
 const STRIP_COLOR = '#ffb46b' // 3000K 暖白
 
 /** 軌道燈頭瞄準點（世界座標 [x, y, z]）：客廳軌道洗 275 電視牆/餐桌/沙發，次臥軌道洗西牆與沙發 */
-const TRACK_AIM: Record<string, [number, number, number][]> = {
+export const TRACK_AIM: Record<string, [number, number, number][]> = {
   'trk-liv': [
     [-3.95, 0.45, -0.6], // 西側沙發區
     [-0.3, 0.75, 0.45], // 圓餐桌
@@ -32,6 +34,8 @@ const TRACK_AIM: Record<string, [number, number, number][]> = {
 const SHADOW_POINT_IDS = new Set(['fan-liv', 'ce-master'])
 
 function Emissive({ k, color = EMISSIVE }: { k: number; color?: string }) {
+  // 行動端：沒有 Bloom，發光面就是單色亮點（MeshBasicMaterial，零光照運算）
+  if (LEAN) return <meshBasicMaterial color={color} toneMapped={false} />
   return (
     <meshStandardMaterial
       color="#ffffff"
@@ -74,7 +78,7 @@ function HeadSpot({
           <Emissive k={k} />
         </mesh>
       </group>
-      <spotLight
+      {!LEAN && <spotLight
         visible={k > 0.001}
         target={target}
         color={color}
@@ -88,7 +92,7 @@ function HeadSpot({
         shadow-bias={-0.0006}
         shadow-normalBias={0.02}
         shadow-radius={4}
-      />
+      />}
     </group>
   )
 }
@@ -140,20 +144,21 @@ function CeilingLamp({ it, k, color }: { it: MepItem; k: number; color: string }
             <meshStandardMaterial color="#8d7b66" roughness={0.6} />
           </mesh>
         ))}
-      {/* 圓心下方 15 cm 的柔和廣角點光源 */}
-      <pointLight
+      {/* 圓心下方 15 cm 的柔和廣角點光源（行動端改由 BakedLight 的光斑貼片呈現） */}
+      {!LEAN && <pointLight
         visible={k > 0.001}
         position={[0, -0.15, 0]}
         color={color}
         intensity={(it.id === 'ce-bath' ? 5 : 9) * GAIN * k}
         distance={0}
         decay={1.8}
+        ref={shadow ? leanPointShadow : undefined}
         castShadow={shadow}
         shadow-mapSize={[1024, 1024]}
         shadow-bias={-0.0008}
         shadow-normalBias={0.03}
         shadow-radius={6}
-      />
+      />}
     </group>
   )
 }
@@ -171,7 +176,7 @@ function Downlight({ it, k, color }: { it: MepItem; k: number; color: string }) 
         <circleGeometry args={[0.04, 24]} />
         <Emissive k={k} />
       </mesh>
-      <spotLight
+      {!LEAN && <spotLight
         visible={k > 0.001}
         position={[0, -0.03, 0]}
         target={target}
@@ -181,7 +186,7 @@ function Downlight({ it, k, color }: { it: MepItem; k: number; color: string }) 
         intensity={9 * GAIN * k}
         distance={5}
         decay={2}
-      />
+      />}
     </group>
   )
 }
@@ -196,7 +201,7 @@ function StripLight({ it, k }: { it: MepItem; k: number }) {
         <boxGeometry args={[alongZ ? 0.02 : len, 0.015, alongZ ? len : 0.02]} />
         <Emissive k={k} color={STRIP_COLOR} />
       </mesh>
-      {[-1, 1].map((s) => (
+      {!LEAN && [-1, 1].map((s) => (
         <pointLight
           key={s}
           visible={k > 0.001}
