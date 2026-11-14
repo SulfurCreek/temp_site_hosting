@@ -21,6 +21,8 @@ export interface PbrSet {
   size: '1k' | '2k'
   /** 粗糙度貼圖 G 通道平均值（encode-ktx2.mjs 由 JPG 預先算好；KTX2 沒有可讀回的影像） */
   roughMean: number
+  /** 某通道改讀別組的檔案（共用同一份 normal / rough，不重複放檔，GPU 上也共用同一份上傳） */
+  from?: Partial<Record<'albedo' | 'normal' | 'rough', string>>
 }
 
 // 與舊版執行期算法相同（瀏覽器 canvas 縮到 32×32 取 G 平均），數值逐位相同
@@ -31,6 +33,8 @@ const RM_PLASTER = 0.7920802696078432
 
 export const PBR_SETS: Record<string, PbrSet> = {
   laminate_floor_02: { slug: 'laminate_floor_02', meters: 1.7, maps: ['albedo', 'normal', 'rough'], size: '2k', roughMean: RM_LAMINATE },
+  // 灰階木紋 + 與 laminate_floor_02 共用的 normal / rough：以 MaterialSpec.color 染成各色橡木
+  oak_grain: { slug: 'oak_grain', meters: 1.7, maps: ['albedo', 'normal', 'rough'], size: '2k', roughMean: RM_LAMINATE, from: { normal: 'laminate_floor_02', rough: 'laminate_floor_02' } },
   large_grey_tiles: { slug: 'large_grey_tiles', meters: 3, maps: ['albedo', 'normal', 'rough'], size: '2k', roughMean: RM_TILES },
   white_oak_veneer: { slug: 'white_oak_veneer', meters: 0.5, maps: ['normal', 'rough'], size: '1k', roughMean: RM_OAK },
   grey_plaster_02: { slug: 'grey_plaster_02', meters: 1, maps: ['normal', 'rough'], size: '1k', roughMean: RM_PLASTER },
@@ -120,13 +124,13 @@ export function loadPbrSet(slug: string): Promise<LoadedPbr> {
     const aniso = LEAN ? 4 : 16 // three 會再被 GPU 上限夾住
     // 行動端：2k 掃描貼圖改載 1k 版（public/textures/<slug>/*_1k.*，scripts/make-mobile-textures.mjs 產生；同樣是無縫平鋪，meters 不變），顯存 1/4
     const px = LEAN ? '1k' : set.size
-    const dir = `/textures/${slug}`
+    const dir = (ch: 'albedo' | 'normal' | 'rough') => `/textures/${set.from?.[ch] ?? slug}`
     const want = (m: PbrSet['maps'][number]) => set.maps.includes(m)
     p = (async () => {
       const [albedo, normal, rough] = await Promise.all([
-        want('albedo') ? loadTex(dir, `diff_${px}`, true, aniso) : undefined,
-        want('normal') ? loadTex(dir, `nor_${px}`, false, aniso) : undefined,
-        want('rough') ? loadTex(dir, `rough_${px}`, false, aniso) : undefined,
+        want('albedo') ? loadTex(dir('albedo'), `diff_${px}`, true, aniso) : undefined,
+        want('normal') ? loadTex(dir('normal'), `nor_${px}`, false, aniso) : undefined,
+        want('rough') ? loadTex(dir('rough'), `rough_${px}`, false, aniso) : undefined,
       ])
       return { set, albedo, normal, rough, roughMean: rough ? set.roughMean : 1 }
     })()
