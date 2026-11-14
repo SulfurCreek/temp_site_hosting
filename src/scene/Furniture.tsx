@@ -13,7 +13,7 @@ import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { LEAN } from '../lib/lean'
 import { ShadowPad } from './BakedLight'
 import { objectRegistry } from './registry'
-import { MergedParts, cabinetParts, nicheCabinetParts } from './cabinetParts'
+import { MergedParts, cabinetParts, nicheCabinetParts, type Part } from './cabinetParts'
 
 const D = Math.PI / 180
 
@@ -34,6 +34,41 @@ function Box({
 }) {
   const geo = useMetricBox(dims[0], dims[1], dims[2])
   return <mesh geometry={geo} material={mat} position={pos} castShadow={shadow} receiveShadow />
+}
+
+
+/** 軟件家具用的大圓角：同材質零件合併成單一 geometry，圓角 3 段（每件約 300 頂點） */
+function Soft({ parts, m }: { parts: Part[]; m: Mats }) {
+  const ps = useMemo(() => parts.map((p) => ({ seg: 3, ...p })), [parts])
+  return <MergedParts parts={ps} m={m} />
+}
+
+const part = (mat: Part['mat'], pos: Vec3, dims: Vec3, r: number): Part => ({ mat, pos, dims, r })
+
+/** 橢圓截面、邊緣圓角的實心體（馬桶本體 / 座圈）。底部中心在原點，rx/rz = 半徑 */
+function RoundedEllipse({ pos, rx, rz, h, r, mat }: { pos: Vec3; rx: number; rz: number; h: number; r: number; mat: THREE.Material }) {
+  const geo = useMemo(() => {
+    const rr = Math.min(r, h / 2 - 0.0005, Math.min(rx, rz) * 0.9)
+    const k = (rx + rz) / 2
+    const u = rr / k
+    const pts: THREE.Vector2[] = [new THREE.Vector2(0, 0)]
+    const N = 6
+    for (let i = 0; i <= N; i++) {
+      const a = (i / N) * (Math.PI / 2)
+      pts.push(new THREE.Vector2(1 - u + Math.sin(a) * u, rr - Math.cos(a) * rr))
+    }
+    for (let i = 0; i <= N; i++) {
+      const a = (i / N) * (Math.PI / 2)
+      pts.push(new THREE.Vector2(1 - u + Math.cos(a) * u, h - rr + Math.sin(a) * rr))
+    }
+    pts.push(new THREE.Vector2(0, h))
+    const g = new THREE.LatheGeometry(pts, 40)
+    g.scale(rx, 1, rz)
+    g.computeVertexNormals()
+    return g
+  }, [rx, rz, h, r])
+  useEffect(() => () => geo.dispose(), [geo])
+  return <mesh geometry={geo} material={mat} position={pos} castShadow receiveShadow />
 }
 
 type Mats = { main: THREE.Material; secondary: THREE.Material; accent: THREE.Material }
@@ -88,27 +123,26 @@ function ModSofaGen({ w, h, d, modules, headrest, m }: GenProps) {
   const backT = Math.min(0.26, d * 0.29)
   const gap = 0.006
   const hr = 0.085
-  let x0 = -w / 2
+  const parts = useMemo(() => {
+    const ps: Part[] = []
+    let x0 = -w / 2
+    for (const mod of mods) {
+      const mw = mod.w * k
+      const cx = x0 + mw / 2
+      x0 += mw
+      const mat = mod.mat ?? 'main'
+      for (const sx of [-1, 1])
+        for (const sz of [-1, 1]) ps.push(part('secondary', [cx + sx * (mw / 2 - 0.06), lh / 2, sz * (d / 2 - 0.06)], [0.05, lh, 0.05], 0.012))
+      ps.push(part(mat, [cx, lh + (baseTop - lh) / 2, 0.002], [mw - gap, baseTop - lh, d - 0.004], 0.045))
+      ps.push(part(mat, [cx, seatTop - 0.06, backT / 2], [mw - gap - 0.01, 0.12, d - backT - 0.01], 0.05))
+      ps.push(part(mat, [cx, lh + (h - lh) / 2, -d / 2 + backT / 2], [mw - gap, h - lh, backT], 0.07))
+    }
+    return ps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [w, h, d, modules, k, baseTop, seatTop, backT])
   return (
     <>
-      {mods.map((mod, i) => {
-        const mw = mod.w * k
-        const cx = x0 + mw / 2
-        x0 += mw
-        const mat = m[mod.mat ?? 'main']
-        return (
-          <group key={i} position={[cx, 0, 0]}>
-            {[-1, 1].map((sx) =>
-              [-1, 1].map((sz) => (
-                <Box key={`${sx}${sz}`} pos={[sx * (mw / 2 - 0.06), lh / 2, sz * (d / 2 - 0.06)]} dims={[0.05, lh, 0.05]} mat={m.secondary} />
-              )),
-            )}
-            <Box pos={[0, lh + (baseTop - lh) / 2, 0.002]} dims={[mw - gap, baseTop - lh, d - 0.004]} mat={mat} />
-            <Box pos={[0, seatTop - 0.06, backT / 2]} dims={[mw - gap - 0.01, 0.12, d - backT - 0.01]} mat={mat} />
-            <Box pos={[0, lh + (h - lh) / 2, -d / 2 + backT / 2]} dims={[mw - gap, h - lh, backT]} mat={mat} />
-          </group>
-        )
-      })}
+      <Soft parts={parts} m={m} />
       {headrest ? (
         <mesh
           position={[-w / 2 + mods[0].w * k / 2, h + hr * 0.9, -d / 2 + backT / 2]}
@@ -157,47 +191,30 @@ function SofaGen({ w, h, d, count, m }: GenProps) {
   const cw = innerW / count
   const seatD = d - backT
   const lw = 0.05
+  const parts = useMemo(() => {
+    const ps: Part[] = []
+    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]])
+      ps.push(part('secondary', [sx * (w / 2 - 0.07), lh / 2, sz * (d / 2 - 0.07)], [lw, lh, lw], 0.012))
+    // 底座內縮 3mm，避免與扶手/靠背共平面閃爍
+    ps.push(part('main', [0, lh + (baseTop - lh) / 2, 0.003], [w - 0.006, baseTop - lh, d - 0.006], 0.04))
+    ps.push(part('main', [0, lh + (h - lh) / 2, -d / 2 + backT / 2], [w, h - lh, backT], 0.07))
+    for (const s of [-1, 1])
+      ps.push(part('main', [s * (w / 2 - armW / 2), lh + (armTop - lh) / 2, backT / 2], [armW, armTop - lh, d - backT], 0.06))
+    for (let i = 0; i < count; i++) {
+      const x = -innerW / 2 + cw * (i + 0.5)
+      ps.push(part('main', [x, baseTop + cushH / 2, backT / 2], [cw - 0.01, cushH, seatD - 0.01], 0.05))
+      ps.push(part('main', [x, baseTop + cushH + (h - baseTop - cushH) * 0.42, -d / 2 + backT + 0.07], [cw - 0.02, (h - baseTop - cushH) * 0.8, 0.14], 0.06))
+    }
+    return ps
+  }, [w, h, d, count, lh, armW, backT, baseTop, cushH, armTop, innerW, cw, seatD])
+  const pillow = useMemo(() => [part('accent', [0, 0, 0], [0.38, 0.38, 0.11], 0.05)], [])
   return (
     <>
-      {/* 腳 */}
-      {[
-        [-1, -1],
-        [1, -1],
-        [-1, 1],
-        [1, 1],
-      ].map(([sx, sz], i) => (
-        <Box key={i} pos={[sx * (w / 2 - 0.07), lh / 2, sz * (d / 2 - 0.07)]} dims={[lw, lh, lw]} mat={m.secondary} />
-      ))}
-      {/* 底座、靠背、扶手 */}
-      {/* 底座內縮 3mm，避免與扶手/靠背共平面閃爍 */}
-      <Box pos={[0, lh + (baseTop - lh) / 2, 0.003]} dims={[w - 0.006, baseTop - lh, d - 0.006]} mat={m.main} />
-      <Box pos={[0, lh + (h - lh) / 2, -d / 2 + backT / 2]} dims={[w, h - lh, backT]} mat={m.main} />
-      {[-1, 1].map((s) => (
-        <Box
-          key={s}
-          pos={[s * (w / 2 - armW / 2), lh + (armTop - lh) / 2, backT / 2]}
-          dims={[armW, armTop - lh, d - backT]}
-          mat={m.main}
-        />
-      ))}
-      {/* 坐墊 + 靠墊 */}
-      {Array.from({ length: count }, (_, i) => {
-        const x = -innerW / 2 + cw * (i + 0.5)
-        return (
-          <group key={i}>
-            <Box pos={[x, baseTop + cushH / 2, backT / 2]} dims={[cw - 0.01, cushH, seatD - 0.01]} mat={m.main} />
-            <Box
-              pos={[x, baseTop + cushH + (h - baseTop - cushH) * 0.42, -d / 2 + backT + 0.07]}
-              dims={[cw - 0.02, (h - baseTop - cushH) * 0.8, 0.14]}
-              mat={m.main}
-            />
-          </group>
-        )
-      })}
+      <Soft parts={parts} m={m} />
       {/* 抱枕 */}
       {[-1, 1].slice(0, count > 1 ? 2 : 1).map((s) => (
         <group key={s} position={[s * (innerW / 2 - 0.2), baseTop + cushH + 0.17, -d / 2 + backT + 0.18]} rotation={[-0.25, s * 0.35, 0]}>
-          <Box pos={[0, 0, 0]} dims={[0.38, 0.38, 0.11]} mat={m.accent} />
+          <Soft parts={pillow} m={m} />
         </group>
       ))}
     </>
@@ -214,27 +231,34 @@ function CabinetGen({ w, h, d, count, niche, m }: GenProps) {
 
 function BedGen({ w, h, d, m }: GenProps) {
   const fh = 0.28
-  return (
-    <>
-      <Box pos={[0, fh / 2, 0]} dims={[w, fh, d]} mat={m.secondary} />
-      <Box pos={[0, fh + 0.11, 0.02]} dims={[w - 0.06, 0.22, d - 0.1]} mat={m.main} />
-      <Box pos={[0, h / 2, -d / 2 + 0.035]} dims={[w + 0.04, h, 0.08]} mat={m.secondary} />
-      <Box pos={[0, fh + 0.24, d * 0.18]} dims={[w - 0.04, 0.04, d * 0.6]} mat={m.accent} />
-      {[-1, 1].map((s) => (
-        <Box key={s} pos={[s * w * 0.22, fh + 0.27, -d / 2 + 0.3]} dims={[w * 0.38, 0.1, 0.4]} mat={m.main} />
-      ))}
-    </>
-  )
+  const parts = useMemo(() => {
+    const ps: Part[] = [
+      part('secondary', [0, fh / 2, 0], [w, fh, d], 0.03),
+      part('main', [0, fh + 0.11, 0.02], [w - 0.06, 0.22, d - 0.1], 0.08),
+      part('secondary', [0, h / 2, -d / 2 + 0.035], [w + 0.04, h, 0.08], 0.035),
+      part('accent', [0, fh + 0.24, d * 0.18], [w - 0.04, 0.04, d * 0.6], 0.018),
+    ]
+    for (const s of [-1, 1]) ps.push(part('main', [s * w * 0.22, fh + 0.27, -d / 2 + 0.3], [w * 0.38, 0.1, 0.4], 0.05))
+    return ps
+  }, [w, h, d])
+  return <Soft parts={parts} m={m} />
 }
 
 function ToiletGen({ w, h, d, m }: GenProps) {
   const tankD = d * 0.22
   const bowlD = d - tankD
+  const bz = d / 2 - bowlD / 2
+  const parts = useMemo(
+    () => [part('main', [0, h / 2, -d / 2 + tankD / 2], [w * 0.92, h, tankD], 0.035)],
+    [w, h, d, tankD],
+  )
   return (
     <>
-      <Box pos={[0, h / 2, -d / 2 + tankD / 2]} dims={[w * 0.92, h, tankD]} mat={m.main} />
-      <Box pos={[0, 0.2, d / 2 - bowlD / 2]} dims={[w * 0.9, 0.4, bowlD]} mat={m.main} />
-      <Box pos={[0, 0.415, d / 2 - bowlD / 2]} dims={[w * 0.96, 0.035, bowlD * 0.96]} mat={m.secondary} />
+      <Soft parts={parts} m={m} />
+      {/* 馬桶本體：橢圓截面 + 圓潤邊緣 */}
+      <RoundedEllipse pos={[0, 0, bz]} rx={(w * 0.9) / 2} rz={bowlD / 2} h={0.4} r={0.09} mat={m.main} />
+      {/* 座圈 */}
+      <RoundedEllipse pos={[0, 0.4, bz]} rx={(w * 0.96) / 2} rz={(bowlD * 0.96) / 2} h={0.035} r={0.0175} mat={m.secondary} />
     </>
   )
 }
