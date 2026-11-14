@@ -98,7 +98,7 @@ function FullPost({ children }: { children?: ReactNode }) {
         color="black"
       />
       {children}
-      {stage >= 2 ? <Bloom luminanceThreshold={1.1} luminanceSmoothing={0.05} intensity={0.5} mipmapBlur /> : <></>}
+      {stage >= 2 ? <Bloom luminanceThreshold={2} luminanceSmoothing={0.05} intensity={0.5} mipmapBlur /> : <></>}
       <WarmGrade />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <Vignette eskil={false} offset={0.1} darkness={0.35} />
