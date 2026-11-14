@@ -10,8 +10,8 @@ import { LEAN } from '../lib/lean'
  * 每盞燈 = 發光燈具外觀（emissive，供 Bloom 擷取）+ 對應物理光源。
  */
 
-/** 物理強度 → 畫面上看得出來的強度。正交俯視距離遠，需放大；原始規格 spot 25 / point 14 */
-const GAIN = 1.8
+/** 物理強度倍率（桌機）。1.8 會讓淺色橡木地板與白牆在 ACES 下大面積過曝（MacBook 回報），改 1.0；原始規格 spot 25 / point 9 */
+const GAIN = 1.0
 const EMISSIVE = '#fff5e0'
 const STRIP_COLOR = '#ffb46b' // 3000K 暖白
 
