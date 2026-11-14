@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 14,
+  "rev": 15,
   "name": "鴻築麗苑（柏毅 2026/10/19 施工圖）",
   "floor": {
     "center": [
@@ -341,7 +341,7 @@
     },
     {
       "id": "wall-s2",
-      "name": "半牆（客廳段 275，H120 厚11.5）",
+      "name": "南隔間牆（客廳段 275，原半牆 H120，依使用者要求補高到天花板）",
       "start": [
         -2.69,
         2.9425
@@ -350,7 +350,7 @@
         0.07,
         2.9425
       ],
-      "height": 1.2,
+      "height": 2.6,
       "thickness": 0.115,
       "exterior": false,
       "material": {
@@ -390,7 +390,7 @@
       "name": "電視牆（不預留貓道）",
       "start": [
         -1.26,
-        -1.63
+        -2.535
       ],
       "end": [
         -1.26,
@@ -410,19 +410,19 @@
       "id": "part-shaft",
       "name": "管道間（保留）",
       "start": [
-        -1.135,
+        -1.045,
         -2.535
       ],
       "end": [
-        -1.135,
+        -1.045,
         -1.63
       ],
       "height": 2.6,
-      "thickness": 0.43,
+      "thickness": 0.25,
       "exterior": false,
       "material": {
-        "color": "#cfcdc7",
-        "roughness": 0.9,
+        "color": "#e4e0d8",
+        "roughness": 0.85,
         "metalness": 0
       },
       "openings": []

@@ -17,6 +17,8 @@ export interface Part {
   dims: Vec3
   /** 導角半徑（預設 3 mm，會被限制在最小邊的 45% 內） */
   r?: number
+  /** 導角分段數（預設 2；軟件家具的大圓角用 3–4） */
+  seg?: number
 }
 
 export const BEVEL = 0.003
@@ -25,11 +27,11 @@ export const GAP = 0.003
 
 const cache = new Map<string, THREE.BufferGeometry>()
 
-function bevelBox(w: number, h: number, d: number, r: number): THREE.BufferGeometry {
-  const k = [w, h, d, r].map((n) => n.toFixed(4)).join('|')
+function bevelBox(w: number, h: number, d: number, r: number, seg = 2): THREE.BufferGeometry {
+  const k = [w, h, d, r, seg].map((n) => n.toFixed(4)).join('|')
   let g = cache.get(k)
   if (g) return g
-  g = new RoundedBoxGeometry(w, h, d, 2, r)
+  g = new RoundedBoxGeometry(w, h, d, seg, r)
   const pos = g.attributes.position as THREE.BufferAttribute
   const nor = g.attributes.normal as THREE.BufferAttribute
   const uv = g.attributes.uv as THREE.BufferAttribute
@@ -55,7 +57,7 @@ export function mergeParts(parts: Part[]): Partial<Record<PartMat, THREE.BufferG
     const [w, h, d] = p.dims
     if (w <= 0.0005 || h <= 0.0005 || d <= 0.0005) continue
     const r = Math.min(p.r ?? BEVEL, Math.min(w, h, d) * 0.45)
-    const g = bevelBox(w, h, d, r).clone()
+    const g = bevelBox(w, h, d, r, p.seg).clone()
     g.translate(p.pos[0], p.pos[1], p.pos[2])
     ;(groups[p.mat] ??= []).push(g)
   }
