@@ -1,5 +1,5 @@
 import { Check, ChevronDown, ChevronUp, Copy, Frame, Image as ImageIcon, Layers, Lock, Move, RotateCcw, RotateCw, Sofa, Trash2, X } from 'lucide-react'
-import { useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { deleteSelected, duplicateSelected, rotateSelected, toggleMoving } from '../store/actions'
 import { useLayout } from '../store/layoutStore'
 import { useUi, type MobileTab, type SheetState } from '../store/uiStore'
@@ -111,14 +111,12 @@ function RotationDock() {
 }
 
 const NAV_H = '44px'
+const PEEK_PX = 44
+// 面板固定為「全展開」高度，靠 transform: translateY 露出多少；高度從不變動（不觸發 layout），手指拖曳時由 JS 直接改 transform，與手指 1:1 跟手。
 // 三段：peek = 細橫桿（含標題與快速動作）、half = 18dvh、full = 整疊（含分頁列）不超過 32dvh
-const SHEET_H: Record<SheetState, string> = {
-  closed: '0px',
-  peek: '44px',
-  half: '18dvh',
-  full: `calc(32dvh - ${NAV_H} - env(safe-area-inset-bottom))`,
-}
+const FULL_H = `calc(32dvh - ${NAV_H} - env(safe-area-inset-bottom))`
 const ORDER: SheetState[] = ['closed', 'peek', 'half', 'full']
+const EASE = 'transform 320ms cubic-bezier(0.32, 0.72, 0, 1)'
 
 export function BottomSheet() {
   const tab = useUi((s) => s.mobileTab)
@@ -127,72 +125,172 @@ export function BottomSheet() {
   const openSheet = useUi((s) => s.openSheet)
   const setSheet = useUi((s) => s.setSheet)
   const title = useSelectionTitle()
-  const drag = useRef<{ y: number; start: SheetState } | null>(null)
   const moving = useUi((s) => s.moving)
   const hasFurniture = useLayout((s) => !!sel && sel.type === 'furniture' && s.layout.furniture.some((f) => f.id === sel.id))
+  const panel = useRef<HTMLDivElement>(null)
+  const drag = useRef<{ id: number; y0: number; off0: number; t0: number; pts: { y: number; t: number }[]; moved: boolean; start: SheetState } | null>(null)
+  const [dragging, setDragging] = useState(false)
+  const [, bump] = useState(0)
 
-  const shift = (dir: 1 | -1, from = sheet) => setSheet(ORDER[Math.min(ORDER.length - 1, Math.max(1, ORDER.indexOf(from) + dir))])
   const heading = tab === 'props' ? title : TABS.find((t) => t.id === tab)?.label
+
+  /** 各段露出的像素高度（面板全高 = 全展開） */
+  const snaps = useCallback((): Record<SheetState, number> => {
+    const full = panel.current?.offsetHeight ?? 0
+    const half = Math.min(full, Math.round(window.innerHeight * 0.18))
+    return { closed: 0, peek: PEEK_PX, half, full }
+  }, [])
+  const offsetFor = (st: SheetState) => {
+    const full = panel.current?.offsetHeight ?? 0
+    return full - snaps()[st] // translateY 量：0 = 全展開
+  }
+
+  const place = useCallback((off: number, animate: boolean) => {
+    const el = panel.current
+    if (!el) return
+    el.style.transition = animate ? EASE : 'none'
+    el.style.transform = `translate3d(0, ${off}px, 0)`
+  }, [])
+
+  // 狀態變化 / 視窗尺寸改變 → 動畫到對應的段
+  useLayoutEffect(() => {
+    place(offsetFor(sheet), !drag.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheet, place, bump])
+  useEffect(() => {
+    const on = () => bump((n) => n + 1)
+    window.addEventListener('resize', on)
+    return () => window.removeEventListener('resize', on)
+  }, [])
+
+  const settle = (target: SheetState) => {
+    if (target === sheet) place(offsetFor(target), true)
+    else setSheet(target)
+  }
+
+  const onDown = (e: React.PointerEvent) => {
+    if ((e.target as Element).closest('button')) return
+    ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
+    const cur = new DOMMatrixReadOnly(getComputedStyle(panel.current!).transform).m42 // 動畫途中接手也不跳
+    drag.current = { id: e.pointerId, y0: e.clientY, off0: cur, t0: e.timeStamp, pts: [{ y: e.clientY, t: e.timeStamp }], moved: false, start: sheet }
+    place(cur, false)
+  }
+  const onMove = (e: React.PointerEvent) => {
+    const d = drag.current
+    if (!d || d.id !== e.pointerId) return
+    const dy = e.clientY - d.y0
+    if (!d.moved && Math.abs(dy) < 4) return
+    if (!d.moved) {
+      d.moved = true
+      setDragging(true) // peek 時內容尚未掛載，拖曳開始才掛載
+    }
+    d.pts.push({ y: e.clientY, t: e.timeStamp })
+    if (d.pts.length > 6) d.pts.shift()
+    const full = panel.current!.offsetHeight
+    let off = d.off0 + dy
+    const minOff = 0
+    const maxOff = full - snaps().peek
+    if (off < minOff) off = minOff + (off - minOff) * 0.25 // 越界阻尼
+    else if (off > maxOff) off = maxOff + (off - maxOff) * 0.25
+    place(off, false)
+  }
+  const onUp = (e: React.PointerEvent) => {
+    const d = drag.current
+    if (!d || d.id !== e.pointerId) return
+    drag.current = null
+    setDragging(false)
+    if (!d.moved) {
+      // 點一下：循環展開 / 收合
+      const n = Math.min(ORDER.length - 1, Math.max(1, ORDER.indexOf(d.start) + (d.start === 'full' ? -1 : 1)))
+      settle(ORDER[n])
+      return
+    }
+    const cur = new DOMMatrixReadOnly(getComputedStyle(panel.current!).transform).m42
+    const first = d.pts[0]
+    const last = d.pts[d.pts.length - 1]
+    const v = last.t > first.t ? (last.y - first.y) / (last.t - first.t) : 0 // px/ms，向下為正
+    // 依「投影落點」(位置 + 速度 × 120ms) 吸附到最近的一段，快速甩動可跳段
+    const proj = cur + v * 120
+    const sn = snaps()
+    const full = panel.current!.offsetHeight
+    let best: SheetState = 'peek'
+    let bd = Infinity
+    for (const st of ['peek', 'half', 'full'] as const) {
+      const dist = Math.abs(proj - (full - sn[st]))
+      if (dist < bd) {
+        bd = dist
+        best = st
+      }
+    }
+    settle(best)
+  }
+  const onCancel = () => {
+    if (!drag.current) return
+    drag.current = null
+    setDragging(false)
+    place(offsetFor(sheet), true)
+  }
+
+  const showBody = sheet !== 'peek' || dragging
+  const reveal = panel.current ? snaps()[sheet] : 0
+  const hidden = panel.current ? panel.current.offsetHeight - reveal : 0
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex flex-col">
-      <RotationDock />
-
-      {/* 面板 */}
-      <div
-        className="glass sheet-compact pointer-events-auto mx-1 flex flex-col overflow-hidden rounded-t-2xl text-slate-100 shadow-[0_-8px_30px_rgba(0,0,0,0.35)] transition-[height] duration-200"
-        style={{ height: SHEET_H[sheet], visibility: sheet === 'closed' ? 'hidden' : 'visible' }}
-      >
+      {/* 面板（高度固定為全展開；外層裁切，讓下滑時被分頁列遮住而不是疊在它上面） */}
+      <div className="pointer-events-none relative mx-1 shrink-0" style={{ height: FULL_H, visibility: sheet === 'closed' ? 'hidden' : 'visible', clipPath: 'inset(-90px 0 0 0)' }}>
         <div
-          className="flex shrink-0 touch-none flex-col items-center pt-1"
-          onPointerDown={(e) => {
-            if ((e.target as Element).closest('button')) return
-            ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
-            drag.current = { y: e.clientY, start: sheet }
-          }}
-          onPointerUp={(e) => {
-            const d = drag.current
-            drag.current = null
-            if (!d) return
-            const dy = e.clientY - d.y
-            if (Math.abs(dy) < 8) shift(d.start === 'full' ? -1 : 1, d.start)
-            else shift(dy < 0 ? 1 : -1, d.start)
-          }}
+          ref={panel}
+          className="glass sheet-compact pointer-events-auto absolute inset-x-0 bottom-0 flex h-full flex-col rounded-t-2xl text-slate-100 shadow-[0_-8px_30px_rgba(0,0,0,0.35)]"
+          style={{ willChange: 'transform' }}
         >
-          <span className="h-1 w-9 rounded-full bg-slate-500" />
-          <div className="flex h-8 w-full items-center gap-1 px-2.5">
-            <h2 className="min-w-0 flex-1 truncate text-xs font-semibold">{heading}</h2>
-            {hasFurniture && (
-              <>
-                <button
-                  onClick={() => toggleMoving()}
-                  className={cx('flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-semibold', moving ? 'bg-amber-400 text-slate-900' : 'bg-white/10 active:bg-white/20')}
-                >
-                  {moving ? <Check size={13} /> : <Move size={13} />}
-                  {moving ? '完成' : '移動'}
-                </button>
-                <button aria-label="旋轉 90°" className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 active:bg-white/20" onClick={() => rotateSelected(90)}>
-                  <RotateCw size={14} />
-                </button>
-                <button aria-label="複製" className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 active:bg-white/20" onClick={duplicateSelected}>
-                  <Copy size={14} />
-                </button>
-                <button aria-label="刪除" className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-red-300 active:bg-white/20" onClick={deleteSelected}>
-                  <Trash2 size={14} />
-                </button>
-              </>
-            )}
-            {sheet === 'peek' ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+          {/* 旋轉角度列：固定在抽屜頂緣上方，隨抽屜一起移動 */}
+          <div className="absolute inset-x-0 bottom-full">
+            <RotationDock />
           </div>
+          <div
+            className="flex shrink-0 touch-none flex-col items-center pt-1"
+            onPointerDown={onDown}
+            onPointerMove={onMove}
+            onPointerUp={onUp}
+            onPointerCancel={onCancel}
+          >
+            <span className="h-1 w-9 rounded-full bg-slate-500" />
+            <div className="flex h-8 w-full items-center gap-1 px-2.5">
+              <h2 className="min-w-0 flex-1 truncate text-xs font-semibold">{heading}</h2>
+              {hasFurniture && (
+                <>
+                  <button
+                    onClick={() => toggleMoving()}
+                    className={cx('flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-semibold', moving ? 'bg-amber-400 text-slate-900' : 'bg-white/10 active:bg-white/20')}
+                  >
+                    {moving ? <Check size={13} /> : <Move size={13} />}
+                    {moving ? '完成' : '移動'}
+                  </button>
+                  <button aria-label="旋轉 90°" className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 active:bg-white/20" onClick={() => rotateSelected(90)}>
+                    <RotateCw size={14} />
+                  </button>
+                  <button aria-label="複製" className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 active:bg-white/20" onClick={duplicateSelected}>
+                    <Copy size={14} />
+                  </button>
+                  <button aria-label="刪除" className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-red-300 active:bg-white/20" onClick={deleteSelected}>
+                    <Trash2 size={14} />
+                  </button>
+                </>
+              )}
+              {sheet === 'peek' ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+            </div>
+          </div>
+          {showBody && (
+            // 底部補上「被推到畫面外的高度」，捲到底時最後一項不會被裁掉
+            <div className="scroll-thin min-h-0 flex-1 overflow-y-auto overscroll-contain" style={{ paddingBottom: hidden + 8 }}>
+              {tab === 'catalog' && <CatalogPanel />}
+              {tab === 'blueprint' && <BlueprintPanel />}
+              {tab === 'reference' && <ReferencePanel />}
+              {tab === 'props' && <PropertiesPanel />}
+            </div>
+          )}
         </div>
-        {sheet !== 'peek' && (
-          <div className="scroll-thin min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2">
-            {tab === 'catalog' && <CatalogPanel />}
-            {tab === 'blueprint' && <BlueprintPanel />}
-            {tab === 'reference' && <ReferencePanel />}
-            {tab === 'props' && <PropertiesPanel />}
-          </div>
-        )}
       </div>
 
       {/* 分頁列 */}

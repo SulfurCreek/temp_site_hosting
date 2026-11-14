@@ -1,6 +1,7 @@
 import { Canvas, events as createPointerEvents, useThree, type RootState } from '@react-three/fiber'
 import type { UseBoundStore, StoreApi } from 'zustand'
 import { Suspense, useEffect, useState } from 'react'
+import { SceneReady } from '../ui/LoadingScreen'
 import * as THREE from 'three'
 import { useLayout } from '../store/layoutStore'
 import { useUi } from '../store/uiStore'
@@ -145,6 +146,7 @@ function SceneCanvas({ attrs, safe }: { attrs: WebGLContextAttributes; safe: 0 |
         {!fp && <Gizmo />}
         <MepLayer />
         <CalibrationLayer />
+        <SceneReady />
       </Suspense>
       <PostFX>{fp && <DepthOfFieldFx />}</PostFX>
     </Canvas>
